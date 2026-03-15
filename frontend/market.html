@@ -1,0 +1,1157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>SmartFarm AI – Market Prices</title>
+<link rel="stylesheet" href="css/style.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+.market-card{
+  border-radius:var(--rl);overflow:hidden;
+  background:var(--dk2);border:1px solid var(--bd);
+  cursor:pointer;transition:all .3s var(--ease);
+  position:relative;
+}
+.market-card:hover{transform:translateY(-7px);box-shadow:0 22px 56px rgba(0,0,0,.45);}
+.market-card.sel{border-color:var(--g);box-shadow:0 0 0 2px rgba(61,186,114,.2);}
+.mc-thumb{width:100%;height:140px;object-fit:cover;display:block;filter:brightness(.55) saturate(1.2);transition:filter .4s,transform .5s;}
+.market-card:hover .mc-thumb,.market-card.sel .mc-thumb{filter:brightness(.75) saturate(1.3);transform:scale(1.06);}
+.mc-ov{position:absolute;top:0;left:0;right:0;height:140px;background:linear-gradient(180deg,transparent 35%,rgba(17,22,18,.98) 100%);}
+.mc-top{position:absolute;top:10px;right:10px;}
+.mc-body{padding:16px;}
+.mc-name{font-family:'Cormorant Garamond',serif;font-size:1.25rem;font-weight:700;color:var(--cream);margin-bottom:4px;}
+.mc-price{font-family:'Cormorant Garamond',serif;font-size:1.6rem;font-weight:700;color:var(--g);line-height:1;}
+.mc-unit{font-size:.72rem;color:var(--txm);margin-left:4px;}
+.mc-delta{font-size:.78rem;font-weight:700;margin-top:5px;}
+.mc-sparkline{display:flex;align-items:flex-end;gap:3px;height:30px;margin-top:12px;}
+.spark-bar{flex:1;border-radius:2px 2px 0 0;min-height:4px;transition:height .5s var(--ease);}
+
+.big-chart-wrap{
+  background:var(--dk2);border-radius:var(--rl);
+  border:1px solid var(--bd);padding:28px;
+  margin-bottom:28px;
+}
+.chart-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px;}
+
+.advice-banner{
+  display:flex;align-items:flex-start;gap:14px;
+  padding:18px 22px;border-radius:var(--r);
+  background:linear-gradient(135deg,rgba(61,186,114,.08),rgba(61,186,114,.04));
+  border:1px solid rgba(61,186,114,.2);
+  margin-top:16px;
+}
+
+/* scheme-card styles moved to style.css */
+.crop-tag{
+  padding:7px 14px;border-radius:20px;
+  font-size:.78rem;font-weight:600;cursor:pointer;
+  border:1.5px solid var(--bd);color:var(--txm);
+  background:var(--dk3);transition:all .25s;
+  display:inline-flex;align-items:center;gap:5px;
+}
+.crop-tag:hover{
+  border-color:var(--g);color:var(--g);
+  background:rgba(61,186,114,.08);
+  transform:translateY(-1px);
+}
+.crop-tag.active{
+  border-color:var(--g);color:var(--g);
+  background:rgba(61,186,114,.12);
+}
+
+/* State scheme search box */
+.state-scheme-box{
+  background:var(--dk2);border-radius:var(--rl);
+  border:1px solid var(--bd);padding:28px 32px;
+  margin-bottom:32px;
+}
+.ssb-title{
+  font-family:'Cormorant Garamond',serif;
+  font-size:1.5rem;font-weight:700;color:var(--cream);
+  margin-bottom:6px;
+}
+.ssb-sub{font-size:.84rem;color:var(--txm);margin-bottom:20px;}
+</style>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#3dba72">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="SmartFarm AI">
+<script>if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js').then(()=>console.log('[PWA] SW registered')).catch(e=>console.warn('[PWA] SW failed:',e));}</script>
+<script src="/js/smartfarm.js"></script>
+<script>
+// AcqireAI config — set GROQ key if available
+// In production, inject via server-side template or env
+window.GROQ_API_KEY = window.GROQ_API_KEY || '';
+</script>
+
+<style>
+/* ── Language Switcher ── */
+.lang-switcher {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+.lang-btn {
+  display: inline-flex;align-items:center;gap:6px;
+  padding:6px 12px;border-radius:20px;
+  border:1px solid rgba(232,237,229,0.2);
+  background:transparent;cursor:pointer;
+  font-size:.72rem;font-weight:700;
+  color:var(--tx);transition:all .25s;
+  font-family:Outfit,sans-serif;
+  white-space:nowrap;
+}
+.lang-btn:hover{border-color:var(--g);color:var(--g);}
+.lang-btn svg{width:13px;height:13px;opacity:.7;}
+.lang-dropdown {
+  display:none;position:absolute;top:calc(100% + 8px);right:0;
+  background:var(--dk2);border:1px solid var(--bd2);
+  border-radius:12px;overflow:hidden;
+  box-shadow:0 12px 40px rgba(0,0,0,.4);
+  z-index:1000;min-width:160px;
+  animation:ddFade .2s ease;
+}
+@keyframes ddFade{from{opacity:0;transform:translateY(-6px);}to{opacity:1;transform:none;}}
+.lang-dropdown.open{display:block;}
+.lang-option {
+  display:flex;align-items:center;gap:10px;
+  padding:10px 16px;cursor:pointer;
+  font-size:.82rem;font-weight:500;color:var(--tx);
+  transition:background .2s;border:none;background:none;
+  width:100%;text-align:left;font-family:Outfit,sans-serif;
+}
+.lang-option:hover{background:rgba(61,186,114,.1);color:var(--g);}
+.lang-option.active{color:var(--g);font-weight:700;}
+.lang-option .lang-flag{font-size:1rem;}
+.lang-option .lang-name{flex:1;}
+.lang-option .lang-native{font-size:.72rem;color:var(--txm);}
+/* Hide Google's default widget bar */
+.goog-te-banner-frame{display:none!important;}
+.goog-te-menu-value span{color:var(--g)!important;}
+body{top:0!important;}
+.skiptranslate{display:none!important;}
+#google_translate_element{display:none!important;}
+</style>
+</head>
+<body>
+<div class="cursor" id="cur"></div><div class="cursor-ring" id="curRing"></div>
+<nav class="nav" id="nav">
+  <a href="index.html" class="nav-logo"><svg viewBox="0 0 36 36" fill="none"><circle cx="18" cy="18" r="17" stroke="rgba(61,186,114,0.22)" stroke-width="1"/><path d="M18 7 C13 11 9 17 10 23 C12 27 16 29 18 29 C20 29 24 27 26 23 C27 17 23 11 18 7Z" fill="rgba(61,186,114,0.12)" stroke="#3dba72" stroke-width="1.2"/><line x1="18" y1="29" x2="18" y2="34" stroke="#3dba72" stroke-width="1.5" stroke-linecap="round"/></svg><span class="nav-logo-t">SmartFarm <span>AI</span></span></a>
+  <ul class="nav-links" id="navLinks">
+    <li><a href="index.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>Home</a></li>
+    <li><a href="weather.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 10h-1.26A8 8 0 109 20h9a5 5 0 000-10z"/></svg>Weather</a></li>
+    <li><a href="soil.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>Soil</a></li>
+    <li><a href="disease.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Disease</a></li>
+    <li><a href="market.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Market</a></li>
+    <li><a href="harvest.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Harvest</a></li>
+  </ul>
+  <div class="nav-r"><a href="index.html" class="npill npo">← Home</a><a href="harvest.html" class="npill nps">Predict Harvest</a><div class="hburg" id="hburg"><span></span><span></span><span></span></div></div>
+</nav>
+
+<div class="page-wrap">
+  <div class="page-hero">
+    <div class="ph-bg" style="background-image:url('https://images.unsplash.com/photo-1542838132-92c53300491e?w=1600&q=80');"></div>
+    <div class="ph-grad"></div><div class="ph-grad2"></div>
+    <div class="ph-content">
+      <div class="ph-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Market Module</div>
+      <h1 class="ph-h1">Live Market<br><em>Price Intelligence</em></h1>
+      <p class="ph-p">Real-time commodity prices, 5-week trends, AI-powered selling advice and government scheme access — all in one dashboard.</p>
+      <div class="ph-acts">
+        <button class="btn-p" onclick="refreshPrices()"><svg class="bi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>Refresh Prices</button>
+        <button class="btn-s" onclick="document.getElementById('schemeSec').scrollIntoView({behavior:'smooth'})"><svg class="bi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>Govt Schemes</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SUMMARY BAR -->
+  <div style="background:var(--dk3);border-bottom:1px solid var(--bd);padding:18px 5.5%;">
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0;" id="summaryBar"></div>
+  </div>
+
+  <section class="section">
+    <!-- PRICE CARDS GRID -->
+    <!-- COMMODITY SEARCH -->
+    <div class="card reveal" style="background:var(--dk2);padding:22px 26px;margin-bottom:28px;">
+      <!-- Row 1: label + search + button -->
+      <label style="font-size:.7rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--txm);display:block;margin-bottom:10px;">🔍 Search Any Commodity</label>
+      <div style="display:flex;gap:10px;margin-bottom:14px;">
+        <input type="text" id="searchInput" placeholder="e.g. Banana, Turmeric, Pepper, Cardamom..."
+          style="flex:1;background:var(--dk3);border:1.5px solid var(--bd);border-radius:var(--r);padding:12px 16px;color:var(--tx);font-family:Outfit,sans-serif;font-size:.9rem;outline:none;min-width:0;"
+          onfocus="this.style.borderColor='var(--g)'"
+          onblur="this.style.borderColor='var(--bd)'"
+          onkeydown="if(event.key==='Enter')searchCommodity()">
+        <button class="btn-p" onclick="searchCommodity()" style="padding:12px 28px;white-space:nowrap;flex-shrink:0;">Analyse Rate</button>
+      </div>
+      <!-- Row 2: quick pills -->
+      <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
+        <span style="font-size:.68rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--txm);flex-shrink:0;">Quick:</span>
+        <button class="crop-tag" onclick="quickSearch('Turmeric');setActive(this)"><img src="https://images.unsplash.com/photo-1615485500704-8e990f9900f7?w=28&h=28&fit=crop&crop=center" style="width:18px;height:18px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:4px;">Turmeric</button>
+        <button class="crop-tag" onclick="quickSearch('Pepper');setActive(this)"><img src="https://images.unsplash.com/photo-1599909631583-1cd8e4a8d9a5?w=28&h=28&fit=crop&crop=center" style="width:18px;height:18px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:4px;">Pepper</button>
+        <button class="crop-tag" onclick="quickSearch('Banana');setActive(this)"><img src="https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=28&h=28&fit=crop&crop=center" style="width:18px;height:18px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:4px;">Banana</button>
+        <button class="crop-tag" onclick="quickSearch('Sugarcane');setActive(this)"><img src="https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=28&h=28&fit=crop&crop=center" style="width:18px;height:18px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:4px;">Sugarcane</button>
+        <button class="crop-tag" onclick="quickSearch('Chilli');setActive(this)"><img src="https://images.unsplash.com/photo-1583119022894-919a68a3d0e3?w=28&h=28&fit=crop&crop=center" style="width:18px;height:18px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:4px;">Chilli</button>
+        <button class="crop-tag" onclick="quickSearch('Tomato');setActive(this)"><img src="https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=28&h=28&fit=crop&crop=center" style="width:18px;height:18px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:4px;">Tomato</button>
+        <button class="crop-tag" onclick="quickSearch('Onion');setActive(this)"><img src="https://images.unsplash.com/photo-1618512496248-a07fe83aa8cb?w=28&h=28&fit=crop&crop=center" style="width:18px;height:18px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:4px;">Onion</button>
+        <button class="crop-tag" onclick="quickSearch('Cardamom');setActive(this)"><img src="https://images.unsplash.com/photo-1509358271058-acd22cc93898?w=28&h=28&fit=crop&crop=center" style="width:18px;height:18px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:4px;">Cardamom</button>
+        <button class="crop-tag" onclick="quickSearch('Coconut');setActive(this)"><img src="https://images.unsplash.com/photo-1550583724-b2692b85b150?w=28&h=28&fit=crop&crop=center" style="width:18px;height:18px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:4px;">Coconut</button>
+        <button class="crop-tag" onclick="quickSearch('Rice');setActive(this)"><img src="https://images.unsplash.com/photo-1536657464919-892534f60d6e?w=28&h=28&fit=crop&crop=center" style="width:18px;height:18px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:4px;">Rice</button>
+        <button class="crop-tag" onclick="quickSearch('Wheat');setActive(this)"><img src="https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=28&h=28&fit=crop&crop=center" style="width:18px;height:18px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:4px;">Wheat</button>
+      </div>
+    </div>
+    <!-- SEARCH RESULT -->
+    <div id="searchResult" style="display:none;margin-bottom:28px;"></div>
+
+    <div class="s-eye reveal"><div class="s-eye-l"></div><span>Live Prices</span></div>
+    <h2 class="s-title reveal" style="margin-bottom:24px;">Today's Commodity Prices</h2>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:40px;" id="priceCards" class="reveal"></div>
+
+    <!-- CHART SECTION -->
+    <div class="reveal">
+      <div class="s-eye"><div class="s-eye-l"></div><span>Trend Analysis</span></div>
+      <h2 class="s-title" style="margin-bottom:20px;">5-Week Price Trend</h2>
+      <div class="big-chart-wrap">
+        <div class="chart-header">
+          <div>
+            <div id="chartCropName" style="font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-weight:700;color:var(--cream);">Click a crop card to view trend</div>
+            <div id="chartCropUnit" style="font-size:.78rem;color:var(--txm);margin-top:3px;"></div>
+          </div>
+          <div id="chartTags" style="display:flex;gap:8px;flex-wrap:wrap;"></div>
+        </div>
+        <canvas id="mChart" height="90"></canvas>
+        <div id="adviceBanner" class="advice-banner" style="display:none;">
+          <div class="icon-box ib-g" style="flex-shrink:0;"><svg viewBox="0 0 24 24" fill="none" stroke="#3dba72" stroke-width="2"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3M6.343 6.343l-.707-.707M12 21v-1M18.364 18.364l-.707-.707M5.636 18.364l-.707-.707"/></svg></div>
+          <div>
+            <div style="font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--g);margin-bottom:5px;">AI Selling Advice</div>
+            <div id="adviceText" style="font-size:.9rem;color:var(--tx);line-height:1.65;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TABLE -->
+    <div class="reveal">
+      <div class="s-eye"><div class="s-eye-l"></div><span>Full Price Table</span></div>
+      <h2 class="s-title" style="margin-bottom:18px;">All Commodity Prices</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Commodity</th><th>Price</th><th>Prev. Week</th><th>Change</th><th>AI Advice</th></tr></thead>
+          <tbody id="priceTable"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- STATE SCHEME SEARCH ─────────────────────────────── -->
+    <div class="state-scheme-box reveal" style="margin-top:60px;">
+      <div class="s-eye" style="margin-bottom:10px;"><div class="s-eye-l"></div><span>Powered by FarmAI</span></div>
+      <div class="ssb-title">Find Schemes for Your State</div>
+      <p class="ssb-sub">Farmers from any state in India — type your state name and FarmAI will instantly find the most relevant government schemes for you.</p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+        <input type="text" id="stateInput"
+          placeholder="e.g. Punjab, Maharashtra, Karnataka, Uttar Pradesh…"
+          style="flex:1;min-width:220px;background:var(--dk3);border:1.5px solid var(--bd);border-radius:var(--r);padding:13px 18px;color:var(--tx);font-family:Outfit,sans-serif;font-size:.9rem;outline:none;"
+          onfocus="this.style.borderColor='var(--g)'"
+          onblur="this.style.borderColor='var(--bd)'"
+          onkeydown="if(event.key==='Enter')analyseStateSchemes()">
+        <button class="btn-p" onclick="analyseStateSchemes()" style="padding:13px 26px;white-space:nowrap;">
+          <svg class="bi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          Analyse Schemes
+        </button>
+      </div>
+      <!-- quick state pills -->
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;">
+        <span style="font-size:.7rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--txm);align-self:center;">States:</span>
+        <button class="crop-tag" onclick="setStateAndSearch('Tamil Nadu')">Tamil Nadu</button>
+        <button class="crop-tag" onclick="setStateAndSearch('Punjab')">Punjab</button>
+        <button class="crop-tag" onclick="setStateAndSearch('Maharashtra')">Maharashtra</button>
+        <button class="crop-tag" onclick="setStateAndSearch('Karnataka')">Karnataka</button>
+        <button class="crop-tag" onclick="setStateAndSearch('Uttar Pradesh')">Uttar Pradesh</button>
+        <button class="crop-tag" onclick="setStateAndSearch('West Bengal')">West Bengal</button>
+      </div>
+      <!-- Result area -->
+      <div id="stateSchemeLoading" style="display:none;text-align:center;padding:32px 0;">
+        <div class="spinner" style="width:28px;height:28px;border-width:3px;margin:0 auto 12px;"></div>
+        <p style="color:var(--txm);font-size:.84rem;" id="stateSchemeLoadingTxt">FarmAI is finding schemes…</p>
+      </div>
+      <div id="stateSchemeResult" style="display:none;margin-top:22px;"></div>
+    </div>
+
+    <!-- SCHEMES — FarmAI powered, Tamil Nadu state-level -->
+    <div id="schemeSec" style="margin-top:40px;" class="reveal">
+      <div class="s-eye"><div class="s-eye-l"></div><span>Tamil Nadu · Government Support</span></div>
+      <h2 class="s-title" style="margin-bottom:8px;">State &amp; Central Schemes for Farmers</h2>
+      <p id="schemeSubtitle" style="color:var(--txm);font-size:.85rem;margin-bottom:26px;">AI-curated Tamil Nadu state &amp; Central government schemes for farmers.</p>
+      <!-- Loading -->
+      <div id="schemeLoading" style="display:none;text-align:center;padding:40px 0;">
+        <div class="spinner" style="width:30px;height:30px;border-width:3px;margin:0 auto 14px;"></div>
+        <p style="color:var(--txm);font-size:.85rem;">FarmAI is finding the best schemes for Tamil Nadu farmers…</p>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;" id="schemeGrid"></div>
+    </div>
+  </section>
+</div>
+
+<footer class="footer">
+  <div class="fg"><div><div class="fb-name"><svg width="26" height="26" viewBox="0 0 36 36" fill="none"><path d="M18 6 C13 10 9 16 10 22 C12 26 16 28 18 28 C20 28 24 26 26 22 C27 16 23 10 18 6Z" fill="rgba(61,186,114,.18)" stroke="#3dba72" stroke-width="1.4"/><line x1="18" y1="28" x2="18" y2="34" stroke="#3dba72" stroke-width="1.5" stroke-linecap="round"/></svg>SmartFarm <span>AI</span></div><p class="fb-tag">AI-powered agricultural decision support. Niral Thiruvizha 3.0.</p></div>
+  <div class="fc"><h5>Modules</h5><ul><li><a href="weather.html">Weather</a></li><li><a href="soil.html">Soil</a></li><li><a href="disease.html">Disease</a></li><li><a href="market.html">Market</a></li><li><a href="harvest.html">Harvest</a></li></ul></div>
+  <div class="fc"><h5>Price Sources</h5><ul><li><a href="https://agmarknet.gov.in" target="_blank">Agmarknet</a></li><li><a href="https://www.enam.gov.in" target="_blank">e-NAM</a></li><li><a href="https://farmer.gov.in" target="_blank">Farmer Portal</a></li></ul></div>
+  <div class="fc"><h5>Team</h5><ul><li><a href="#">Kalaiselvi M</a></li><li><a href="#">Akalya R</a></li><li><a href="#">Asika M</a></li><li><a href="#">Dhatchineswaran D</a></li></ul></div></div>
+  <div class="fbot"><span>© 2025 SmartFarm AI · Niral Thiruvizha 3.0</span></div>
+</footer>
+
+<script src="js/script.js"></script>
+<script>
+// Normalise crop name for image lookup (handles "Rice (Paddy)" etc.)
+function getCropImg(name){ return CROP_IMGS[name] || CROP_IMGS[name.split(' ')[0]] || ''; }
+const CROP_IMGS={
+  Wheat:    'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=400&q=70',
+  Rice:     'https://images.unsplash.com/photo-1586201375761-83865001e31c?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+  Cotton:   'https://images.unsplash.com/photo-1605000797499-95a51c5269ae?w=400&q=70',
+  Maize:    'https://images.unsplash.com/photo-1550055228-8490210c080d?w=400&q=70',
+  Soybean:  'https://images.unsplash.com/photo-1599420186946-7b6fb4e297f0?w=400&q=70',
+  Groundnut:'https://plus.unsplash.com/premium_photo-1668420870736-168a5a5c79a0?q=80&w=774&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+  Tomato:   'https://images.unsplash.com/photo-1592841200221-a6898f307baa?w=400&q=70',
+  Onion:    'https://images.unsplash.com/photo-1518977956812-cd3dbadaaf31?w=400&q=70',
+};
+
+let chart=null;
+
+// Summary bar
+const best=MARKET_DATA.reduce((a,b)=>((b.price-b.prev)/b.prev)>((a.price-a.prev)/a.prev)?b:a);
+const sellSignals=MARKET_DATA.filter(c=>c.price>=c.prev).length;
+document.getElementById('summaryBar').innerHTML=[
+  {l:'Best Performer Today',v:best.name,sub:`+${(((best.price-best.prev)/best.prev)*100).toFixed(1)}%`,c:'#4ade80'},
+  {l:'Prices Updated',v:'Today',sub:'Agmarknet · data.gov.in',c:'var(--g)'},
+  {l:'Crops Tracked',v:MARKET_DATA.length,sub:'Commodities monitored',c:'var(--g)'},
+  {l:'Sell Signals Active',v:sellSignals,sub:`${MARKET_DATA.length-sellSignals} hold signals`,c:'#c9a84c'},
+].map(s=>`
+  <div style="text-align:center;padding:16px;border-right:1px solid var(--bd);">
+    <div style="font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:700;color:${s.c};line-height:1;">${s.v}</div>
+    <div style="font-size:.67rem;text-transform:uppercase;letter-spacing:.08em;color:var(--txm);margin-top:4px;">${s.l}</div>
+    <div style="font-size:.72rem;color:var(--txm);margin-top:2px;">${s.sub}</div>
+  </div>`).join('');
+
+// Price cards
+document.getElementById('priceCards').innerHTML=MARKET_DATA.map((c,i)=>{
+  const up=c.price>=c.prev;
+  const pct=(((c.price-c.prev)/c.prev)*100).toFixed(1);
+  const maxT=Math.max(...c.trend),minT=Math.min(...c.trend);
+  const sparks=c.trend.map(v=>Math.max(10,Math.round(((v-minT)/(maxT-minT||1))*100))).join(',');
+  return `
+  <div class="market-card" onclick="showChart(${i})" id="mc${i}">
+    <img class="mc-thumb" src="${getCropImg(c.name)||''}" alt="${c.name}">
+    <div class="mc-ov"></div>
+    <div class="mc-top"><div class="tag ${up?'tag-g':'tag-r'}">${up?'↑ SELL':'↓ HOLD'}</div></div>
+    <div class="mc-body">
+      <div class="mc-name">${c.name}</div>
+      <div class="mc-price">₹${c.price.toLocaleString('en-IN')}<span class="mc-unit">${c.unit}</span></div>
+      <div class="mc-delta ${up?'sc-up':'sc-dn'}">${up?'↑':'↓'} ${Math.abs(pct)}% vs last week</div>
+      <div class="mc-sparkline">${c.trend.map(v=>{const h=Math.max(4,Math.round(((v-minT)/(maxT-minT||1))*26));return `<div class="spark-bar" style="height:${h}px;background:${up?'rgba(74,222,128,.5)':'rgba(248,113,113,.5)'}"></div>`;}).join('')}</div>
+    </div>
+  </div>`;
+}).join('');
+
+// Price table
+document.getElementById('priceTable').innerHTML=MARKET_DATA.map(c=>{
+  const up=c.price>=c.prev;
+  const ch=c.price-c.prev;
+  const pct=(((c.price-c.prev)/c.prev)*100).toFixed(1);
+  return `<tr>
+    <td><div style="display:flex;align-items:center;gap:10px;"><img src="${getCropImg(c.name)||''}" style="width:32px;height:32px;border-radius:6px;object-fit:cover;filter:brightness(.7);" alt=""><strong>${c.name}</strong></div></td>
+    <td><strong style="font-family:'Cormorant Garamond',serif;font-size:1.1rem;color:var(--cream);">₹${c.price.toLocaleString('en-IN')}</strong> <span style="font-size:.72rem;color:var(--txm);">${c.unit}</span></td>
+    <td style="color:var(--txm);">₹${c.prev.toLocaleString('en-IN')}</td>
+    <td><span style="color:${up?'#4ade80':'#f87171'};font-weight:700;">${up?'+':''}${ch.toLocaleString('en-IN')} (${up?'+':''}${pct}%)</span></td>
+    <td><div class="tag ${up?'tag-g':'tag-gold'}" style="font-size:.7rem;">${c.advice.split('.')[0]}</div></td>
+  </tr>`;
+}).join('');
+
+// Chart
+Chart.defaults.color='rgba(232,237,229,0.5)';
+Chart.defaults.borderColor='rgba(232,237,229,0.05)';
+const ctx=document.getElementById('mChart').getContext('2d');
+chart=new Chart(ctx,{
+  type:'line',
+  data:{labels:['4 Wks Ago','3 Wks Ago','2 Wks Ago','Last Week','This Week'],datasets:[{data:[],borderColor:'#3dba72',backgroundColor:'rgba(61,186,114,.06)',borderWidth:2.5,tension:.4,fill:true,pointBackgroundColor:'#3dba72',pointRadius:5,pointHoverRadius:8}]},
+  options:{
+    responsive:true,
+    plugins:{legend:{display:false},tooltip:{mode:'index'}},
+    scales:{
+      y:{grid:{color:'rgba(232,237,229,.05)'},ticks:{color:'rgba(232,237,229,.5)',callback:v=>'₹'+v.toLocaleString('en-IN')}},
+      x:{grid:{color:'rgba(232,237,229,.04)'},ticks:{color:'rgba(232,237,229,.5)'}}
+    }
+  }
+});
+
+function showChart(i){
+  document.querySelectorAll('.market-card').forEach(c=>c.classList.remove('sel'));
+  const cardEl = document.getElementById('mc'+i);
+  if(cardEl) cardEl.classList.add('sel');
+  const c = MARKET_DATA[i];
+  if(!c) return;
+  const up  = c.price >= c.prev;
+  const pct = c.prev ? (((c.price-c.prev)/c.prev)*100).toFixed(1) : '0.0';
+
+  // Update chart data
+  chart.data.datasets[0].data            = c.trend;
+  chart.data.datasets[0].borderColor     = c.color;
+  chart.data.datasets[0].backgroundColor = up ? 'rgba(74,222,128,.06)' : 'rgba(248,113,113,.06)';
+  chart.update();
+
+  // Update labels
+  document.getElementById('chartCropName').textContent = c.name + ' — Price Trend';
+  document.getElementById('chartCropUnit').textContent = c.unit || '₹/Qtl';
+
+  // Tags: % change + current price (which is now live if synced)
+  document.getElementById('chartTags').innerHTML = `
+    <div class="tag ${up?'tag-g':'tag-r'}" style="font-size:.8rem;">
+      ${up?'↑ +':'↓ '}${Math.abs(pct)}% This Week
+    </div>
+    <div class="tag tag-dim" style="font-size:.8rem;">
+      Current: ₹${c.price.toLocaleString('en-IN')}
+    </div>
+    <div class="tag tag-dim" style="font-size:.8rem;">
+      Prev: ₹${(c.prev||c.price).toLocaleString('en-IN')}
+    </div>`;
+
+  // Scroll chart into view smoothly
+  document.getElementById('chartCropName').closest('div')?.scrollIntoView
+    ? null : null;
+
+  document.getElementById('adviceText').textContent = c.advice || '';
+  document.getElementById('adviceBanner').style.display = 'flex';
+}
+
+// ── GEMINI AI SCHEME FETCHER (market.html) ───────────────────────
+const SCHEME_IMGS=[
+  'https://images.unsplash.com/photo-1589923158776-cb4485d99fd6?w=400&q=70',
+  'https://images.unsplash.com/photo-1560493676-04071c5f467b?w=400&q=70',
+  'https://images.unsplash.com/photo-1601933973783-43cf8a7d4c5f?w=400&q=70',
+  'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=400&q=70',
+  'https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=400&q=70',
+  'https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=400&q=70',
+];
+
+// FarmAI — calls backend /api/schemes (no CORS issues)
+async function loadMarketSchemes() {
+  document.getElementById('schemeLoading').style.display = 'block';
+  document.getElementById('schemeGrid').innerHTML = '';
+
+  try {
+    const res = await fetch('/api/schemes/state', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ state: 'Tamil Nadu' })
+    });
+    const json = await res.json();
+    renderMarketSchemes(json.schemes || FALLBACK_SCHEMES, json.source || 'verified');
+  } catch(err) {
+    console.warn('FarmAI schemes error, using fallback:', err);
+    renderMarketSchemes(FALLBACK_SCHEMES);
+  }
+}
+
+const FALLBACK_SCHEMES = [
+  {tag:'Central · Income Support',   name:'PM-KISAN',               desc:'Direct income support of ₹6,000/year in three equal instalments to all eligible farmer families in Tamil Nadu. Over 35 lakh Tamil Nadu farmers are enrolled.',                                         link:'https://pmkisan.gov.in'},
+  {tag:'Central · Crop Insurance',   name:'PM Fasal Bima Yojana',   desc:'Comprehensive crop insurance at just 1.5–2% premium for Kharif crops. Covers all stages from pre-sowing to post-harvest loss due to natural calamity.',                                               link:'https://pmfby.gov.in'},
+  {tag:'Central · Credit',           name:'Kisan Credit Card',       desc:'Revolving credit up to ₹3 lakh at 4% interest for crop production and post-harvest expenses. Available to all farmers, sharecroppers and tenant farmers.',                                             link:'https://www.rbi.org.in'},
+  {tag:'Tamil Nadu · Market Access', name:'Uzhavar Sandhai',         desc:'Tamil Nadu government direct farmer markets at 200+ locations statewide. Farmers sell directly to consumers without middlemen, earning 20–40% more than mandi price.',                                 link:'https://www.tn.gov.in/agriculture'},
+  {tag:'Central · Irrigation',       name:'PMKSY Micro Irrigation',  desc:'Up to 55% subsidy on drip and sprinkler systems for small and marginal farmers. Saves 30–50% water and increases crop yield significantly.',                                                           link:'https://pmksy.gov.in'},
+  {tag:'Tamil Nadu · Input Subsidy', name:'TN Agriculture Subsidies',desc:'Tamil Nadu Agriculture Department provides seeds, fertilisers and pesticides at subsidised rates to registered farmers. Apply at nearest Agriculture Extension Office.',                               link:'https://www.tn.gov.in/agriculture'},
+];
+
+function renderMarketSchemes(schemes, source) {
+  document.getElementById('schemeLoading').style.display = 'none';
+  const isLive = source && source.includes('gemini');
+  document.getElementById('schemeSubtitle').innerHTML =
+    'AI-curated Tamil Nadu state &amp; Central government schemes &mdash; ' + schemes.length + ' schemes found. ' +
+    (isLive ? '<span style="color:var(--g);font-weight:600;">🟢 Live</span>' : '<span style="color:var(--gold);">📦 Verified</span>');
+
+  document.getElementById('schemeGrid').innerHTML = schemes.map((s,i) => `
+    <div class="scheme-card reveal" style="transition-delay:${i*0.08}s;">
+      <img class="sc-img" src="${SCHEME_IMGS[i % SCHEME_IMGS.length]}" alt="${s.name}">
+      <div class="sc-body">
+        <div class="sc-tag2">${s.tag || s.state}</div>
+        <div class="sc-title">${s.name}</div>
+        <div class="sc-desc">${s.desc || s.summary}</div>
+        <a href="${s.link}" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:var(--g);color:#0a0e0a;font-size:.76rem;font-weight:700;border-radius:7px;text-decoration:none;transition:opacity .2s;" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'"><svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.5' width='12' height='12'><path d='M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6'/><polyline points='15 3 21 3 21 9'/><line x1='10' y1='14' x2='21' y2='3'/></svg>Learn More &amp; Apply</a>
+      </div>
+    </div>`).join('');
+
+  // Trigger reveal animation
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if(e.isIntersecting){e.target.classList.add('visible');io.unobserve(e.target);}});
+  },{threshold:0.1});
+  document.querySelectorAll('#schemeGrid .scheme-card').forEach(el => io.observe(el));
+}
+
+// Load on page init
+loadMarketSchemes();
+
+// Fix chart — show first crop by default
+showChart(0);
+
+const COMMODITY_DB = {
+  'Turmeric':  {price:12500, prev:11800, unit:'₹/Qtl',      trend:[9000,10200,11000,11800,12500],  advice:'Turmeric prices at 2-year high. Ideal time to sell 60% of stock now.'},
+  'Pepper':    {price:42000, prev:39000, unit:'₹/Qtl',      trend:[32000,35000,37500,39000,42000], advice:'Black pepper rising sharply. Export demand strong — sell now.'},
+  'Banana':    {price:1800,  prev:1600,  unit:'₹/Qtl',      trend:[1200,1350,1500,1600,1800],      advice:'Banana prices rising ahead of festival season. Hold 2 more weeks.'},
+  'Sugarcane': {price:3200,  prev:3100,  unit:'₹/Qtl',      trend:[2800,2900,3000,3100,3200],      advice:'Sugarcane stable. Sell at MSP for guaranteed income.'},
+  'Chilli':    {price:8500,  prev:9200,  unit:'₹/Qtl',      trend:[11000,10500,9800,9200,8500],    advice:'Chilli prices falling. Sell immediately to avoid further losses.'},
+  'Cardamom':  {price:85000, prev:78000, unit:'₹/Qtl',      trend:[62000,68000,72000,78000,85000], advice:'Cardamom at record high. Sell now — prices may correct.'},
+  'Coconut':   {price:2200,  prev:2000,  unit:'₹/100 nuts', trend:[1600,1750,1900,2000,2200],      advice:'Coconut demand rising steadily. Good time to sell.'},
+  'Mango':     {price:4500,  prev:3800,  unit:'₹/Qtl',      trend:[2000,2800,3500,3800,4500],      advice:'Mango season peak pricing. Sell this week for best return.'},
+  'Cashew':    {price:120000,prev:115000,unit:'₹/Qtl',      trend:[95000,102000,108000,115000,120000],advice:'Cashew prices steady — sell 50% now and hold rest.'},
+  'Brinjal':   {price:1200,  prev:900,   unit:'₹/Qtl',      trend:[600,700,800,900,1200],          advice:'Brinjal rising fast. Good selling window right now.'},
+  'Potato':    {price:1100,  prev:1250,  unit:'₹/Qtl',      trend:[1600,1500,1400,1250,1100],      advice:'Potato falling. Sell immediately to cut losses.'},
+  'Garlic':    {price:6500,  prev:5800,  unit:'₹/Qtl',      trend:[4000,4800,5200,5800,6500],      advice:'Garlic prices rallying — hold for another week.'},
+  'Tomato':    {price:820,   prev:650,   unit:'₹/Qtl',      trend:[300,450,550,650,820],           advice:'Tomato surging +26.2% — sell immediately, peak pricing window open.'},
+  'Onion':     {price:1450,  prev:1500,  unit:'₹/Qtl',      trend:[1800,1700,1600,1500,1450],      advice:'Onion slightly down. Monitor for another week before selling.'},
+  'Rice':      {price:3450,  prev:3600,  unit:'₹/Qtl',      trend:[3200,3300,3500,3600,3450],      advice:'Rice slightly down. Check MSP before selling.'},
+  'Wheat':     {price:2180,  prev:2050,  unit:'₹/Qtl',      trend:[1900,1950,2000,2050,2180],      advice:'Wheat trending up 6.3%. Sell at least 50% of stock now.'},
+  'Maize':     {price:1890,  prev:1870,  unit:'₹/Qtl',      trend:[1700,1750,1800,1870,1890],      advice:'Maize prices stable. Sell at your convenience.'},
+  'Soybean':   {price:4300,  prev:4100,  unit:'₹/Qtl',      trend:[3700,3900,4000,4100,4300],      advice:'Soybean rising steadily. Good time to sell.'},
+  'Groundnut': {price:5600,  prev:5700,  unit:'₹/Qtl',      trend:[5200,5400,5500,5700,5600],      advice:'Groundnut prices stable. Sell at your convenience.'},
+  'Cotton':    {price:6800,  prev:6500,  unit:'₹/Qtl',      trend:[5800,6100,6300,6500,6800],      advice:'Cotton rising steadily. Good time to sell.'},
+};
+
+function quickSearch(name){
+  document.getElementById('searchInput').value = name;
+  searchCommodity();
+}
+
+async function searchCommodity(){
+  const q   = document.getElementById('searchInput').value.trim();
+  if(!q){ toast('Enter a commodity name','gold'); return; }
+
+  const key = Object.keys(COMMODITY_DB).find(k=>k.toLowerCase()===q.toLowerCase()) ||
+              Object.keys(COMMODITY_DB).find(k=>k.toLowerCase().includes(q.toLowerCase()));
+  const md  = typeof MARKET_DATA!=='undefined'
+              ? MARKET_DATA.find(c=>c.name.toLowerCase().includes(q.toLowerCase())) : null;
+  const res = document.getElementById('searchResult');
+
+  if(key){
+    const c   = COMMODITY_DB[key];
+    const up  = c.price >= c.prev;
+    const pct = (((c.price-c.prev)/c.prev)*100).toFixed(1);
+    const maxT=Math.max(...c.trend), minT=Math.min(...c.trend);
+
+    res.style.display='block';
+    res.innerHTML=`
+    <div style="background:var(--dk2);border:1px solid ${up?'rgba(61,186,114,.3)':'rgba(248,113,113,.3)'};border-radius:var(--rl);padding:24px;margin-bottom:28px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:14px;">
+        <div>
+          <div style="font-family:'Cormorant Garamond',serif;font-size:1.8rem;font-weight:700;color:var(--cream);">${key}</div>
+          <div style="font-size:.78rem;color:var(--txm);margin-top:3px;">Tamil Nadu Market Rate · FarmAI Analysis</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:700;color:var(--g);">₹${c.price.toLocaleString('en-IN')}</div>
+          <div style="font-size:.82rem;color:var(--txm);">${c.unit}</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;margin:16px 0;flex-wrap:wrap;">
+        <div class="tag ${up?'tag-g':'tag-r'}">${up?'↑ +':'↓ '}${pct}% this week</div>
+        <div class="tag tag-dim">Prev: ₹${c.prev.toLocaleString('en-IN')}</div>
+        <div class="tag ${up?'tag-g':'tag-gold'}" style="font-size:.75rem;">${up?'<span style="color:#4ade80">↑ Rising</span>':'<span style="color:#f87171">↓ Falling</span>'}</div>
+      </div>
+      <div style="display:flex;align-items:flex-end;gap:4px;height:56px;margin:12px 0 18px;">
+        ${c.trend.map((v,i)=>{
+          const h=Math.max(8,Math.round(((v-minT)/(maxT-minT||1))*50));
+          const isLast=i===c.trend.length-1;
+          return `<div style="flex:1;height:${h}px;background:${isLast?(up?'var(--g)':'#f87171'):up?'rgba(61,186,114,.35)':'rgba(248,113,113,.35)'};border-radius:3px 3px 0 0;position:relative;">
+            ${isLast?`<div style="position:absolute;bottom:calc(100% + 4px);left:50%;transform:translateX(-50%);font-size:.62rem;color:var(--g);font-weight:700;white-space:nowrap;">₹${v.toLocaleString('en-IN')}</div>`:''}
+          </div>`;
+        }).join('')}
+      </div>
+      <div style="background:rgba(61,186,114,.06);border:1px solid rgba(61,186,114,.15);border-radius:var(--r);padding:14px;">
+        <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--g);margin-bottom:5px;">FarmAI Selling Advice</div>
+        <div style="font-size:.875rem;color:var(--tx);line-height:1.6;">${c.advice}</div>
+      </div>
+    </div>`;
+    toast('📊 ' + key + ' rate analysis ready!');
+
+  } else if(md) {
+    if(typeof showChart==='function') showChart(MARKET_DATA.indexOf(md));
+    document.getElementById('searchResult').style.display='none';
+    const chartEl=document.getElementById('mChart');
+    if(chartEl) chartEl.closest('.big-chart-wrap')?.scrollIntoView({behavior:'smooth'});
+    toast('📊 Showing '+md.name+' trend chart below');
+
+  } else {
+    // Not in local COMMODITY_DB — try live API
+    res.style.display='block';
+    res.innerHTML=`<div style="background:var(--dk2);border:1px solid var(--bd);border-radius:var(--rl);padding:20px;text-align:center;margin-bottom:28px;">
+      <div class="spinner" style="width:28px;height:28px;margin:0 auto 10px;"></div>
+      <div style="color:var(--txm);font-size:.875rem;">Searching Agmarknet live data…</div>
+    </div>`;
+    try {
+      const sr = await fetch('http://localhost:5000/api/market/search?q='+encodeURIComponent(q)+'&state=Tamil+Nadu');
+      const sj = await sr.json();
+      if(sj.success && sj.found && sj.data){
+        const c   = sj.data;
+        const up  = c.price >= c.prev_price;
+        const pct = (((c.price-c.prev_price)/c.prev_price)*100).toFixed(1);
+        // Build market breakdown table if available
+        const mkts = c.markets || [];
+        const mktTable = mkts.length > 1 ? `
+          <div style="margin-top:18px;">
+            <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--txm);margin-bottom:10px;">
+              📍 Price across ${mkts.length} Tamil Nadu markets · ${mkts[0]?mkts[0].arrival_date:''}
+            </div>
+            <div style="overflow-x:auto;">
+              <table style="width:100%;border-collapse:collapse;font-size:.8rem;">
+                <thead>
+                  <tr style="border-bottom:1px solid var(--bd);">
+                    <th style="text-align:left;padding:7px 10px;color:var(--txm);font-weight:600;">Market</th>
+                    <th style="text-align:left;padding:7px 10px;color:var(--txm);font-weight:600;">District</th>
+                    <th style="text-align:right;padding:7px 10px;color:var(--txm);font-weight:600;">Min</th>
+                    <th style="text-align:right;padding:7px 10px;color:var(--txm);font-weight:600;">Max</th>
+                    <th style="text-align:right;padding:7px 10px;color:var(--g);font-weight:700;">Modal</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${mkts.slice(0,8).map((m,i)=>`
+                  <tr style="border-bottom:1px solid rgba(255,255,255,.04);background:${i===0?'rgba(61,186,114,.05)':'transparent'}">
+                    <td style="padding:7px 10px;color:var(--tx);">${m.market}${i===0?' <span style="font-size:.65rem;color:var(--g);font-weight:700;">BEST</span>':''}</td>
+                    <td style="padding:7px 10px;color:var(--txm);">${m.district}</td>
+                    <td style="padding:7px 10px;text-align:right;color:var(--txm);">₹${m.min_price.toLocaleString('en-IN')}</td>
+                    <td style="padding:7px 10px;text-align:right;color:var(--txm);">₹${m.max_price.toLocaleString('en-IN')}</td>
+                    <td style="padding:7px 10px;text-align:right;color:var(--g);font-weight:700;">₹${m.modal_price.toLocaleString('en-IN')}</td>
+                  </tr>`).join('')}
+                </tbody>
+              </table>
+              ${mkts.length>8?`<div style="font-size:.72rem;color:var(--txm);margin-top:6px;text-align:center;">+${mkts.length-8} more markets</div>`:''}
+            </div>
+          </div>` : '';
+
+        res.innerHTML=`
+        <div style="background:var(--dk2);border:1px solid ${up?'rgba(61,186,114,.3)':'rgba(248,113,113,.3)'};border-radius:var(--rl);padding:24px;margin-bottom:28px;">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:14px;">
+            <div>
+              <div style="font-family:'Cormorant Garamond',serif;font-size:1.8rem;font-weight:700;color:var(--cream);">${c.crop_name}</div>
+              <div style="font-size:.78rem;color:var(--txm);margin-top:3px;">
+                Average of ${c.market_count||1} Tamil Nadu markets
+                ${c.best_market?' · Best: '+c.best_market:''}
+              </div>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-size:.68rem;color:var(--txm);margin-bottom:2px;">Avg Modal Price</div>
+              <div style="font-family:'Cormorant Garamond',serif;font-size:2.2rem;font-weight:700;color:var(--g);">₹${Number(c.price).toLocaleString('en-IN')}</div>
+              <div style="font-size:.82rem;color:var(--txm);">${c.unit}</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;margin:14px 0;flex-wrap:wrap;">
+            <div class="tag tag-dim">Min: ₹${Number(c.min_price).toLocaleString('en-IN')}</div>
+            <div class="tag tag-dim">Max: ₹${Number(c.max_price).toLocaleString('en-IN')}</div>
+            ${c.best_price?`<div class="tag tag-g">Best market: ₹${Number(c.best_price).toLocaleString('en-IN')}</div>`:''}
+            <div class="tag tag-b" style="font-size:.7rem;display:flex;align-items:center;gap:4px;"><span style="width:7px;height:7px;border-radius:50%;background:#4ade80;display:inline-block;"></span>Live · Agmarknet</div>
+          </div>
+          ${mktTable}
+          <div style="background:rgba(61,186,114,.06);border:1px solid rgba(61,186,114,.15);border-radius:var(--r);padding:12px;margin-top:14px;">
+            <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--g);margin-bottom:4px;">FarmAI Advice</div>
+            <div style="font-size:.855rem;color:var(--tx);">
+              ${c.best_market
+                ? 'Sell at <strong>'+c.best_market+'</strong> for best price of ₹'+Number(c.best_price).toLocaleString('en-IN')+'/Qtl. Avg across TN is ₹'+Number(c.price).toLocaleString('en-IN')+'.'
+                : 'Current modal price: ₹'+Number(c.price).toLocaleString('en-IN')+'/Qtl across Tamil Nadu mandis.'
+              }
+            </div>
+          </div>
+        </div>`;
+        toast('Live Agmarknet data — '+( c.market_count||1)+' markets!');
+      } else {
+        res.innerHTML=`<div style="background:var(--dk2);border:1px solid var(--bd);border-radius:var(--rl);padding:24px;text-align:center;margin-bottom:28px;">
+          <div style="font-size:2rem;margin-bottom:12px;">🔍</div>
+          <div style="font-family:'Cormorant Garamond',serif;font-size:1.2rem;color:var(--cream);margin-bottom:8px;">"${q}" not found in Agmarknet</div>
+          <p style="color:var(--txm);font-size:.855rem;margin-bottom:14px;">Try checking directly on official platforms:</p>
+          <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+            <a href="https://agmarknet.gov.in" target="_blank" class="btn-p btn-sm">Agmarknet.gov.in →</a>
+            <a href="https://www.enam.gov.in" target="_blank" class="btn-ghost btn-sm">e-NAM Portal →</a>
+          </div>
+        </div>`;
+      }
+    } catch(err){
+      res.innerHTML=`<div style="background:var(--dk2);border:1px solid var(--bd2);border-radius:var(--rl);padding:20px;text-align:center;margin-bottom:28px;">
+        <div style="color:var(--txm);font-size:.875rem;">⚠️ Backend offline — cannot fetch live prices</div>
+      </div>`;
+    }
+  }
+}
+
+function setActive(btn){
+  document.querySelectorAll('.crop-tag').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function setStateAndSearch(state){
+  document.getElementById('stateInput').value = state;
+  analyseStateSchemes();
+}
+
+async function analyseStateSchemes(){
+  const state = document.getElementById('stateInput').value.trim();
+  if(!state){ toast('Please enter your state name','gold'); return; }
+
+  document.getElementById('stateSchemeLoading').style.display = 'block';
+  document.getElementById('stateSchemeResult').style.display  = 'none';
+  document.getElementById('stateSchemeLoadingTxt').textContent = 'FarmAI is finding schemes for ' + state + ' farmers…';
+
+  try {
+    const res = await fetch('/api/schemes/state', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ state })
+    });
+    const json = await res.json();
+    if (!json.schemes || !json.schemes.length) throw new Error('No schemes returned');
+    renderStateSchemes(json.schemes, state, json.source || 'verified');
+  } catch(err) {
+    console.warn('FarmAI state scheme error:', err);
+    toast('Could not fetch schemes — check backend is running','r');
+    document.getElementById('stateSchemeLoading').style.display = 'none';
+  }
+}
+
+function renderStateSchemes(schemes, state, source){
+  document.getElementById('stateSchemeLoading').style.display = 'none';
+  const res = document.getElementById('stateSchemeResult');
+  res.style.display = 'block';
+
+  const isLive = source && source.includes('gemini');
+  const sourceBadge = isLive
+    ? `<span style="display:inline-flex;align-items:center;gap:5px;background:rgba(61,186,114,.1);border:1px solid rgba(61,186,114,.25);border-radius:20px;padding:3px 10px;font-size:.68rem;font-weight:700;color:var(--g);">🟢 Live AI</span>`
+    : `<span style="display:inline-flex;align-items:center;gap:5px;background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.25);border-radius:20px;padding:3px 10px;font-size:.68rem;font-weight:700;color:var(--gold);">📦 Verified Data</span>`;
+
+  res.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:10px;">
+      <div>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+          <div style="font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:700;color:var(--cream);">${state} — Government Schemes</div>
+          ${sourceBadge}
+        </div>
+        <div style="font-size:.78rem;color:var(--txm);margin-top:4px;">${schemes.length} schemes found · Click any card to visit the official portal</div>
+      </div>
+      <button class="btn-ghost btn-sm" onclick="document.getElementById('stateSchemeResult').style.display='none';document.getElementById('stateInput').value='';">✕ Clear</button>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;">
+      ${schemes.map((s,i)=>{
+        const isCentral = (s.tag||'').toLowerCase().includes('central');
+        const borderCol = isCentral ? 'rgba(91,164,232,.2)' : 'rgba(61,186,114,.2)';
+        const tagCol    = isCentral ? '#5ba4e8' : 'var(--g)';
+        return `
+        <div style="background:var(--dk3);border-radius:var(--r);border:1px solid var(--bd);padding:18px;display:flex;flex-direction:column;gap:0;transition:border-color .25s,transform .25s,box-shadow .25s;" onmouseover="this.style.borderColor='${borderCol}';this.style.transform='translateY(-3px)';this.style.boxShadow='0 8px 24px rgba(0,0,0,.3)'" onmouseout="this.style.borderColor='var(--bd)';this.style.transform='none';this.style.boxShadow='none'">
+          <div style="font-size:.62rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:${tagCol};margin-bottom:5px;">${s.tag||''}</div>
+          <div style="font-family:'Cormorant Garamond',serif;font-size:1.05rem;font-weight:700;color:var(--cream);margin-bottom:8px;line-height:1.3;">${s.name}</div>
+          ${s.highlight?`<div style="display:inline-block;background:rgba(61,186,114,.1);border:1px solid rgba(61,186,114,.22);border-radius:20px;padding:3px 11px;font-size:.72rem;font-weight:700;color:var(--g);margin-bottom:10px;">${s.highlight}</div>`:''}
+          <div style="font-size:.78rem;color:var(--txm);line-height:1.65;flex:1;margin-bottom:14px;">${s.desc||''}</div>
+          <a href="${s.link}" target="_blank" rel="noopener noreferrer"
+             style="display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:9px 16px;background:var(--g);color:#0a0e0a;font-size:.78rem;font-weight:700;border-radius:8px;text-decoration:none;transition:opacity .2s;border:none;"
+             onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="13" height="13"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            Learn More &amp; Apply
+          </a>
+        </div>`;
+      }).join('')}
+    </div>`;
+
+  toast('✅ ' + schemes.length + ' schemes found for ' + state + '!');
+  res.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+buildTicker('tickerTrack');
+
+async function refreshPrices(){
+  const state='Tamil Nadu';
+  showLoader('Fetching latest prices…');
+  try{
+    // GET /api/market/prices?state=Tamil Nadu
+    const res=await fetch('http://localhost:5000/api/market/prices?state='+encodeURIComponent(state));
+    const json=await res.json();
+    hideLoader();
+    if(!json.success){toast(json.message||'Market fetch failed','gold');return;}
+    const crops=json.data;
+
+    // Rebuild price cards — only show the 8 core crops, rest are search-only
+    const CARD_CROPS = ['Wheat','Rice','Cotton','Maize','Soybean','Groundnut','Tomato','Onion'];
+    const cardCrops = crops.filter(c => CARD_CROPS.some(k => c.crop_name.startsWith(k)));
+    const container=document.getElementById('priceCards');
+    if(container&&cardCrops.length){
+      container.innerHTML=cardCrops.map((c,i)=>{
+        const up=c.price>=(c.prev_price||c.price);
+        const pct=(((c.price-(c.prev_price||c.price))/((c.prev_price||c.price)||1))*100).toFixed(1);
+        const trend=c.trend||[c.prev_price||c.price,c.price];
+        const maxT=Math.max(...trend),minT=Math.min(...trend);
+        const isLive = c.live && c.market_count > 0;
+        return '<div class="market-card" onclick="loadTrend(\''+c.crop_name+'\')" id="mc'+i+'">'+
+          '<img class="mc-thumb" src="'+(getCropImg(c.crop_name)||'')+'" alt="'+c.crop_name+'">'+
+          '<div class="mc-ov"></div>'+
+          '<div class="mc-top" style="display:flex;justify-content:space-between;align-items:flex-start;padding:10px;">'+
+            '<div class="tag '+(up?'tag-g':'tag-r')+'">'+(up?'↑ SELL':'↓ HOLD')+'</div>'+
+            (isLive?'<div style="font-size:.6rem;background:rgba(0,0,0,.55);color:#4ade80;padding:2px 7px;border-radius:20px;font-weight:700;display:flex;align-items:center;gap:3px;"><span style="width:6px;height:6px;border-radius:50%;background:#4ade80;display:inline-block;"></span>LIVE</div>':'<div style="font-size:.6rem;background:rgba(0,0,0,.55);color:#facc15;padding:2px 7px;border-radius:20px;">est.</div>')+
+          '</div>'+
+          '<div class="mc-body">'+
+            '<div class="mc-name">'+c.crop_name+'</div>'+
+            '<div class="mc-price">₹'+Number(c.price).toLocaleString('en-IN')+'<span class="mc-unit">'+(c.unit||'₹/Qtl')+'</span></div>'+
+            (isLive?'<div style="font-size:.68rem;color:rgba(74,222,128,.7);margin-bottom:3px;">'+c.market_name+(c.market_count>1?' +'+( c.market_count-1)+' markets':'')+'</div>':'')+
+            '<div class="mc-delta '+(up?'sc-up':'sc-dn')+'">'+(up?'↑':'↓')+' '+Math.abs(pct)+'% vs prev</div>'+
+            '<div class="mc-sparkline">'+trend.map(v=>{
+              const h=Math.max(4,Math.round(((v-minT)/(maxT-minT||1))*26));
+              return '<div class="spark-bar" style="height:'+h+'px;background:'+(up?'rgba(74,222,128,.5)':'rgba(248,113,113,.5)')+'"></div>';
+            }).join('')+'</div>'+
+          '</div></div>';
+      }).join('');
+    }
+
+    // Rebuild price table — only core crops
+    const tbody=document.getElementById('priceTable');
+    if(tbody&&cardCrops.length){
+      tbody.innerHTML=cardCrops.map(c=>{
+        const up=c.price>=c.prev_price;
+        const diff=c.price-c.prev_price;
+        const pct=(((c.price-c.prev_price)/(c.prev_price||1))*100).toFixed(1);
+        return '<tr>'+
+          '<td><strong>'+c.crop_name+'</strong></td>'+
+          '<td><strong>₹'+Number(c.price).toLocaleString('en-IN')+'</strong> <span style="font-size:.73rem;color:var(--txm);">'+(c.unit||'₹/Qtl')+'</span></td>'+
+          '<td style="color:var(--txm);">₹'+Number(c.prev_price).toLocaleString('en-IN')+'</td>'+
+          '<td><span style="color:'+(up?'#4ade80':'#f87171')+';font-weight:600;">'+(up?'↑':'↓')+' ₹'+Math.abs(diff).toLocaleString('en-IN')+' ('+Math.abs(pct)+'%)</span></td>'+
+          '<td><span style="color:'+(up?'#4ade80':'#f87171')+';font-weight:700;font-size:.9rem;">'+(up?'↑ Rising':'↓ Falling')+'</span></td>'+
+          '<td><span class="tag '+(up?'tag-g':'tag-r')+'">'+(up?'Hold / Wait':'Monitor closely')+'</span></td>'+
+        '</tr>';
+      }).join('');
+    }
+
+    // Sync live prices back into MARKET_DATA so charts are accurate
+    cardCrops.forEach(liveItem => {
+      const baseName = liveItem.crop_name.split(' (')[0].trim();
+      const idx = MARKET_DATA.findIndex(c => c.name === baseName);
+      if(idx >= 0) {
+        MARKET_DATA[idx].price   = liveItem.price;
+        MARKET_DATA[idx].prev    = liveItem.prev_price || liveItem.price;
+        MARKET_DATA[idx].unit    = liveItem.unit || MARKET_DATA[idx].unit;
+        // Build 5-point trend: 4 seeded historical + today's live price
+        const oldTrend = MARKET_DATA[idx].trend || [];
+        if(oldTrend.length >= 2) {
+          MARKET_DATA[idx].trend = [...oldTrend.slice(0,4), liveItem.price];
+        }
+        MARKET_DATA[idx].color   = liveItem.price >= (liveItem.prev_price||liveItem.price) ? '#4ade80' : '#f87171';
+        // Update advice with real price
+        const pct = liveItem.price && liveItem.prev_price 
+          ? (((liveItem.price - liveItem.prev_price)/liveItem.prev_price)*100).toFixed(1) : 0;
+        const up = parseFloat(pct) >= 0;
+        MARKET_DATA[idx].advice = up
+          ? (parseFloat(pct)>10 ? baseName+' surging +'+pct+'%. Sell immediately.'
+            : parseFloat(pct)>4 ? baseName+' rising +'+pct+'%. Good time to sell 60% of stock.'
+            : baseName+' stable +'+pct+'%. Sell at your convenience.')
+          : (parseFloat(pct)<-10 ? baseName+' falling sharply '+pct+'%. Sell immediately to cut losses.'
+            : parseFloat(pct)<-4 ? baseName+' declining '+pct+'%. Sell now if storage costs are high.'
+            : baseName+' slightly down '+pct+'%. Monitor for another week.');
+      }
+    });
+
+    // Refresh the currently shown chart with updated data
+    if(typeof showChart === 'function') {
+      const activeCard = document.querySelector('.market-card.sel');
+      const activeIdx  = activeCard ? parseInt(activeCard.id.replace('mc','')) : 0;
+      showChart(activeIdx);
+    }
+
+    const liveC = json.live_count||0;
+    toast(liveC>0 ? liveC+' live Agmarknet prices loaded!' : 'Showing estimated prices — API unavailable');
+  }catch(err){
+    hideLoader();
+    toast('Backend offline — showing cached prices','gold');
+  }
+}
+
+// Load 5-week trend for a crop: GET /api/market/trend/:cropName
+async function loadTrend(cropName){
+  // Normalise: "Rice (Paddy)" → "Rice" for MARKET_DATA lookup
+  const baseName = cropName.split(' (')[0].trim();
+  const idx = MARKET_DATA.findIndex(c=>c.name===baseName || c.name===cropName);
+  if(idx < 0){ toast('No trend data for '+cropName,'gold'); return; }
+
+  try{
+    const apiName = encodeURIComponent(baseName);
+    const res = await fetch('http://localhost:5000/api/market/trend/'+apiName);
+    const json = await res.json();
+    if(json.success && json.trend && json.trend.length){
+      // Replace last point with live price if we have it (most accurate)
+      const liveTrend = json.trend;
+      if(MARKET_DATA[idx].price && liveTrend.length >= 1){
+        liveTrend[liveTrend.length-1] = MARKET_DATA[idx].price;
+      }
+      MARKET_DATA[idx].trend = liveTrend;
+    }
+  }catch(_){ /* use existing trend data — already synced from live prices */ }
+
+  showChart(idx);
+
+  // Scroll to chart section smoothly
+  const chartSection = document.querySelector('.big-chart-wrap');
+  if(chartSection) chartSection.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+// Show first crop by default, then load live prices
+setTimeout(()=>showChart(0),400);
+refreshPrices();
+</script>
+<div class="ticker-bar" style="position:fixed;bottom:0;left:0;right:0;z-index:400;"><div class="ticker-track" id="tickerTrack"></div></div>
+<!-- AcqireAI Chatbot -->
+<style>
+.acquireai-fab{position:fixed;bottom:28px;right:28px;z-index:800;width:58px;height:58px;border-radius:50%;background:var(--g);display:flex;align-items:center;justify-content:center;cursor:pointer;border:none;box-shadow:0 6px 28px rgba(61,186,114,.5);transition:transform .25s,box-shadow .25s;animation:fabPulse 3s infinite;}
+.acquireai-fab:hover{transform:scale(1.1);box-shadow:0 10px 40px rgba(61,186,114,.65);}
+@keyframes fabPulse{0%,100%{box-shadow:0 6px 28px rgba(61,186,114,.5);}50%{box-shadow:0 6px 40px rgba(61,186,114,.75),0 0 0 8px rgba(61,186,114,.08);}}
+.acquireai-fab .chat-close{display:none;}.acquireai-fab.open .chat-icon{display:none;}.acquireai-fab.open .chat-close{display:block;}
+.acquireai-window{position:fixed;bottom:100px;right:28px;z-index:800;width:390px;max-height:600px;background:var(--dk2);border:1px solid var(--bd2);border-radius:20px;overflow:hidden;box-shadow:0 24px 72px rgba(0,0,0,.5);display:flex;flex-direction:column;transform:scale(0.9) translateY(20px);opacity:0;pointer-events:none;transition:transform .3s cubic-bezier(.4,0,.2,1),opacity .3s;transform-origin:bottom right;}
+.acquireai-window.open{transform:none;opacity:1;pointer-events:all;}
+.acq-header{padding:14px 18px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--bd);background:var(--dk3);}
+.acq-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--g),var(--g2));display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;font-weight:700;color:var(--tx);font-family:'Cormorant Garamond',serif;}
+.acq-name{font-family:'Cormorant Garamond',serif;font-size:1rem;font-weight:700;color:var(--cream);}
+.acq-status{font-size:.68rem;color:var(--g);display:flex;align-items:center;gap:4px;}
+.acq-status::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--g);animation:acqpulse 1.6s infinite;}
+@keyframes acqpulse{0%,100%{opacity:1;}60%{opacity:.3;}}
+.acq-lang-badge{margin-left:auto;font-size:.65rem;font-weight:700;padding:3px 8px;border-radius:10px;background:rgba(61,186,114,.12);border:1px solid rgba(61,186,114,.2);color:var(--g);cursor:pointer;transition:all .2s;}
+.acq-lang-badge:hover{background:rgba(61,186,114,.22);}
+.acq-messages{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;scrollbar-width:thin;scrollbar-color:var(--bd) transparent;}
+.acq-msg{display:flex;gap:8px;align-items:flex-end;}.acq-msg.user{flex-direction:row-reverse;}
+.acq-avatar-sm{width:26px;height:26px;border-radius:50%;background:var(--dk3);border:1px solid var(--bd2);display:flex;align-items:center;justify-content:center;font-size:.75rem;flex-shrink:0;}
+.acq-msg.user .acq-avatar-sm{background:rgba(61,186,114,.15);}
+.acq-bubble{max-width:80%;padding:10px 13px;border-radius:14px;font-size:.83rem;line-height:1.62;color:var(--tx);}
+.acq-msg.bot .acq-bubble{background:var(--dk3);border:1px solid var(--bd);border-bottom-left-radius:4px;}
+.acq-msg.user .acq-bubble{background:rgba(61,186,114,.15);border:1px solid rgba(61,186,114,.22);border-bottom-right-radius:4px;}
+.acq-typing{display:flex;gap:4px;align-items:center;padding:11px 13px;}
+.acq-typing span{width:6px;height:6px;border-radius:50%;background:var(--txm);animation:acqDot 1.4s infinite ease-in-out;}
+.acq-typing span:nth-child(2){animation-delay:.2s;}.acq-typing span:nth-child(3){animation-delay:.4s;}
+@keyframes acqDot{0%,80%,100%{transform:scale(.6);opacity:.4;}40%{transform:scale(1);opacity:1;}}
+.acq-suggestions{display:flex;flex-wrap:wrap;gap:5px;padding:0 14px 10px;}
+.acq-sugg{padding:5px 11px;border-radius:20px;background:rgba(61,186,114,.08);border:1px solid rgba(61,186,114,.18);color:var(--g);font-size:.72rem;font-weight:600;cursor:pointer;transition:all .2s;white-space:nowrap;}
+.acq-sugg:hover{background:rgba(61,186,114,.18);}
+.acq-input-row{padding:12px 14px;border-top:1px solid var(--bd);display:flex;gap:8px;align-items:center;background:var(--dk3);}
+.acq-input{flex:1;padding:9px 13px;border-radius:22px;border:1px solid var(--bd2);background:var(--dk);color:var(--tx);font-family:'Outfit',sans-serif;font-size:.83rem;outline:none;transition:border-color .25s;}
+.acq-input::placeholder{color:var(--txm);}.acq-input:focus{border-color:var(--g);}
+.acq-mic-btn{width:34px;height:34px;border-radius:50%;border:1px solid var(--bd2);background:var(--dk);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--txm);transition:all .25s;flex-shrink:0;}
+.acq-mic-btn.listening{background:rgba(239,68,68,.15);border-color:#ef4444;color:#ef4444;animation:micPulse 1s infinite;}
+@keyframes micPulse{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,.4);}50%{box-shadow:0 0 0 6px rgba(239,68,68,0);}}
+.acq-send{width:34px;height:34px;border-radius:50%;background:var(--g);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:transform .2s,box-shadow .2s;}
+.acq-send:hover{transform:scale(1.08);box-shadow:0 4px 14px rgba(61,186,114,.4);}
+.acq-send svg{width:15px;height:15px;color:#0a0e0a;}
+@media(max-width:768px){.acquireai-window{width:calc(100vw - 24px);right:12px;bottom:90px;}}
+</style>
+<button class="acquireai-fab" id="acqFab" aria-label="Open AcqireAI">
+  <svg class="chat-icon" viewBox="0 0 24 24" fill="none" stroke="#0a0e0a" stroke-width="2" width="24" height="24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+  <svg class="chat-close" viewBox="0 0 24 24" fill="none" stroke="#0a0e0a" stroke-width="2" width="22" height="22"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+</button>
+<div class="acquireai-window" id="acqWindow">
+  <div class="acq-header">
+    <div class="acq-avatar">A</div>
+    <div style="flex:1;"><div class="acq-name">AcqireAI</div><div class="acq-status">Online · Agricultural Expert</div></div>
+    <span class="acq-lang-badge" id="acqLangBadge" onclick="acqToggleLang()" title="Switch language">EN</span>
+    <button onclick="document.getElementById('acqFab').click()" style="background:none;border:none;cursor:pointer;color:var(--txm);font-size:1rem;padding:4px;margin-left:4px;">✕</button>
+  </div>
+  <div class="acq-messages" id="acqMessages"></div>
+  <div class="acq-suggestions" id="acqSuggestions"></div>
+  <div class="acq-input-row">
+    <input class="acq-input" id="acqInput" placeholder="Ask about crops, diseases, schemes..." onkeydown="if(event.key==='Enter')acqSend()">
+    <button class="acq-mic-btn" id="acqMicBtn" onclick="acqToggleVoice()" title="Voice input">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+    </button>
+    <button class="acq-send" onclick="acqSend()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+    </button>
+  </div>
+</div>
+<script>
+(function(){
+  const SUGG_EN=['Best crops for my soil?','Rice disease treatment','When to sell wheat?','PM-KISAN scheme','Irrigation tips'];
+  const SUGG_TA=['என் மண்ணுக்கு சிறந்த பயிர்கள்?','நெல் நோய் சிகிச்சை','கோதுமை எப்போது விற்கலாம்?','PM-KISAN திட்டம்','நீர்ப்பாசன குறிப்புகள்'];
+  const fab=document.getElementById('acqFab'),win=document.getElementById('acqWindow'),msgs=document.getElementById('acqMessages'),inp=document.getElementById('acqInput');
+  let history=[],inited=false,isListening=false,recognition=null;
+  fab.addEventListener('click',function(){this.classList.toggle('open');win.classList.toggle('open');if(win.classList.contains('open')){inp.focus();if(!inited){inited=true;renderSugg();setTimeout(()=>addMsg(lang()==='ta'?'👋 வணக்கம்! நான் AcqireAI — உங்கள் விவசாய நிபுணர். பயிர்கள், நோய்கள், சந்தை விலைகள் பற்றி கேளுங்கள்!':'👋 Namaste! I\'m AcqireAI — your smart farming assistant. Ask about crop diseases, soil, market prices, government schemes, or anything about farming!','bot'),500);};}});
+  function lang(){return localStorage.getItem('sf_lang')||'en';}
+  window.acqToggleLang=function(){const n=lang()==='en'?'ta':'en';localStorage.setItem('sf_lang',n);window.SF_LANG=n;document.getElementById('acqLangBadge').textContent=n==='ta'?'தமிழ்':'EN';document.querySelectorAll('.lang-toggle-btn').forEach(b=>b.textContent=n==='ta'?'EN':'தமிழ்');inp.placeholder=n==='ta'?'பயிர், நோய், திட்டங்கள் பற்றி கேளுங்கள்...':'Ask about crops, diseases, schemes...';renderSugg();};
+  document.addEventListener('sf:langchange',e=>{document.getElementById('acqLangBadge').textContent=e.detail.lang==='ta'?'தமிழ்':'EN';renderSugg();});
+  function renderSugg(){const s=lang()==='ta'?SUGG_TA:SUGG_EN;document.getElementById('acqSuggestions').innerHTML=s.map(x=>`<span class="acq-sugg" onclick="acqSend('${x.replace(/'/g,"\\'")}')">${x}</span>`).join('');}
+  function addMsg(text,role,typing=false){const el=document.createElement('div');el.className='acq-msg '+role;if(typing){el.id='acqTyping';el.innerHTML=`<div class="acq-avatar-sm">A</div><div class="acq-bubble"><div class="acq-typing"><span></span><span></span><span></span></div></div>`;}else{el.innerHTML=`<div class="acq-avatar-sm">${role==='bot'?'A':'👤'}</div><div class="acq-bubble">${text.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
+            .replace(/\[(\w+\.html)\]/g,'<a href="/$1" style="color:var(--g);font-weight:700;text-decoration:underline;text-underline-offset:2px;" onclick="window.location.href=this.href">→ Open $1</a>')
+            .replace(/\n\n/g,'<br><br>').replace(/\n/g,'<br>')}</div>`;}msgs.appendChild(el);msgs.scrollTop=msgs.scrollHeight;return el;}
+  window.acqSend=async function(preset){const text=preset||inp.value.trim();if(!text)return;inp.value='';addMsg(text,'user');document.getElementById('acqSuggestions').innerHTML='';history.push({role:'user',content:text});const typEl=addMsg('','bot',true);const l=lang();const sys=`You are AcqireAI, an expert agricultural AI for SmartFarm AI — India's AI farming platform. ${l==='ta'?'Respond ENTIRELY in Tamil (தமிழ்). Simple Tamil a farmer understands.':'Respond in English.'} Specialize in: crop diseases (Tamil Nadu pesticide brands+doses), soil analysis, market prices, Indian govt schemes (PM-KISAN,PMFBY,KCC), irrigation. Be practical, warm, concise.`;try{const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,history:history.slice(-6),lang:l})});const d=await r.json();const reply=d.reply||'Sorry, could not get a response.';history.push({role:'assistant',content:reply});typEl.remove();addMsg(reply,'bot');}catch(e){typEl.remove();addMsg(l==='ta'?'⚠️ இணைப்பில் சிக்கல். மீண்டும் முயற்சிக்கவும்.':'⚠️ Connection issue. Please try again.','bot');}renderSugg();};
+  window.acqToggleVoice=function(){if(!('webkitSpeechRecognition' in window)&&!('SpeechRecognition' in window)){alert('Voice input needs Chrome browser.');return;}if(isListening){recognition?.stop();return;}const SR=window.SpeechRecognition||window.webkitSpeechRecognition;recognition=new SR();recognition.lang=lang()==='ta'?'ta-IN':'en-IN';recognition.continuous=false;recognition.interimResults=true;recognition.onstart=()=>{isListening=true;document.getElementById('acqMicBtn').classList.add('listening');inp.placeholder=lang()==='ta'?'🎙️ கேட்கிறேன்...':'🎙️ Listening...';};recognition.onresult=e=>{inp.value=Array.from(e.results).map(r=>r[0].transcript).join('');};recognition.onerror=()=>{isListening=false;document.getElementById('acqMicBtn').classList.remove('listening');inp.placeholder=lang()==='ta'?'பயிர், நோய், திட்டங்கள் பற்றி கேளுங்கள்...':'Ask about crops, diseases, schemes...';};recognition.onend=()=>{isListening=false;document.getElementById('acqMicBtn').classList.remove('listening');inp.placeholder=lang()==='ta'?'பயிர், நோய், திட்டங்கள் பற்றி கேளுங்கள்...':'Ask about crops, diseases, schemes...';if(inp.value.trim())acqSend();};recognition.start();};
+  // Sync lang badge on load
+  document.getElementById('acqLangBadge').textContent=lang()==='ta'?'தமிழ்':'EN';
+})();
+</script>
+
+<!-- Google Translate -->
+<div id="google_translate_element"></div>
+<script type="text/javascript">
+function googleTranslateElementInit() {
+  new google.translate.TranslateElement({
+    pageLanguage: 'en',
+    includedLanguages: 'ta,hi,te,kn,ml,mr,gu,pa,bn,or,as,ur,en',
+    layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+    autoDisplay: false
+  }, 'google_translate_element');
+}
+</script>
+<script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+<script>
+// Custom language switcher UI
+var LANG_OPTIONS = [
+  {code:'en',    name:'English',    native:'English',   flag:'🇬🇧'},
+  {code:'ta',    name:'Tamil',      native:'தமிழ்',      flag:'🇮🇳'},
+  {code:'hi',    name:'Hindi',      native:'हिंदी',       flag:'🇮🇳'},
+  {code:'te',    name:'Telugu',     native:'తెలుగు',     flag:'🇮🇳'},
+  {code:'kn',    name:'Kannada',    native:'ಕನ್ನಡ',      flag:'🇮🇳'},
+  {code:'ml',    name:'Malayalam',  native:'മലയാളം',    flag:'🇮🇳'},
+  {code:'mr',    name:'Marathi',    native:'मराठी',      flag:'🇮🇳'},
+  {code:'gu',    name:'Gujarati',   native:'ગુજરાતી',    flag:'🇮🇳'},
+  {code:'pa',    name:'Punjabi',    native:'ਪੰਜਾਬੀ',     flag:'🇮🇳'},
+  {code:'bn',    name:'Bengali',    native:'বাংলা',      flag:'🇮🇳'},
+];
+
+var currentLang = localStorage.getItem('sf_ui_lang') || 'en';
+
+function buildLangSwitcher(navR) {
+  if (!navR || document.getElementById('sfLangSwitcher')) return;
+
+  var switcher = document.createElement('div');
+  switcher.className = 'lang-switcher';
+  switcher.id = 'sfLangSwitcher';
+
+  var btn = document.createElement('button');
+  btn.className = 'lang-btn nav-ctrl-btn';
+  btn.id = 'langBtnMain';
+  btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 010 20M12 2a15.3 15.3 0 000 20"/></svg>' +
+    '<span id="langBtnLabel">' + getLangLabel(currentLang) + '</span>' +
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="10" height="10"><polyline points="6 9 12 15 18 9"/></svg>';
+
+  var dropdown = document.createElement('div');
+  dropdown.className = 'lang-dropdown';
+  dropdown.id = 'langDropdown';
+
+  LANG_OPTIONS.forEach(function(lang) {
+    var opt = document.createElement('button');
+    opt.className = 'lang-option' + (lang.code === currentLang ? ' active' : '');
+    opt.setAttribute('data-lang', lang.code);
+    opt.innerHTML = '<span class="lang-flag">' + lang.flag + '</span>' +
+      '<span class="lang-name">' + lang.name + '</span>' +
+      '<span class="lang-native">' + lang.native + '</span>';
+    opt.addEventListener('click', function() {
+      selectLanguage(lang.code);
+      dropdown.classList.remove('open');
+    });
+    dropdown.appendChild(opt);
+  });
+
+  switcher.appendChild(btn);
+  switcher.appendChild(dropdown);
+
+  btn.addEventListener('click', function(e) {
+    e.stopPropagation();
+    dropdown.classList.toggle('open');
+  });
+  document.addEventListener('click', function() {
+    dropdown.classList.remove('open');
+  });
+
+  // Insert before hamburger
+  var hburg = navR.querySelector('.hburg');
+  if (hburg) navR.insertBefore(switcher, hburg);
+  else navR.appendChild(switcher);
+}
+
+function getLangLabel(code) {
+  var lang = LANG_OPTIONS.find(function(l) { return l.code === code; });
+  return lang ? lang.flag + ' ' + lang.native : '🌐 EN';
+}
+
+function selectLanguage(langCode) {
+  currentLang = langCode;
+  localStorage.setItem('sf_ui_lang', langCode);
+
+  // Update button label
+  var lbl = document.getElementById('langBtnLabel');
+  if (lbl) lbl.textContent = getLangLabel(langCode);
+
+  // Update active state
+  document.querySelectorAll('.lang-option').forEach(function(opt) {
+    opt.classList.toggle('active', opt.getAttribute('data-lang') === langCode);
+  });
+
+  // Also update AcqireAI chatbot language
+  if (typeof window.SF_LANG !== 'undefined') {
+    window.SF_LANG = langCode === 'ta' ? 'ta' : 'en';
+    localStorage.setItem('sf_lang', window.SF_LANG);
+    var badge = document.getElementById('acqLangBadge');
+    if (badge) badge.textContent = window.SF_LANG === 'ta' ? 'தமிழ்' : 'EN';
+  }
+
+  if (langCode === 'en') {
+    // Restore original English
+    restoreEnglish();
+  } else {
+    // Trigger Google Translate
+    triggerGoogleTranslate(langCode);
+  }
+}
+
+function triggerGoogleTranslate(langCode) {
+  // Wait for Google Translate to be ready
+  var attempts = 0;
+  var interval = setInterval(function() {
+    attempts++;
+    var select = document.querySelector('.goog-te-combo');
+    if (select) {
+      clearInterval(interval);
+      select.value = langCode;
+      select.dispatchEvent(new Event('change'));
+    } else if (attempts > 30) {
+      clearInterval(interval);
+      // Fallback: direct cookie method
+      document.cookie = 'googtrans=/en/' + langCode + '; path=/; domain=' + window.location.hostname;
+      document.cookie = 'googtrans=/en/' + langCode + '; path=/';
+      location.reload();
+    }
+  }, 200);
+}
+
+function restoreEnglish() {
+  // Clear Google Translate
+  document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=' + window.location.hostname;
+  document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/';
+  document.cookie = 'googtrans=/en/en; path=/; domain=' + window.location.hostname;
+  document.cookie = 'googtrans=/en/en; path=/';
+
+  var select = document.querySelector('.goog-te-combo');
+  if (select) {
+    select.value = 'en';
+    select.dispatchEvent(new Event('change'));
+  } else {
+    location.reload();
+  }
+}
+
+// Auto-apply saved language on page load
+document.addEventListener('DOMContentLoaded', function() {
+  // Build the switcher
+  var navR = document.querySelector('.nav-r');
+  if (navR) buildLangSwitcher(navR);
+
+  // Apply saved language after Google Translate loads
+  if (currentLang && currentLang !== 'en') {
+    setTimeout(function() {
+      triggerGoogleTranslate(currentLang);
+    }, 1500);
+  }
+
+  // Apply saved Google Translate cookie
+  var savedLang = localStorage.getItem('sf_ui_lang');
+  if (savedLang && savedLang !== 'en') {
+    var existingCookie = document.cookie.indexOf('googtrans');
+    if (existingCookie === -1) {
+      document.cookie = 'googtrans=/en/' + savedLang + '; path=/';
+    }
+  }
+});
+</script>
+</body>
+</html>

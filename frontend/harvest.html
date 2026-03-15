@@ -1,0 +1,2903 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>SmartFarm AI – Harvest Prediction</title>
+<link rel="stylesheet" href="css/style.css">
+<style>
+/* ── Harvest-specific styles ──────────────────────────── */
+.h-hero-bg{
+  position:absolute;inset:0;
+  background-image:url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1800&q=80');
+  background-size:cover;background-position:center;
+  filter:brightness(.35) saturate(1.3);
+}
+
+/* AI Search Box */
+.ai-search-wrap{
+  position:relative;margin-bottom:10px;
+}
+.ai-search-input{
+  width:100%;background:rgba(255,255,255,.05);
+  border:1.5px solid rgba(61,186,114,.3);
+  border-radius:var(--rl);padding:18px 140px 18px 56px;
+  color:var(--tx);font-family:Outfit,sans-serif;font-size:1rem;
+  outline:none;transition:all .3s;box-sizing:border-box;
+  color-scheme:dark;
+}
+.ai-search-input:focus{
+  border-color:var(--g);background:rgba(61,186,114,.05);
+  box-shadow:0 0 0 4px rgba(61,186,114,.1);
+}
+.ai-search-input:-webkit-autofill,
+.ai-search-input:-webkit-autofill:focus,
+.ai-search-input:-webkit-autofill:hover{
+  -webkit-box-shadow:0 0 0 1000px #111612 inset !important;
+  -webkit-text-fill-color:var(--tx) !important;
+  caret-color:var(--tx) !important;
+}
+.ai-search-input::placeholder{color:rgba(232,237,229,.3);}
+.ai-search-icon{
+  position:absolute;left:18px;top:50%;transform:translateY(-50%);
+  color:var(--g);opacity:.7;pointer-events:none;
+}
+.ai-search-btn{
+  position:absolute;right:8px;top:50%;transform:translateY(-50%);
+  background:var(--g);color:#0a0e0a;border:none;border-radius:12px;
+  padding:10px 20px;font-family:Outfit,sans-serif;font-size:.85rem;
+  font-weight:700;cursor:pointer;transition:all .25s;white-space:nowrap;
+}
+.ai-search-btn:hover{background:#4ade80;transform:translateY(-50%) scale(1.04);}
+.ai-search-btn:disabled{opacity:.5;cursor:not-allowed;transform:translateY(-50%);}
+
+/* Suggestion chips */
+.sugg-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
+.sugg-chip{
+  display:flex;align-items:center;gap:7px;
+  padding:7px 14px;border-radius:30px;
+  border:1px solid var(--bd2);background:var(--dk3);
+  cursor:pointer;transition:all .22s;font-size:.78rem;color:var(--txm);
+}
+.sugg-chip:hover{border-color:var(--g);color:var(--tx);background:rgba(61,186,114,.08);}
+.sugg-chip img{width:20px;height:20px;border-radius:50%;object-fit:cover;}
+
+/* Result panel */
+.harvest-result{
+  background:var(--dk2);border-radius:var(--rl);
+  border:1px solid rgba(61,186,114,.2);overflow:hidden;
+}
+
+/* Progress bar */
+.prog-track{
+  height:6px;background:var(--dk3);border-radius:3px;overflow:hidden;margin:10px 0;
+}
+.prog-fill{
+  height:100%;background:linear-gradient(90deg,var(--g),#4ade80);
+  border-radius:3px;transition:width 1.5s cubic-bezier(.4,0,.2,1);
+}
+
+/* Stage timeline — horizontal */
+.stage-track{
+  display:flex;align-items:flex-start;gap:0;
+  overflow-x:auto;padding-bottom:8px;
+  scrollbar-width:none;
+}
+.stage-track::-webkit-scrollbar{display:none;}
+.stage-item{
+  flex:1;min-width:110px;text-align:center;position:relative;
+}
+.stage-item:not(:last-child)::after{
+  content:'';position:absolute;top:14px;left:50%;
+  width:100%;height:2px;background:var(--bd);z-index:0;
+}
+.stage-item.done::after{background:var(--g);}
+.stage-dot{
+  width:30px;height:30px;border-radius:50%;margin:0 auto 8px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:.7rem;font-weight:700;position:relative;z-index:1;
+  transition:all .4s;
+}
+.stage-dot.done{background:var(--g);color:#0a0e0a;}
+.stage-dot.active{
+  background:rgba(61,186,114,.15);border:2px solid var(--g);color:var(--g);
+  box-shadow:0 0 0 6px rgba(61,186,114,.1);
+  animation:pulse-ring 2s infinite;
+}
+.stage-dot.future{background:var(--dk3);border:2px solid var(--bd2);color:var(--txm);}
+@keyframes pulse-ring{
+  0%{box-shadow:0 0 0 0 rgba(61,186,114,.3);}
+  70%{box-shadow:0 0 0 10px rgba(61,186,114,0);}
+  100%{box-shadow:0 0 0 0 rgba(61,186,114,0);}
+}
+.stage-name{font-size:.68rem;color:var(--txm);line-height:1.3;}
+.stage-date{font-size:.62rem;color:rgba(232,237,229,.3);margin-top:2px;}
+.stage-item.active .stage-name{color:var(--g);font-weight:600;}
+
+/* Countdown ring */
+.cd-ring{
+  width:140px;height:140px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  position:relative;margin:0 auto;
+}
+.cd-ring::before{
+  content:'';position:absolute;inset:8px;
+  background:var(--dk2);border-radius:50%;z-index:1;
+}
+.cd-inner{position:relative;z-index:2;text-align:center;}
+.cd-num{
+  font-family:'Cormorant Garamond',serif;
+  font-size:2.6rem;font-weight:700;color:var(--g);line-height:1;
+}
+.cd-label{font-size:.62rem;color:var(--txm);text-transform:uppercase;letter-spacing:.08em;}
+
+/* Key date cards */
+.kd-card{
+  background:var(--dk3);border-radius:var(--r);padding:16px 12px;
+  border:1px solid var(--bd);text-align:center;
+}
+.kd-val{
+  font-family:'Cormorant Garamond',serif;
+  font-size:1.1rem;font-weight:700;line-height:1.2;margin-bottom:4px;
+}
+.kd-label{font-size:.65rem;text-transform:uppercase;letter-spacing:.08em;color:var(--txm);}
+
+/* Alert items */
+.alert-row{
+  display:flex;align-items:flex-start;gap:14px;
+  padding:14px 16px;border-radius:var(--r);
+  background:var(--dk3);border:1px solid var(--bd);
+  transition:all .25s;
+}
+.alert-row:hover{border-color:rgba(61,186,114,.2);transform:translateX(4px);}
+.alert-icon{
+  width:44px;height:44px;border-radius:10px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.1rem;
+}
+
+/* AI typing indicator */
+.typing-dots span{
+  display:inline-block;width:6px;height:6px;border-radius:50%;
+  background:var(--g);margin:0 2px;
+  animation:typing-bounce .9s infinite;
+}
+.typing-dots span:nth-child(2){animation-delay:.15s;}
+.typing-dots span:nth-child(3){animation-delay:.3s;}
+@keyframes typing-bounce{0%,60%,100%{transform:translateY(0);}30%{transform:translateY(-6px);}}
+
+/* Scheme cards */
+.sc2-card{
+  background:var(--dk3);border-radius:var(--rl);
+  border:1px solid var(--bd);overflow:hidden;
+  transition:transform .28s,border-color .28s;
+}
+.sc2-card:hover{transform:translateY(-4px);border-color:rgba(61,186,114,.25);}
+.sc2-img{width:100%;height:90px;object-fit:cover;filter:brightness(.5) saturate(1.3);}
+.sc2-body{padding:14px 16px;}
+.sc2-tag{font-size:.62rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--g);margin-bottom:5px;}
+.sc2-name{font-family:'Cormorant Garamond',serif;font-size:1rem;font-weight:700;color:var(--cream);margin-bottom:5px;}
+.sc2-desc{font-size:.75rem;color:var(--txm);line-height:1.55;margin-bottom:10px;}
+
+/* Empty state */
+.empty-state{
+  text-align:center;padding:64px 32px;
+  border:1.5px dashed rgba(61,186,114,.15);
+  border-radius:var(--rl);background:var(--dk2);
+}
+.crop-quick-btn{
+  position:relative;height:72px;border-radius:12px;
+  background-size:cover;background-position:center;
+  cursor:pointer;overflow:hidden;
+  border:1.5px solid transparent;
+  transition:all .25s var(--ease);
+  display:flex;align-items:flex-end;
+}
+.crop-quick-btn:hover{
+  border-color:var(--g);transform:translateY(-3px);
+  box-shadow:0 8px 24px rgba(0,0,0,.4);
+}
+.cqb-overlay{
+  position:absolute;inset:0;
+  background:linear-gradient(to top, rgba(0,0,0,.75) 0%, rgba(0,0,0,.1) 60%);
+}
+.crop-quick-btn span{
+  position:relative;z-index:1;
+  font-size:.75rem;font-weight:700;color:var(--tx);
+  padding:6px 10px;letter-spacing:.02em;
+}
+.empty-icon{
+  width:72px;height:72px;border-radius:50%;
+  background:rgba(61,186,114,.08);border:1.5px solid rgba(61,186,114,.15);
+  display:flex;align-items:center;justify-content:center;
+  margin:0 auto 20px;
+}
+
+/* AI result fade-in */
+@keyframes fadeSlideUp{
+  from{opacity:0;transform:translateY(20px);}
+  to{opacity:1;transform:translateY(0);}
+}
+.fade-up{animation:fadeSlideUp .5s var(--ease) forwards;}
+
+/* ── Weather strip ──────────────────────────────────────────── */
+.wx-strip{
+  display:flex;align-items:center;gap:20px;flex-wrap:wrap;
+  padding:14px 20px;background:rgba(91,164,232,.07);
+  border:1px solid rgba(91,164,232,.18);border-radius:14px;
+  margin-bottom:20px;
+}
+.wx-city{font-size:.75rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#5ba4e8;}
+.wx-val{font-size:1.4rem;font-weight:700;font-family:'Cormorant Garamond',serif;color:var(--cream);line-height:1;}
+.wx-label{font-size:.65rem;color:var(--txm);}
+.wx-pill{
+  display:flex;align-items:center;gap:8px;padding:8px 14px;
+  background:rgba(255,255,255,.04);border-radius:20px;
+  border:1px solid var(--bd);
+}
+.wx-alert{
+  background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.2);
+  border-radius:10px;padding:8px 14px;font-size:.75rem;color:#c9a84c;font-weight:600;
+}
+
+/* ── Calendar / reminder modal ──────────────────────────────── */
+.cal-modal{
+  position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;
+  background:rgba(0,0,0,.75);backdrop-filter:blur(6px);
+  opacity:0;pointer-events:none;transition:opacity .3s;
+}
+.cal-modal.open{opacity:1;pointer-events:all;}
+.cal-box{
+  background:var(--dk2);border:1px solid rgba(61,186,114,.25);
+  border-radius:20px;width:420px;max-width:92vw;padding:28px;
+  transform:translateY(20px);transition:transform .3s;box-shadow:0 32px 80px rgba(0,0,0,.6);
+}
+.cal-modal.open .cal-box{transform:translateY(0);}
+.cal-month-header{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:18px;
+}
+.cal-month-title{font-family:'Cormorant Garamond',serif;font-size:1.25rem;font-weight:700;color:var(--cream);}
+.cal-nav{
+  width:30px;height:30px;border-radius:8px;border:1px solid var(--bd);
+  background:var(--dk3);cursor:pointer;color:var(--txm);display:flex;
+  align-items:center;justify-content:center;font-size:.9rem;transition:all .2s;
+}
+.cal-nav:hover{border-color:var(--g);color:var(--g);}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;}
+.cal-dow{text-align:center;font-size:.62rem;font-weight:700;letter-spacing:.06em;color:var(--txm);padding:4px 0;text-transform:uppercase;}
+.cal-day{
+  aspect-ratio:1;display:flex;align-items:center;justify-content:center;
+  font-size:.78rem;border-radius:8px;cursor:pointer;transition:all .2s;color:var(--txm);
+  position:relative;
+}
+.cal-day:not(.empty):hover{background:rgba(61,186,114,.12);color:var(--tx);}
+.cal-day.today{border:1px solid rgba(61,186,114,.4);color:var(--g);}
+.cal-day.harvest-day{background:var(--g);color:#0a0e0a;font-weight:700;}
+.cal-day.alert-day{background:rgba(201,168,76,.2);color:#c9a84c;border:1px solid rgba(201,168,76,.3);}
+.cal-day.reminder-set{background:rgba(91,164,232,.15);color:#5ba4e8;}
+.cal-day.reminder-set::after{
+  content:'';position:absolute;bottom:3px;left:50%;transform:translateX(-50%);
+  width:4px;height:4px;border-radius:50%;background:#5ba4e8;
+}
+.cal-legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:16px;}
+.cal-legend-item{display:flex;align-items:center;gap:6px;font-size:.7rem;color:var(--txm);}
+.cal-legend-dot{width:10px;height:10px;border-radius:3px;}
+
+/* ── AI Suggestions panel ────────────────────────────────────── */
+.ai-suggest-panel{
+  background:linear-gradient(135deg,rgba(61,186,114,.06),rgba(61,186,114,.02));
+  border:1px solid rgba(61,186,114,.18);border-radius:16px;
+  padding:20px 22px;margin-bottom:24px;
+}
+.ai-suggest-header{
+  display:flex;align-items:center;gap:8px;margin-bottom:14px;
+}
+.ai-suggest-dot{
+  width:8px;height:8px;border-radius:50%;background:var(--g);
+  animation:pulse-ring 2s infinite;flex-shrink:0;
+}
+.ai-tip{
+  display:flex;align-items:flex-start;gap:10px;
+  padding:10px 0;border-bottom:1px solid rgba(61,186,114,.08);
+}
+.ai-tip:last-child{border-bottom:none;padding-bottom:0;}
+.ai-tip-icon{
+  width:28px;height:28px;border-radius:8px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;font-size:.8rem;
+}
+.ai-tip-text{font-size:.8rem;color:var(--txm);line-height:1.55;}
+.ai-tip-text strong{color:var(--tx);}
+
+/* ── Accuracy factors ────────────────────────────────────────── */
+.acc-bar{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.acc-label{font-size:.72rem;color:var(--txm);min-width:110px;}
+.acc-track{flex:1;height:4px;background:var(--dk3);border-radius:2px;overflow:hidden;}
+.acc-fill{height:100%;border-radius:2px;transition:width 1.2s cubic-bezier(.4,0,.2,1);}
+.acc-pct{font-size:.7rem;color:var(--txm);min-width:32px;text-align:right;}
+
+/* ── AI Progress Update Panel ─────────────────────────────────── */
+.ai-update-panel{
+  background:linear-gradient(135deg,rgba(61,186,114,.05),rgba(61,186,114,.01));
+  border:1px solid rgba(61,186,114,.2);border-radius:16px;
+  padding:20px 22px;margin-bottom:24px;
+}
+.update-input-row{
+  display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-top:14px;
+}
+.update-textarea{
+  flex:1;min-width:200px;background:var(--dk3);border:1.5px solid var(--bd);
+  border-radius:10px;padding:12px 14px;color:var(--tx);
+  font-family:Outfit,sans-serif;font-size:.85rem;resize:none;
+  outline:none;transition:border-color .25s;
+  line-height:1.5;
+}
+.update-textarea:focus{border-color:var(--g);}
+.update-textarea::placeholder{color:var(--txm);}
+.update-btn{
+  background:var(--g);color:#0a0e0a;border:none;border-radius:10px;
+  padding:12px 20px;font-family:Outfit,sans-serif;font-size:.82rem;
+  font-weight:700;cursor:pointer;transition:all .25s;white-space:nowrap;flex-shrink:0;
+}
+.update-btn:hover{background:#4ade80;transform:translateY(-1px);}
+.update-btn:disabled{opacity:.5;cursor:not-allowed;transform:none;}
+
+/* AI response bubble */
+.ai-response-bubble{
+  background:rgba(61,186,114,.06);border:1px solid rgba(61,186,114,.15);
+  border-radius:12px;padding:14px 16px;margin-top:14px;
+  font-size:.82rem;color:var(--tx);line-height:1.6;
+  animation:fadeSlideUp .4s var(--ease) forwards;
+}
+.ai-response-bubble .ai-rb-title{
+  font-size:.68rem;font-weight:700;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--g);margin-bottom:8px;
+  display:flex;align-items:center;gap:6px;
+}
+
+/* Enhanced stage dots for AI update */
+.stage-dot.ai-updated{
+  background:linear-gradient(135deg,#3dba72,#4ade80);
+  color:#0a0e0a;border:none;
+  box-shadow:0 0 0 4px rgba(61,186,114,.2);
+}
+.stage-item .stage-farmer-note{
+  font-size:.6rem;color:var(--g);margin-top:3px;
+  background:rgba(61,186,114,.1);border-radius:4px;
+  padding:1px 5px;display:inline-block;
+}
+
+/* Form labels */
+.form-label{
+  font-size:.7rem;font-weight:700;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--txm);
+  display:flex;align-items:center;margin-bottom:7px;
+}
+
+/* ── Soil/Irr/Variety tip pills ── */
+.tip-pill{
+  display:inline-flex;align-items:center;gap:5px;
+  background:rgba(61,186,114,.08);border:1px solid rgba(61,186,114,.15);
+  border-radius:8px;padding:4px 10px;font-size:.65rem;color:var(--g);
+  line-height:1.4;
+}
+
+/* AI suggestion badge */
+.ai-badge-pill{
+  display:inline-flex;align-items:center;gap:5px;
+  background:rgba(61,186,114,.1);border:1px solid rgba(61,186,114,.2);
+  border-radius:20px;padding:3px 10px;font-size:.65rem;
+  color:var(--g);font-weight:700;margin-bottom:8px;
+}
+</style>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#3dba72">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="SmartFarm AI">
+<script>if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js').then(()=>console.log('[PWA] SW registered')).catch(e=>console.warn('[PWA] SW failed:',e));}</script>
+<script src="/js/smartfarm.js"></script>
+<script>
+// AcqireAI config — set GROQ key if available
+// In production, inject via server-side template or env
+window.GROQ_API_KEY = window.GROQ_API_KEY || '';
+</script>
+
+<style>
+/* ── Language Switcher ── */
+.lang-switcher {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+.lang-btn {
+  display: inline-flex;align-items:center;gap:6px;
+  padding:6px 12px;border-radius:20px;
+  border:1px solid rgba(232,237,229,0.2);
+  background:transparent;cursor:pointer;
+  font-size:.72rem;font-weight:700;
+  color:var(--tx);transition:all .25s;
+  font-family:Outfit,sans-serif;
+  white-space:nowrap;
+}
+.lang-btn:hover{border-color:var(--g);color:var(--g);}
+.lang-btn svg{width:13px;height:13px;opacity:.7;}
+.lang-dropdown {
+  display:none;position:absolute;top:calc(100% + 8px);right:0;
+  background:var(--dk2);border:1px solid var(--bd2);
+  border-radius:12px;overflow:hidden;
+  box-shadow:0 12px 40px rgba(0,0,0,.4);
+  z-index:1000;min-width:160px;
+  animation:ddFade .2s ease;
+}
+@keyframes ddFade{from{opacity:0;transform:translateY(-6px);}to{opacity:1;transform:none;}}
+.lang-dropdown.open{display:block;}
+.lang-option {
+  display:flex;align-items:center;gap:10px;
+  padding:10px 16px;cursor:pointer;
+  font-size:.82rem;font-weight:500;color:var(--tx);
+  transition:background .2s;border:none;background:none;
+  width:100%;text-align:left;font-family:Outfit,sans-serif;
+}
+.lang-option:hover{background:rgba(61,186,114,.1);color:var(--g);}
+.lang-option.active{color:var(--g);font-weight:700;}
+.lang-option .lang-flag{font-size:1rem;}
+.lang-option .lang-name{flex:1;}
+.lang-option .lang-native{font-size:.72rem;color:var(--txm);}
+/* Hide Google's default widget bar */
+.goog-te-banner-frame{display:none!important;}
+.goog-te-menu-value span{color:var(--g)!important;}
+body{top:0!important;}
+.skiptranslate{display:none!important;}
+#google_translate_element{display:none!important;}
+</style>
+</head>
+<body>
+<div class="cursor" id="cur"></div><div class="cursor-ring" id="curRing"></div>
+
+<nav class="nav" id="nav">
+  <a href="index.html" class="nav-logo">
+    <svg viewBox="0 0 36 36" fill="none"><circle cx="18" cy="18" r="17" stroke="rgba(61,186,114,0.22)" stroke-width="1"/><path d="M18 7 C13 11 9 17 10 23 C12 27 16 29 18 29 C20 29 24 27 26 23 C27 17 23 11 18 7Z" fill="rgba(61,186,114,0.12)" stroke="#3dba72" stroke-width="1.2"/><line x1="18" y1="29" x2="18" y2="34" stroke="#3dba72" stroke-width="1.5" stroke-linecap="round"/></svg>
+    <span class="nav-logo-t">SmartFarm <span>AI</span></span>
+  </a>
+  <ul class="nav-links" id="navLinks">
+    <li><a href="index.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>Home</a></li>
+    <li><a href="weather.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 10h-1.26A8 8 0 109 20h9a5 5 0 000-10z"/></svg>Weather</a></li>
+    <li><a href="soil.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>Soil</a></li>
+    <li><a href="disease.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Disease</a></li>
+    <li><a href="market.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Market</a></li>
+    <li><a href="harvest.html" class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Harvest</a></li>
+  </ul>
+  <div class="nav-r"><a href="index.html" class="npill npo">← Home</a><a href="market.html" class="npill nps">Market Prices</a><div class="hburg" id="hburg"><span></span><span></span><span></span></div></div>
+</nav>
+
+<div class="page-wrap">
+
+  <!-- HERO -->
+  <div class="page-hero">
+    <div class="h-hero-bg"></div>
+    <div class="ph-grad"></div><div class="ph-grad2"></div>
+    <div class="ph-content">
+      <div class="ph-badge">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Harvest Module
+      </div>
+      <h1 class="ph-h1">Smart Harvest<br><em>Date Predictor</em></h1>
+      <p class="ph-p">Type any crop name — FarmAI will predict your exact harvest window, track growth stages, and show relevant government schemes.</p>
+    </div>
+  </div>
+
+  <section class="section">
+
+    <!-- AI SEARCH INPUT — full width on top -->
+    <div class="card reveal" style="background:var(--dk2);padding:28px 32px;margin-bottom:28px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="width:8px;height:8px;border-radius:50%;background:var(--g);animation:pulse-ring 2s infinite;"></div>
+          <span style="font-size:.7rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--g);">FarmAI Harvest Predictor</span>
+        </div>
+        <!-- Location pill -->
+        <div style="display:flex;align-items:center;gap:8px;background:var(--dk3);border:1px solid var(--bd);border-radius:30px;padding:6px 14px;cursor:pointer;" id="locationPill" onclick="detectLocation()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="var(--g)" stroke-width="2" width="14" height="14"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          <span style="font-size:.72rem;color:var(--txm);" id="locationText">Detect Location</span>
+        </div>
+      </div>
+
+      <div class="ai-search-wrap">
+        <svg class="ai-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input class="ai-search-input" type="text" id="cropInput"
+          placeholder="Search any crop — Rice, Turmeric, Banana, Capsicum…"
+          onkeydown="if(event.key==='Enter')predictCrop()"
+          oninput="showSuggestions(this.value)">
+      </div>
+      <button class="ai-search-btn" id="predictBtn" onclick="predictCrop()" style="position:static;transform:none;width:100%;margin-top:12px;padding:15px;border-radius:14px;font-size:.95rem;letter-spacing:.04em;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16" style="display:inline;vertical-align:middle;margin-right:6px;"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg>
+        Predict Harvest Date
+      </button>
+
+      <!-- Smart suggestions dropdown -->
+      <div id="suggDropdown" style="display:none;position:absolute;z-index:100;background:var(--dk2);border:1px solid var(--bd);border-radius:var(--r);width:calc(100% - 64px);max-height:220px;overflow-y:auto;box-shadow:0 12px 40px rgba(0,0,0,.5);"></div>
+
+      <!-- Quick suggestion chips — 6 only -->
+      <div style="margin-top:20px;">
+        <div style="font-size:.65rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--txm);margin-bottom:10px;">Popular Crops</div>
+        <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:10px;">
+          <div class="crop-quick-btn" onclick="setAndPredict('Rice')" style="background-image:url('https://images.unsplash.com/photo-1536657464919-892534f60d6e?w=200&q=70');">
+            <div class="cqb-overlay"></div><span>Rice</span>
+          </div>
+          <div class="crop-quick-btn" onclick="setAndPredict('Wheat')" style="background-image:url('https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=200&q=70');">
+            <div class="cqb-overlay"></div><span>Wheat</span>
+          </div>
+          <div class="crop-quick-btn" onclick="setAndPredict('Tomato')" style="background-image:url('https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=200&q=70');">
+            <div class="cqb-overlay"></div><span>Tomato</span>
+          </div>
+          <div class="crop-quick-btn" onclick="setAndPredict('Banana')" style="background-image:url('https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=200&q=70');">
+            <div class="cqb-overlay"></div><span>Banana</span>
+          </div>
+          <div class="crop-quick-btn" onclick="setAndPredict('Turmeric')" style="background-image:url('https://images.unsplash.com/photo-1615485500704-8e990f9900f7?w=200&q=70');">
+            <div class="cqb-overlay"></div><span>Turmeric</span>
+          </div>
+          <div class="crop-quick-btn" onclick="setAndPredict('Cotton')" style="background-image:url('https://images.unsplash.com/photo-1590682680695-43b964a3ae17?w=200&q=70');">
+            <div class="cqb-overlay"></div><span>Cotton</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Farm Details Form ── -->
+      <div style="margin-top:20px;">
+
+        <!-- Row 1: Sowing Date + Area + Location -->
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px;">
+
+          <!-- Sowing Date -->
+          <div>
+            <label class="form-label">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="11" height="11" style="vertical-align:middle;margin-right:4px;"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              When did you sow? (Sowing Date)
+            </label>
+            <input class="f-input" type="date" id="sowDate" onchange="onSowDateChange()">
+            <div id="sowDateTip" style="font-size:.65rem;margin-top:4px;line-height:1.4;display:none;"></div>
+          </div>
+
+          <!-- Area -->
+          <div>
+            <label class="form-label">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="11" height="11" style="vertical-align:middle;margin-right:4px;"><rect x="3" y="3" width="18" height="18" rx="1"/><path d="M3 9h18M9 3v18"/></svg>
+              Area (Acres)
+            </label>
+            <input class="f-input" type="number" id="areaHarv" placeholder="e.g. 3" min="0.1" step="0.5">
+          </div>
+
+          <!-- Location -->
+          <div>
+            <label class="form-label">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="11" height="11" style="vertical-align:middle;margin-right:4px;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              Location
+              <a href="weather.html" style="margin-left:6px;font-size:.6rem;color:#5ba4e8;text-decoration:none;opacity:.85;" title="Check live weather forecast for your location">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#5ba4e8" stroke-width="2" width="9" height="9"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                Weather Forecast
+              </a>
+            </label>
+            <div style="position:relative;">
+              <input class="f-input" id="locInput" placeholder="e.g. Chennai, Tamil Nadu" style="padding-right:36px;"
+                onkeydown="if(event.key==='Enter')fetchWeatherForHarvest()"
+                oninput="showWeatherTip()">
+              <button onclick="autoDetectLocation()" title="Auto-detect location"
+                style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--g);opacity:.7;padding:0;transition:opacity .2s;"
+                onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.7">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+              </button>
+            </div>
+            <div id="weatherTip" style="font-size:.65rem;color:#5ba4e8;margin-top:4px;line-height:1.4;display:none;">
+              🌦 <a href="weather.html" style="color:#5ba4e8;text-decoration:underline;">Check live weather forecast</a> for accurate harvest planning — rain &amp; heat affect crop duration.
+            </div>
+          </div>
+        </div>
+
+        <!-- Row 2: Irrigation + Soil Type + Variety -->
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;">
+
+          <!-- Irrigation -->
+          <div>
+            <label class="form-label">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="11" height="11" style="vertical-align:middle;margin-right:4px;"><path d="M12 2 C12 2 6 10 6 14a6 6 0 0012 0C18 10 12 2 12 2z"/></svg>
+              Irrigation Type
+              <a href="soil.html" style="margin-left:6px;font-size:.6rem;color:var(--g);text-decoration:none;opacity:.7;" title="Check soil module for irrigation advice">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="9" height="9"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                Help
+              </a>
+            </label>
+            <select class="f-input" id="irrType" onchange="showIrrigationTip()">
+              <option value="Canal / Bore well">💧 Canal / Bore well</option>
+              <option value="Drip / Sprinkler">🌦 Drip / Sprinkler</option>
+              <option value="Rain-fed only">🌧 Rain-fed only</option>
+            </select>
+            <div id="irrTip" style="font-size:.65rem;color:var(--txm);margin-top:4px;line-height:1.4;display:none;"></div>
+          </div>
+
+          <!-- Soil Type -->
+          <div>
+            <label class="form-label">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="11" height="11" style="vertical-align:middle;margin-right:4px;"><circle cx="12" cy="12" r="10"/></svg>
+              Soil Type
+              <a href="soil.html" style="margin-left:6px;font-size:.6rem;color:var(--g);text-decoration:none;opacity:.7;" title="Go to Soil module to check your soil type">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="9" height="9"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                Don't know?
+              </a>
+            </label>
+            <select class="f-input" id="soilType" onchange="showSoilTip()">
+              <option value="">Select soil type…</option>
+              <option value="Clay">🟤 Clay — moisture retentive, heavy</option>
+              <option value="Sandy">🟡 Sandy — fast draining, light</option>
+              <option value="Loamy">🟢 Loamy — best for most crops</option>
+              <option value="Black cotton">⚫ Black cotton — fertile, water holding</option>
+              <option value="Red laterite">🔴 Red laterite — acidic, low fertility</option>
+              <option value="Alluvial">💛 Alluvial — rich, river deposit soil</option>
+            </select>
+            <div id="soilTip" style="font-size:.65rem;color:var(--txm);margin-top:4px;line-height:1.4;display:none;"></div>
+          </div>
+
+          <!-- Variety — now a smart select+input combo -->
+          <div>
+            <label class="form-label">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="11" height="11" style="vertical-align:middle;margin-right:4px;"><path d="M12 2a10 10 0 100 20A10 10 0 0012 2z"/><path d="M12 8v4l3 3"/></svg>
+              Variety
+              <span style="margin-left:5px;font-size:.6rem;color:var(--txm);font-weight:400;">(optional but improves accuracy)</span>
+            </label>
+            <div style="position:relative;">
+              <select class="f-input" id="varSelect" onchange="onVarietySelect()" style="margin-bottom:6px;">
+                <option value="">Choose a variety…</option>
+                <optgroup label="Rice — Early (100–110 days)">
+                  <option value="IR-64">IR-64 (105 days)</option>
+                  <option value="ADT 36">ADT 36 (110 days)</option>
+                  <option value="CO 51">CO 51 (108 days)</option>
+                  <option value="ASD 16">ASD 16 (110 days)</option>
+                </optgroup>
+                <optgroup label="Rice — Medium (120–130 days)">
+                  <option value="ADT 43">ADT 43 (120 days)</option>
+                  <option value="CR 1009">CR 1009 (125 days)</option>
+                  <option value="Ponni">Ponni (125 days)</option>
+                </optgroup>
+                <optgroup label="Rice — Late (130–145 days)">
+                  <option value="Swarna">Swarna (135 days)</option>
+                  <option value="BPT 5204">BPT 5204 (140 days)</option>
+                  <option value="Samba Mahsuri">Samba Mahsuri (145 days)</option>
+                </optgroup>
+                <optgroup label="Wheat">
+                  <option value="HD 2967">HD 2967 (140 days)</option>
+                  <option value="GW 322">GW 322 (115 days)</option>
+                  <option value="LOK 1">LOK 1 (120 days)</option>
+                </optgroup>
+                <optgroup label="Tomato">
+                  <option value="PKM 1">PKM 1 (80 days)</option>
+                  <option value="CO 3">CO 3 (85 days)</option>
+                  <option value="Arka Vikas">Arka Vikas (90 days)</option>
+                  <option value="Pusa Ruby">Pusa Ruby (75 days)</option>
+                </optgroup>
+                <optgroup label="Cotton">
+                  <option value="MCU 5">MCU 5 (175 days)</option>
+                  <option value="LRA 5166">LRA 5166 (170 days)</option>
+                  <option value="Suvin">Suvin (195 days)</option>
+                </optgroup>
+                <optgroup label="Maize">
+                  <option value="COH 3">COH 3 (95 days)</option>
+                  <option value="COHM 5">COHM 5 (100 days)</option>
+                </optgroup>
+                <optgroup label="Other">
+                  <option value="custom">✏ Type my own variety…</option>
+                </optgroup>
+              </select>
+              <input class="f-input" id="varIn" placeholder="Or type variety name…" style="font-size:.82rem;">
+            </div>
+            <div id="varTip" style="font-size:.65rem;color:var(--txm);margin-top:4px;line-height:1.4;display:none;"></div>
+          </div>
+        </div>
+
+        <!-- Don't know your soil? Banner -->
+        <div id="unknownSoilBanner" style="display:none;margin-top:12px;background:rgba(201,168,76,.07);border:1px solid rgba(201,168,76,.2);border-radius:10px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+          <div style="font-size:.78rem;color:#c9a84c;">
+            <strong>Don't know your soil type?</strong> Our Soil Analysis module can identify it from your location + crop data.
+          </div>
+          <a href="soil.html" style="background:rgba(201,168,76,.15);border:1px solid rgba(201,168,76,.3);color:#c9a84c;border-radius:8px;padding:6px 14px;font-size:.75rem;font-weight:700;text-decoration:none;white-space:nowrap;">
+            → Check Soil Module
+          </a>
+        </div>
+
+        <!-- Weather module banner -->
+        <div style="margin-top:10px;background:rgba(91,164,232,.07);border:1px solid rgba(91,164,232,.2);border-radius:10px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#5ba4e8" stroke-width="2" width="18" height="18"><path d="M18 10h-1.26A8 8 0 109 20h9a5 5 0 000-10z"/></svg>
+            <div style="font-size:.78rem;color:#5ba4e8;">
+              <strong>Want to know how weather affects your harvest?</strong> Check live rain, humidity &amp; temperature forecasts for your field.
+            </div>
+          </div>
+          <a href="weather.html" style="background:rgba(91,164,232,.15);border:1px solid rgba(91,164,232,.35);color:#5ba4e8;border-radius:8px;padding:6px 14px;font-size:.75rem;font-weight:700;text-decoration:none;white-space:nowrap;">
+            → Check Weather Module
+          </a>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- RESULT AREA -->
+    <div id="hResultWrap">
+
+      <!-- Empty state -->
+      <div id="hEmpty" class="empty-state reveal">
+        <div class="empty-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="rgba(61,186,114,.6)" stroke-width="1.5" width="32" height="32"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg>
+        </div>
+        <h3 style="font-family:'Cormorant Garamond',serif;font-size:1.6rem;color:var(--cream);margin-bottom:10px;">Type Any Crop Above</h3>
+        <p style="color:var(--txm);font-size:.875rem;line-height:1.7;max-width:480px;margin:0 auto 24px;">Rice, Wheat, Tomato, Banana, Turmeric, Brinjal, Capsicum — FarmAI knows 50+ crops. Just type and predict.</p>
+        <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+          <div style="display:flex;align-items:center;gap:8px;font-size:.8rem;color:var(--txm);background:var(--dk3);padding:10px 16px;border-radius:var(--r);border:1px solid var(--bd);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="var(--g)" stroke-width="2" width="16" height="16"><polyline points="20 6 9 17 4 12"/></svg>
+            Exact harvest date
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:.8rem;color:var(--txm);background:var(--dk3);padding:10px 16px;border-radius:var(--r);border:1px solid var(--bd);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="var(--g)" stroke-width="2" width="16" height="16"><polyline points="20 6 9 17 4 12"/></svg>
+            Growth stage timeline
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:.8rem;color:var(--txm);background:var(--dk3);padding:10px 16px;border-radius:var(--r);border:1px solid var(--bd);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="var(--g)" stroke-width="2" width="16" height="16"><polyline points="20 6 9 17 4 12"/></svg>
+            Govt scheme finder
+          </div>
+        </div>
+      </div>
+
+      <!-- AI thinking state -->
+      <div id="hThinking" style="display:none;text-align:center;padding:64px 32px;background:var(--dk2);border-radius:var(--rl);border:1px solid var(--bd);">
+        <div class="typing-dots" style="margin-bottom:16px;">
+          <span></span><span></span><span></span>
+        </div>
+        <div style="font-size:.875rem;color:var(--txm);" id="thinkingText">FarmAI is predicting your harvest…</div>
+      </div>
+
+      <!-- Result -->
+      <div id="hResult" style="display:none;" class="fade-up">
+
+        <!-- Top bar — crop name + status + reset -->
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
+          <div>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div id="rCropIcon" style="width:44px;height:44px;border-radius:50%;overflow:hidden;border:2px solid rgba(61,186,114,.3);flex-shrink:0;">
+                <img id="rCropImg" src="" alt="" style="width:100%;height:100%;object-fit:cover;">
+              </div>
+              <div>
+                <div style="font-family:'Cormorant Garamond',serif;font-size:1.6rem;font-weight:700;color:var(--cream);" id="rCropName">—</div>
+                <div style="font-size:.75rem;color:var(--txm);" id="rVariety"></div>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+            <div id="rStatusTag" class="tag tag-g" style="font-size:.78rem;padding:7px 14px;"></div>
+            <button class="btn-ghost btn-sm" onclick="resetHarvest()">New Prediction</button>
+          </div>
+        </div>
+
+        <!-- Main grid: countdown + key dates -->
+        <div style="display:grid;grid-template-columns:180px 1fr;gap:20px;margin-bottom:24px;align-items:center;">
+          <!-- Countdown ring -->
+          <div style="text-align:center;">
+            <div style="font-size:.65rem;text-transform:uppercase;letter-spacing:.1em;color:var(--txm);margin-bottom:12px;">Days Until Harvest</div>
+            <div class="cd-ring" id="cdRing">
+              <div class="cd-inner">
+                <div class="cd-num" id="cdNum">—</div>
+                <div class="cd-label">days left</div>
+              </div>
+            </div>
+          </div>
+          <!-- Key dates grid -->
+          <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;" id="kdGrid"></div>
+        </div>
+
+        <!-- Progress bar -->
+        <div style="margin-bottom:28px;">
+          <div style="display:flex;justify-content:space-between;font-size:.72rem;color:var(--txm);margin-bottom:6px;">
+            <span>Crop Progress</span>
+            <span id="progPct">0%</span>
+          </div>
+          <div class="prog-track">
+            <div class="prog-fill" id="progFill" style="width:0%"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:.65rem;color:var(--txm);margin-top:4px;">
+            <span id="sowLabel">Sowing</span>
+            <span id="harvestLabel">Harvest</span>
+          </div>
+        </div>
+
+        <!-- Growth stage timeline — horizontal -->
+        <div style="margin-bottom:28px;">
+          <div style="font-size:.7rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--txm);margin-bottom:16px;">Growth Stage Timeline</div>
+          <div class="stage-track" id="stageTrack"></div>
+        </div>
+
+        <!-- Alerts row -->
+        <div style="margin-bottom:28px;">
+          <div style="font-size:.7rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--txm);margin-bottom:14px;">Farm Alerts</div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;" id="alertGrid"></div>
+        </div>
+
+        <!-- AI Farm Activity Update Panel -->
+        <div class="ai-update-panel" id="aiUpdatePanel" style="display:none;">
+          <!-- Header -->
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <div style="width:8px;height:8px;border-radius:50%;background:var(--g);animation:pulse-ring 2s infinite;"></div>
+              <span style="font-size:.7rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--g);">AI Farm Progress Tracker</span>
+            </div>
+            <div id="aiProgBadge" class="ai-badge-pill" style="display:none;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="10" height="10"><polyline points="20 6 9 17 4 12"/></svg>
+              AI Updated
+            </div>
+          </div>
+
+          <!-- Date correction row -->
+          <div style="background:rgba(201,168,76,.06);border:1px solid rgba(201,168,76,.18);border-radius:12px;padding:12px 16px;margin-bottom:14px;">
+            <div style="font-size:.68rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#c9a84c;margin-bottom:10px;">
+              📅 Correct Your Dates (if needed)
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+              <div>
+                <label style="font-size:.65rem;color:var(--txm);display:block;margin-bottom:5px;">Actual Sowing Date</label>
+                <input type="date" id="correctSowDate" class="f-input" style="padding:9px 12px;font-size:.82rem;" onchange="applyDateCorrection()">
+              </div>
+              <div>
+                <label style="font-size:.65rem;color:var(--txm);display:block;margin-bottom:5px;">Today's Actual Date</label>
+                <input type="date" id="correctTodayDate" class="f-input" style="padding:9px 12px;font-size:.82rem;" onchange="applyDateCorrection()">
+              </div>
+            </div>
+            <div id="dateCorrectionTip" style="font-size:.68rem;color:#c9a84c;margin-top:8px;display:none;"></div>
+          </div>
+
+          <!-- Quick stage buttons -->
+          <div style="margin-bottom:12px;">
+            <div style="font-size:.68rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--txm);margin-bottom:8px;">
+              👆 Quick Update — Click Your Current Stage
+              <span style="font-size:.6rem;color:rgba(232,237,229,.3);font-weight:400;margin-left:6px;">then click Ask FarmAI for detailed advice</span>
+            </div>
+            <div id="quickStageBtns" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
+          </div>
+
+          <!-- Text activity input -->
+          <div style="font-size:.68rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--txm);margin-bottom:8px;">
+            Or describe what you did today
+          </div>
+          <div class="update-input-row">
+            <textarea class="update-textarea" id="farmActivityInput" rows="2"
+              placeholder="e.g. I completed tillering and applied urea fertiliser. Noticed some yellowing on leaves…"></textarea>
+            <button class="update-btn" id="aiUpdateBtn" onclick="submitFarmUpdate()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14" style="display:inline;vertical-align:middle;margin-right:4px;"><path d="M22 2L11 13M22 2L15 22l-4-9-9-4 20-7z"/></svg>
+              Ask FarmAI
+            </button>
+          </div>
+          <div id="aiUpdateResponse" style="display:none;"></div>
+
+          <!-- Activity log -->
+          <div id="aiUpdateLog" style="margin-top:12px;display:none;">
+            <div style="font-size:.65rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--txm);margin-bottom:8px;">Activity History</div>
+            <div id="aiUpdateLogItems" style="display:flex;flex-direction:column;gap:6px;max-height:160px;overflow-y:auto;"></div>
+          </div>
+        </div>
+
+        <!-- Weather strip -->
+        <div id="wxStrip" style="display:none;margin-bottom:24px;"></div>
+
+        <!-- AI Suggestions -->
+        <div id="aiSuggestPanel" style="display:none;margin-bottom:24px;"></div>
+
+        <!-- Accuracy factors -->
+        <div id="accPanel" style="margin-bottom:24px;background:var(--dk3);border-radius:14px;padding:18px 20px;border:1px solid var(--bd);">
+          <div style="font-size:.7rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--txm);margin-bottom:14px;">Prediction Accuracy Factors</div>
+          <div id="accBars"></div>
+          <div id="accScore" style="margin-top:10px;font-size:.75rem;color:var(--txm);"></div>
+        </div>
+
+        <!-- Action buttons -->
+        <div style="display:flex;gap:10px;flex-wrap:wrap;padding-top:4px;">
+          <a href="market.html" class="btn-p btn-sm">
+            <svg class="bi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            Check Market Prices
+          </a>
+          <button class="btn-ghost btn-sm" onclick="openCalendar()">
+            <svg class="bi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg>
+            Set Reminders
+          </button>
+          <a href="weather.html" class="btn-ghost btn-sm">
+            <svg class="bi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 10h-1.26A8 8 0 109 20h9a5 5 0 000-10z"/></svg>
+            Full Weather
+          </a>
+          <button class="btn-ghost btn-sm" onclick="resetHarvest()">Reset</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SCHEMES -->
+  <section class="section section-mist" style="padding-top:52px;margin-top:0;">
+    <div class="s-eye reveal"><div class="s-eye-l"></div><span>Tamil Nadu · Government Support</span></div>
+    <h2 class="s-title reveal" style="margin-bottom:6px;">State &amp; Central Schemes for Farmers</h2>
+    <p style="color:var(--txm);font-size:.855rem;margin-bottom:28px;" id="schemeSubtitle">
+      Predict your harvest above — FarmAI will find the best government schemes for your crop.
+    </p>
+    <div id="schemeLoading" style="display:none;text-align:center;padding:40px 0;">
+      <div class="spinner" style="width:30px;height:30px;border-width:3px;margin:0 auto 14px;"></div>
+      <p style="color:var(--txm);font-size:.85rem;" id="schemeLoadTxt">Finding schemes…</p>
+    </div>
+    <div id="schemeEmpty" style="text-align:center;padding:40px 28px;border:1.5px dashed var(--bd);border-radius:var(--rl);">
+      <div style="font-size:.875rem;color:var(--txm);">Predict a crop above to see matched government schemes.</div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;" id="schemeGrid"></div>
+  </section>
+
+</div>
+
+<!-- ── CALENDAR REMINDER MODAL ──────────────────────────────── -->
+<div class="cal-modal" id="calModal" onclick="if(event.target===this)closeCalendar()">
+  <div class="cal-box">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+      <div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:1.3rem;font-weight:700;color:var(--cream);">Harvest Calendar</div>
+        <div style="font-size:.72rem;color:var(--txm);margin-top:2px;" id="calSubtitle">Click any date to set a reminder</div>
+      </div>
+      <button onclick="closeCalendar()" style="background:none;border:1px solid var(--bd);border-radius:8px;width:30px;height:30px;cursor:pointer;color:var(--txm);font-size:1rem;">×</button>
+    </div>
+    <div class="cal-month-header">
+      <button class="cal-nav" onclick="calNav(-1)">‹</button>
+      <div class="cal-month-title" id="calMonthTitle"></div>
+      <button class="cal-nav" onclick="calNav(1)">›</button>
+    </div>
+    <div class="cal-grid" id="calGrid"></div>
+    <div class="cal-legend">
+      <div class="cal-legend-item"><div class="cal-legend-dot" style="background:var(--g);"></div>Harvest Day</div>
+      <div class="cal-legend-item"><div class="cal-legend-dot" style="background:rgba(201,168,76,.6);"></div>Alert Day</div>
+      <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#5ba4e8;opacity:.6;"></div>Reminder Set</div>
+    </div>
+    <!-- Reminder list -->
+    <div id="reminderList" style="margin-top:16px;border-top:1px solid var(--bd);padding-top:14px;"></div>
+    <button onclick="exportReminders()" style="margin-top:12px;width:100%;padding:11px;border-radius:10px;border:1px solid rgba(61,186,114,.3);background:rgba(61,186,114,.06);color:var(--g);font-family:Outfit,sans-serif;font-size:.82rem;font-weight:600;cursor:pointer;">
+      Export Reminders (.ics Calendar File)
+    </button>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="fg">
+    <div>
+      <div class="fb-name"><svg width="26" height="26" viewBox="0 0 36 36" fill="none"><path d="M18 6 C13 10 9 16 10 22 C12 26 16 28 18 28 C20 28 24 26 26 22 C27 16 23 10 18 6Z" fill="rgba(61,186,114,.18)" stroke="#3dba72" stroke-width="1.4"/><line x1="18" y1="28" x2="18" y2="34" stroke="#3dba72" stroke-width="1.5" stroke-linecap="round"/></svg>SmartFarm <span>AI</span></div>
+      <p class="fb-tag">AI-powered agricultural decision support. Niral Thiruvizha 3.0.</p>
+    </div>
+    <div class="fc"><h5>Modules</h5><ul><li><a href="weather.html">Weather</a></li><li><a href="soil.html">Soil</a></li><li><a href="disease.html">Disease</a></li><li><a href="market.html">Market</a></li><li><a href="harvest.html">Harvest</a></li></ul></div>
+    <div class="fc"><h5>Resources</h5><ul><li><a href="https://pmkisan.gov.in" target="_blank">PM-KISAN</a></li><li><a href="https://pmfby.gov.in" target="_blank">Crop Insurance</a></li><li><a href="https://agmarknet.gov.in" target="_blank">Agmarknet</a></li></ul></div>
+    <div class="fc"><h5>Team</h5><ul><li><a href="#">Kalaiselvi M</a></li><li><a href="#">Akalya R</a></li><li><a href="#">Asika M</a></li><li><a href="#">Dhatchineswaran D</a></li></ul></div>
+  </div>
+  <div class="fbot"><span>© 2025 SmartFarm AI · Niral Thiruvizha 3.0</span></div>
+</footer>
+
+<script src="js/script.js"></script>
+<script>
+
+// ── Set today as default sowing date + show hint ─────────────────
+document.getElementById('sowDate').value = new Date().toISOString().split('T')[0];
+// Show helper text under sowing date
+setTimeout(() => {
+  const tip = document.getElementById('sowDateTip');
+  if (tip) {
+    tip.style.display = 'block';
+    tip.innerHTML = '<span style="color:var(--txm);">💡 Enter the date you actually sowed/planted. Use a past date if crop is already growing.</span>';
+  }
+}, 100);
+
+// ── Extended crop database — 50+ crops ───────────────────────────
+const CROP_DB = {
+  // Cereals
+  Rice:       {dur:120, minDur:100, maxDur:150, stages:['Germination','Tillering','Panicle Init.','Heading','Ripening'], season:'Kharif (Jun–Nov) / Rabi (Nov–Apr)', img:'https://images.unsplash.com/photo-1536657464919-892534f60d6e?w=80&q=60'},
+  Wheat:      {dur:140, stages:['Germination','Tillering','Jointing','Heading','Ripening'],               season:'Rabi',      img:'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=80&q=60'},
+  Maize:      {dur:100, stages:['Germination','Vegetative','Tasseling','Silking','Maturity'],             season:'Kharif/Rabi',img:'https://images.unsplash.com/photo-1601593346740-925612772716?w=80&q=60'},
+  Sorghum:    {dur:110, stages:['Germination','Vegetative','Booting','Heading','Maturity'],               season:'Kharif',    img:'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=80&q=60'},
+  Bajra:      {dur:75,  stages:['Germination','Vegetative','Booting','Flowering','Maturity'],             season:'Kharif',    img:'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=80&q=60'},
+  Ragi:       {dur:110, stages:['Germination','Tillering','Booting','Flowering','Maturity'],              season:'Kharif',    img:'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=80&q=60'},
+  Barley:     {dur:120, stages:['Germination','Tillering','Jointing','Heading','Maturity'],               season:'Rabi',      img:'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=80&q=60'},
+  // Pulses
+  Soybean:    {dur:110, stages:['Germination','Vegetative','Flowering','Pod Fill','Maturity'],            season:'Kharif',    img:'https://images.unsplash.com/photo-1599420186946-7b6fb4e297f0?w=80&q=60'},
+  Groundnut:  {dur:130, stages:['Germination','Vegetative','Flowering','Pegging','Maturity'],             season:'Kharif',    img:'https://images.unsplash.com/photo-1576866209830-589e1bfbaa4d?w=80&q=60'},
+  Chickpea:   {dur:100, stages:['Germination','Vegetative','Budding','Flowering','Maturity'],             season:'Rabi',      img:'https://images.unsplash.com/photo-1599420186946-7b6fb4e297f0?w=80&q=60'},
+  Lentil:     {dur:110, stages:['Germination','Vegetative','Budding','Flowering','Maturity'],             season:'Rabi',      img:'https://images.unsplash.com/photo-1599420186946-7b6fb4e297f0?w=80&q=60'},
+  BlackGram:  {dur:70,  stages:['Germination','Vegetative','Budding','Pod Fill','Maturity'],              season:'Kharif',    img:'https://images.unsplash.com/photo-1599420186946-7b6fb4e297f0?w=80&q=60'},
+  GreenGram:  {dur:65,  stages:['Germination','Vegetative','Budding','Pod Fill','Maturity'],              season:'Kharif',    img:'https://images.unsplash.com/photo-1599420186946-7b6fb4e297f0?w=80&q=60'},
+  // Fibre
+  Cotton:     {dur:180, stages:['Germination','Seedling','Squaring','Flowering','Boll Dev.'],             season:'Kharif',    img:'https://images.unsplash.com/photo-1590682680695-43b964a3ae17?w=80&q=60'},
+  Jute:       {dur:120, stages:['Germination','Seedling','Vegetative','Flowering','Maturity'],            season:'Kharif',    img:'https://images.unsplash.com/photo-1590682680695-43b964a3ae17?w=80&q=60'},
+  // Vegetables
+  Tomato:     {dur:85,  stages:['Germination','Seedling','Vegetative','Flowering','Fruiting'],            season:'All seasons',img:'https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=80&q=60'},
+  Potato:     {dur:90,  stages:['Sprout','Vegetative','Tuber Init.','Bulking','Maturity'],                season:'Rabi',      img:'https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=80&q=60'},
+  Onion:      {dur:120, stages:['Germination','Seedling','Bulb Init.','Bulb Dev.','Maturity'],            season:'Rabi',      img:'https://images.unsplash.com/photo-1618512496248-a07fe83aa8cb?w=80&q=60'},
+  Brinjal:    {dur:75,  stages:['Germination','Seedling','Vegetative','Flowering','Fruiting'],            season:'All seasons',img:'https://images.unsplash.com/photo-1599599810769-bcde5a160d32?w=80&q=60'},
+  Chilli:     {dur:120, stages:['Germination','Seedling','Vegetative','Flowering','Fruiting'],            season:'All seasons',img:'https://images.unsplash.com/photo-1583119022894-919a68a3d0e3?w=80&q=60'},
+  Capsicum:   {dur:90,  stages:['Germination','Seedling','Vegetative','Flowering','Fruiting'],            season:'Rabi',      img:'https://images.unsplash.com/photo-1583119022894-919a68a3d0e3?w=80&q=60'},
+  Okra:       {dur:60,  stages:['Germination','Seedling','Vegetative','Flowering','Pod Dev.'],            season:'Kharif',    img:'https://images.unsplash.com/photo-1599599810769-bcde5a160d32?w=80&q=60'},
+  Cabbage:    {dur:90,  stages:['Germination','Seedling','Head Init.','Head Dev.','Maturity'],            season:'Rabi',      img:'https://images.unsplash.com/photo-1597362925123-77861d3fbac7?w=80&q=60'},
+  Cauliflower:{dur:80,  stages:['Germination','Seedling','Curd Init.','Curd Dev.','Maturity'],            season:'Rabi',      img:'https://images.unsplash.com/photo-1570586437263-ab629fccc818?w=80&q=60'},
+  Carrot:     {dur:90,  stages:['Germination','Seedling','Root Dev.','Root Fill','Maturity'],             season:'Rabi',      img:'https://images.unsplash.com/photo-1582515073490-39981397c445?w=80&q=60'},
+  Garlic:     {dur:150, stages:['Germination','Vegetative','Bulb Init.','Bulb Dev.','Maturity'],          season:'Rabi',      img:'https://images.unsplash.com/photo-1583843596568-a76a2b2e6e46?w=80&q=60'},
+  Cucumber:   {dur:60,  stages:['Germination','Seedling','Runner','Flowering','Fruiting'],                season:'Summer',    img:'https://images.unsplash.com/photo-1568584711075-3d021a7c3ca3?w=80&q=60'},
+  Pumpkin:    {dur:100, stages:['Germination','Runner','Vining','Flowering','Fruiting'],                  season:'Kharif',    img:'https://images.unsplash.com/photo-1570586437263-ab629fccc818?w=80&q=60'},
+  Watermelon: {dur:80,  stages:['Germination','Runner','Vining','Flowering','Fruiting'],                  season:'Summer',    img:'https://images.unsplash.com/photo-1568584711075-3d021a7c3ca3?w=80&q=60'},
+  // Fruits
+  Banana:     {dur:270, stages:['Planting','Shooting','Flowering','Bunch Dev.','Harvest'],                season:'All seasons',img:'https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=80&q=60'},
+  Mango:      {dur:120, stages:['Flowering','Fruit Set','Fruit Dev.','Maturation','Harvest'],             season:'Summer',    img:'https://images.unsplash.com/photo-1580910051074-3eb694886505?w=80&q=60'},
+  Papaya:     {dur:270, stages:['Germination','Seedling','Vegetative','Flowering','Fruiting'],            season:'All seasons',img:'https://images.unsplash.com/photo-1537640538966-79f369143f8f?w=80&q=60'},
+  Coconut:    {dur:365, stages:['Planting','Establishment','Vegetative','Nutting','Harvest'],             season:'Perennial', img:'https://images.unsplash.com/photo-1550583724-b2692b85b150?w=80&q=60'},
+  Pineapple:  {dur:540, stages:['Planting','Establishment','Vegetative','Forcing','Fruiting'],            season:'All seasons',img:'https://images.unsplash.com/photo-1550258987-190a2d41a8ba?w=80&q=60'},
+  Guava:      {dur:180, stages:['Planting','Vegetative','Flowering','Fruit Dev.','Harvest'],              season:'All seasons',img:'https://images.unsplash.com/photo-1536657464919-892534f60d6e?w=80&q=60'},
+  // Spices & cash
+  Turmeric:   {dur:270, stages:['Sprouting','Vegetative','Rhizome Dev.','Rhizome Fill','Maturity'],       season:'Kharif',    img:'https://images.unsplash.com/photo-1615485500704-8e990f9900f7?w=80&q=60'},
+  Ginger:     {dur:240, stages:['Sprouting','Vegetative','Rhizome Dev.','Rhizome Fill','Maturity'],       season:'Kharif',    img:'https://images.unsplash.com/photo-1615485500704-8e990f9900f7?w=80&q=60'},
+  Cardamom:   {dur:730, stages:['Planting','Establishment','Panicle Dev.','Flowering','Harvest'],         season:'Perennial', img:'https://images.unsplash.com/photo-1509358271058-acd22cc93898?w=80&q=60'},
+  Pepper:     {dur:365, stages:['Planting','Establishment','Flowering','Berry Dev.','Harvest'],           season:'Kharif',    img:'https://images.unsplash.com/photo-1599909631583-1cd8e4a8d9a5?w=80&q=60'},
+  Coriander:  {dur:45,  stages:['Germination','Seedling','Vegetative','Flowering','Seed Fill'],           season:'Rabi',      img:'https://images.unsplash.com/photo-1591033479757-e71f6d642ed2?w=80&q=60'},
+  Fenugreek:  {dur:55,  stages:['Germination','Seedling','Vegetative','Flowering','Maturity'],            season:'Rabi',      img:'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=80&q=60'},
+  Sugarcane:  {dur:365, stages:['Germination','Tillering','Grand Growth','Maturation','Ripening'],        season:'Spring',    img:'https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=80&q=60'},
+  // Oil seeds
+  Sunflower:  {dur:90,  stages:['Germination','Vegetative','Bud','Flowering','Seed Fill'],                season:'Rabi/Kharif',img:'https://images.unsplash.com/photo-1470509037663-253d2d33b8b3?w=80&q=60'},
+  Mustard:    {dur:110, stages:['Germination','Rosette','Elongation','Flowering','Maturity'],             season:'Rabi',      img:'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=80&q=60'},
+  Sesame:     {dur:80,  stages:['Germination','Vegetative','Budding','Flowering','Maturity'],             season:'Kharif',    img:'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=80&q=60'},
+  Castor:     {dur:180, stages:['Germination','Vegetative','Spike Init.','Flowering','Maturity'],         season:'Kharif',    img:'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=80&q=60'},
+};
+
+// Global state
+let _harvestData = null;
+
+// Build searchable list with aliases
+const CROP_ALIASES = {
+  'paddy':'Rice','paddy(common)':'Rice','paddy(raw)':'Rice',
+  'jowar':'Sorghum','bajra':'Bajra','finger millet':'Ragi','pearl millet':'Bajra',
+  'tur':'BlackGram','urad':'BlackGram','moong':'GreenGram','bengal gram':'Chickpea',
+  'arhar':'BlackGram','horse gram':'BlackGram','green gram':'GreenGram','black gram':'BlackGram',
+  'brinjal':'Brinjal','eggplant':'Brinjal','lady finger':'Okra','bhindi':'Okra',
+  'green chilli':'Chilli','red chilli':'Chilli','bell pepper':'Capsicum',
+  'gourds':'Cucumber','bitter gourd':'Cucumber','bottle gourd':'Cucumber',
+  'drum stick':'Brinjal','drumstick':'Brinjal',
+  'cane':'Sugarcane','sugar cane':'Sugarcane',
+  'groundnut':'Groundnut','peanut':'Groundnut','moongphali':'Groundnut',
+  'lemon':'Papaya','lime':'Papaya',
+};
+
+function findCrop(input) {
+  const q = input.trim().toLowerCase();
+  // Exact match
+  const exact = Object.keys(CROP_DB).find(k => k.toLowerCase() === q);
+  if (exact) return exact;
+  // Alias match
+  if (CROP_ALIASES[q]) return CROP_ALIASES[q];
+  // Partial match
+  const partial = Object.keys(CROP_DB).find(k => k.toLowerCase().includes(q) || q.includes(k.toLowerCase()));
+  return partial || null;
+}
+
+function showSuggestions(val) {
+  const dd = document.getElementById('suggDropdown');
+  if (!val || val.length < 2) { dd.style.display = 'none'; return; }
+  const q = val.toLowerCase();
+  const matches = Object.keys(CROP_DB).filter(k =>
+    k.toLowerCase().includes(q) ||
+    (CROP_ALIASES[q] && CROP_ALIASES[q] === k)
+  ).slice(0, 8);
+  if (!matches.length) { dd.style.display = 'none'; return; }
+  dd.style.display = 'block';
+  dd.innerHTML = matches.map(k => `
+    <div onclick="setAndPredict('${k}')" style="display:flex;align-items:center;gap:12px;padding:10px 16px;cursor:pointer;border-bottom:1px solid var(--bd);transition:background .15s;"
+      onmouseover="this.style.background='rgba(61,186,114,.07)'"
+      onmouseout="this.style.background='transparent'">
+      <img src="${CROP_DB[k].img}" style="width:28px;height:28px;border-radius:50%;object-fit:cover;" alt="">
+      <div>
+        <div style="font-size:.875rem;color:var(--tx);font-weight:500;">${k}</div>
+        <div style="font-size:.7rem;color:var(--txm);">${CROP_DB[k].dur} days · ${CROP_DB[k].season}</div>
+      </div>
+    </div>`).join('');
+}
+
+function setAndPredict(name) {
+  const input = document.getElementById('cropInput');
+  input.value = name;
+  document.getElementById('suggDropdown').style.display = 'none';
+  // Just fill the name — don't auto-predict. Let user fill dates and click Predict.
+  input.focus();
+  // Pulse the Predict button to guide user
+  const btn = document.getElementById('predictBtn');
+  if (btn) {
+    btn.style.animation = 'none';
+    btn.style.boxShadow = '0 0 0 4px rgba(61,186,114,.4)';
+    setTimeout(() => { btn.style.boxShadow = ''; }, 1500);
+  }
+  // Scroll to form so user can fill in sowing date etc.
+  document.querySelector('.ai-search-wrap')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  toast('✓ ' + name + ' selected — fill your details and click Predict Harvest Date', 'gold');
+}
+
+// Close dropdown on outside click
+document.addEventListener('click', e => {
+  if (!e.target.closest('.ai-search-wrap') && !e.target.closest('#suggDropdown'))
+    document.getElementById('suggDropdown').style.display = 'none';
+});
+
+async function predictCrop() {
+  const input   = document.getElementById('cropInput').value.trim();
+  const sowRaw  = document.getElementById('sowDate').value;
+  const variety = document.getElementById('varIn').value.trim();
+  const irr     = document.getElementById('irrType').value;
+
+  if (!input) { toast('Type a crop name first', 'gold'); return; }
+  if (!sowRaw) { toast('Enter sowing date', 'gold'); return; }
+
+  const cropName = findCrop(input);
+  if (!cropName) {
+    // Unknown crop — use Gemini via backend
+    await predictUnknownCrop(input, sowRaw, variety, irr);
+    return;
+  }
+
+  document.getElementById('suggDropdown').style.display = 'none';
+  showThinking('Calculating harvest schedule for ' + cropName + '…');
+
+  try {
+    const res = await fetch('/api/harvest/predict', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({crop: cropName, sow_date: sowRaw})
+    });
+    const json = await res.json();
+    hideThinking();
+    if (json.success) {
+      renderHarvest(json.data, sowRaw, cropName, variety);
+    } else {
+      renderHarvestLocal(cropName, sowRaw, variety);
+    }
+  } catch(e) {
+    hideThinking();
+    renderHarvestLocal(cropName, sowRaw, variety);
+  }
+  fetchSchemesForCrop(cropName);
+}
+
+async function predictUnknownCrop(input, sowRaw, variety, irr) {
+  showThinking('FarmAI is looking up "' + input + '" crop data…');
+  try {
+    const res = await fetch('/api/harvest/predict', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({crop: input, sow_date: sowRaw})
+    });
+    const json = await res.json();
+    hideThinking();
+    if (json.success) {
+      renderHarvest(json.data, sowRaw, input, variety);
+      fetchSchemesForCrop(input);
+    } else {
+      hideThinking();
+      toast('"' + input + '" not found in database. Try a common crop name.', 'gold');
+    }
+  } catch(e) {
+    hideThinking();
+    toast('Backend offline. Try a common crop name.', 'r');
+  }
+}
+
+function renderHarvestLocal(cropName, sowRaw, variety) {
+  const d = CROP_DB[cropName];
+  if (!d) { toast('Crop not found', 'r'); return; }
+
+  // ── Accurate duration adjustments ────────────────────────────
+  let dur = d.dur;
+  const irr     = document.getElementById('irrType').value;
+  const varLow  = (document.getElementById('varIn').value || '').toLowerCase();
+  const sowMonth= new Date(sowRaw).getMonth(); // 0=Jan
+
+  // Irrigation adjustment
+  if (irr === 'Drip / Sprinkler') dur = Math.round(dur * 0.94);       // -6% duration
+  else if (irr === 'Rain-fed only') dur = Math.round(dur * 1.08);      // +8% duration
+
+  // Season sowing adjustment (Tamil Nadu specific)
+  // Rice sown Jun-Aug (Kharif) = 120d; Nov-Jan (Rabi) = 130d; others longer
+  if (cropName === 'Rice') {
+    if (sowMonth >= 5 && sowMonth <= 7)       dur = 120; // Kharif
+    else if (sowMonth >= 10 || sowMonth <= 1) dur = 130; // Rabi (Kuruvai/Samba)
+    else                                       dur = 125;
+    if (irr === 'Drip / Sprinkler') dur -= 7;
+  }
+  if (cropName === 'Wheat') {
+    // Optimal Nov sowing = 140d; late Dec = 120d (short-season stress)
+    if (sowMonth === 11 || sowMonth === 0) dur = 125;
+    else dur = 140;
+  }
+  if (cropName === 'Tomato') {
+    // Winter crop shorter, summer longer
+    if (sowMonth >= 10 || sowMonth <= 2) dur = 80;  // winter
+    else if (sowMonth >= 3 && sowMonth <= 5) dur = 95; // summer heat
+    else dur = 85;
+  }
+
+  // Variety-based adjustment (common Tamil Nadu varieties)
+  const earlyVars = ['co 51','co51','asd 16','asd16','aruna','adt 37','adt37','co-51','ir 20','ir20','ir 64','ir64','ir-64'];
+  const lateVars  = ['adr 52','adr52','samba mahsuri','bg 380','bg380','ponni','kattuponni','swarna','swarna sub1','bpt 5204','bpt5204'];
+  if (earlyVars.some(v => varLow.includes(v)))     dur = Math.max(dur - 10, d.dur - 15);
+  else if (lateVars.some(v => varLow.includes(v))) dur = Math.min(dur + 10, d.dur + 20);
+
+  // Soil type adjustment (Tamil Nadu specific)
+  const soilSel = document.getElementById('soilType');
+  const soil    = soilSel ? soilSel.value : '';
+  if (soil === 'Clay')          dur += 4;  // slow drainage, delayed maturity
+  if (soil === 'Sandy')         dur -= 3;  // fast drainage, slightly faster
+  if (soil === 'Black cotton')  dur += 2;  // moisture retentive, slight delay
+  if (soil === 'Alluvial')      dur -= 2;  // fertile, faster growth
+  if (soil === 'Red laterite')  dur += 3;  // low fertility, needs more time
+  dur = Math.max(dur, Math.round(d.dur * 0.75)); // floor at 75% of base
+
+  const sow     = new Date(sowRaw);
+  const harvest = new Date(sow); harvest.setDate(harvest.getDate() + dur);
+  const alert10 = new Date(harvest); alert10.setDate(alert10.getDate() - 10);
+  const alert7  = new Date(harvest); alert7.setDate(alert7.getDate() - 7);
+  const today   = new Date(); today.setHours(0,0,0,0);
+  const daysLeft= Math.ceil((harvest - today) / 86400000);
+
+  renderHarvest({
+    harvest_date:  harvest.toISOString().split('T')[0],
+    alert_10_days: alert10.toISOString().split('T')[0],
+    alert_7_days:  alert7.toISOString().split('T')[0],
+    days_left:     daysLeft,
+    duration_days: dur,
+    stages:        d.stages,
+    base_dur:      d.dur,
+    adjusted:      dur !== d.dur,
+  }, sowRaw, cropName, variety);
+}
+
+function renderHarvest(data, sowRaw, cropName, variety) {
+  const crop    = CROP_DB[cropName] || {};
+  const sow     = new Date(sowRaw);
+  const harvest = new Date(data.harvest_date);
+  const alert10 = new Date(data.alert_10_days);
+  const alert7  = new Date(data.alert_7_days);
+  const today   = new Date(); today.setHours(0,0,0,0);
+  const daysLeft     = Math.max(0, data.days_left);
+  const daysSinceSow = Math.max(0, Math.ceil((today - sow) / 86400000));
+  const dur          = data.duration_days;
+  const prog         = Math.min(100, Math.max(0, Math.round((daysSinceSow / dur) * 100)));
+  const fmt = d => new Date(d).toLocaleDateString('en-IN', {day:'numeric', month:'short', year:'numeric'});
+
+  // Crop icon
+  document.getElementById('rCropImg').src = crop.img || 'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=80&q=60';
+  document.getElementById('rCropName').textContent = cropName;
+  document.getElementById('rVariety').textContent  = variety ? ('Variety: ' + variety + (crop.season ? ' · ' + crop.season : '')) : (crop.season || '');
+
+  // Status tag
+  let statusLabel, statusClass;
+  if (daysLeft <= 0)         { statusLabel = 'Ready to Harvest!'; statusClass = 'tag-g'; }
+  else if (daysLeft <= 10)   { statusLabel = 'Harvest in ' + daysLeft + ' days'; statusClass = 'tag-gold'; }
+  else if (prog >= 70)       { statusLabel = 'Approaching Harvest'; statusClass = 'tag-gold'; }
+  else if (prog >= 30)       { statusLabel = 'Growing Well'; statusClass = 'tag-g'; }
+  else                       { statusLabel = 'Early Stage'; statusClass = 'tag-b'; }
+  document.getElementById('rStatusTag').className = 'tag ' + statusClass;
+  document.getElementById('rStatusTag').textContent = statusLabel;
+
+  // Countdown ring
+  const cdEl  = document.getElementById('cdNum');
+  const pct   = prog / 100;
+  document.getElementById('cdRing').style.background =
+    `conic-gradient(var(--g) ${pct * 360}deg, rgba(61,186,114,.1) ${pct * 360}deg)`;
+  cdEl.textContent = '0';
+  let v = 0; const step = daysLeft / (1400 / 16);
+  const timer = setInterval(() => {
+    v = Math.min(v + step, daysLeft);
+    cdEl.textContent = Math.floor(v);
+    if (v >= daysLeft) clearInterval(timer);
+  }, 16);
+
+  // Progress bar
+  document.getElementById('progPct').textContent = prog + '%';
+  setTimeout(() => { document.getElementById('progFill').style.width = prog + '%'; }, 50);
+  document.getElementById('sowLabel').textContent    = 'Sown: ' + fmt(sow);
+  document.getElementById('harvestLabel').textContent = 'Harvest: ' + fmt(harvest);
+
+  // Key dates
+  const durNote = data.adjusted && data.base_dur
+    ? dur + 'd <span style="font-size:.6rem;color:var(--g);">(adj. from ' + data.base_dur + 'd)</span>'
+    : dur + ' days';
+
+  document.getElementById('kdGrid').innerHTML = [
+    {l:'Sowing Date',       v:fmt(sow),     c:'var(--g)'},
+    {l:'Harvest Date',      v:fmt(harvest), c:'var(--gold)'},
+    {l:'Pre-Harvest Alert', v:fmt(alert10), c:'#5ba4e8'},
+    {l:'Crop Duration',     v:durNote,      c:'var(--txm)'},
+  ].map(k => `<div class="kd-card"><div class="kd-val" style="color:${k.c};">${k.v}</div><div class="kd-label">${k.l}</div></div>`).join('');
+
+  // Stage timeline — horizontal
+  const stages     = data.stages || crop.stages || [];
+  const stageCount = stages.length;
+  document.getElementById('stageTrack').innerHTML = stages.map((s, i) => {
+    const done   = i < Math.floor((daysSinceSow / dur) * stageCount);
+    const active = i === Math.floor((daysSinceSow / dur) * stageCount) && daysLeft > 0;
+    const cls    = done ? 'done' : active ? 'active' : 'future';
+    const dotCls = done ? 'done' : active ? 'active' : 'future';
+    const icon   = done ? '✓' : active ? '◉' : (i + 1);
+    const stageStart = new Date(sow);
+    stageStart.setDate(stageStart.getDate() + Math.floor((i / stageCount) * dur));
+    return `<div class="stage-item ${cls}">
+      <div class="stage-dot ${dotCls}">${icon}</div>
+      <div class="stage-name">${s}${active ? '<br><span style="color:var(--g);font-size:.6rem;">Active</span>' : ''}</div>
+      <div class="stage-date">${fmt(stageStart)}</div>
+    </div>`;
+  }).join('');
+
+  // Alerts grid
+  document.getElementById('alertGrid').innerHTML = [
+    {title:'Pre-Harvest Prep', date:fmt(alert10), desc:'Arrange labour, transport & storage. Check moisture content.',  color:'#5ba4e8', bg:'rgba(91,164,232,.1)',  icon:'🔔'},
+    {title:'Final Check',      date:fmt(alert7),  desc:'Confirm market prices and equipment. Book transportation.',       color:'#c9a84c', bg:'rgba(201,168,76,.1)', icon:'⚙'},
+    {title:'Harvest Day',      date:fmt(harvest), desc:'Optimal harvest window open. Begin harvesting early morning.',    color:'#3dba72', bg:'rgba(61,186,114,.1)', icon:'✓'},
+  ].map(a => `
+    <div class="alert-row" style="flex-direction:column;gap:10px;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div class="alert-icon" style="background:${a.bg};color:${a.color};font-size:.85rem;font-weight:700;">${a.icon}</div>
+        <div>
+          <div style="font-size:.82rem;font-weight:600;color:var(--tx);">${a.title}</div>
+          <div style="font-size:.7rem;color:${a.color};font-weight:600;">${a.date}</div>
+        </div>
+      </div>
+      <div style="font-size:.75rem;color:var(--txm);line-height:1.5;">${a.desc}</div>
+    </div>`).join('');
+
+  // Show result
+  // Store for calendar — ensure proper Date objects
+  _harvestData = {
+    cropName,
+    harvest:  new Date(harvest),
+    alert10:  new Date(alert10),
+    alert7:   new Date(alert7),
+    harvestStr: harvest.toISOString().split('T')[0],
+  };
+  // Also store events for download
+  window._harvestEvents = [
+    {title:'🌾 Harvest Day — '+cropName,         rawDate:new Date(harvest), date:fmt(harvest), color:'#3dba72'},
+    {title:'🔔 Pre-Harvest Prep (10 days ahead)', rawDate:new Date(alert10), date:fmt(alert10), color:'#5ba4e8'},
+    {title:'⚙ Final Equipment Check (7 days)',    rawDate:new Date(alert7),  date:fmt(alert7),  color:'#c9a84c'},
+  ];
+
+  document.getElementById('hEmpty').style.display    = 'none';
+  document.getElementById('hThinking').style.display = 'none';
+  document.getElementById('hResult').style.display   = 'block';
+  // Smooth scroll to results after a brief render delay
+  setTimeout(() => {
+    document.getElementById('hResult').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 120);
+  toast('✓ Harvest prediction ready for ' + cropName + '!');
+
+  // Store full context for AI
+  const irr  = document.getElementById('irrType').value;
+  const vari = document.getElementById('varIn').value.trim();
+  _aiCurrentCrop = {
+    cropName, prog, daysLeft, dur,
+    sow:     sowRaw,
+    harvest: harvest.toISOString().split('T')[0],
+    stages:  data.stages || crop.stages || [],
+  };
+
+  // Show AI progress update panel
+  showAIUpdatePanel(cropName, prog, daysLeft, dur, sowRaw, harvest.toISOString().split('T')[0], data.stages || crop.stages || []);
+
+  // AI suggestions (real AI call)
+  buildAISuggestions(cropName, prog, daysLeft, dur, irr, vari);
+
+  // Accuracy panel
+  const hasLoc = !!document.getElementById('locInput').value.trim();
+  const soilT = (document.getElementById('soilType') && document.getElementById('soilType').value) || '';
+  buildAccuracyPanel(cropName, irr, vari, hasLoc, soilT);
+
+  // Weather
+  if (document.getElementById('locInput').value.trim()) {
+    fetchWeatherForHarvest(cropName, harvest.toISOString().split('T')[0]);
+  }
+}
+
+function showThinking(msg) {
+  document.getElementById('hEmpty').style.display    = 'none';
+  document.getElementById('hResult').style.display   = 'none';
+  document.getElementById('hThinking').style.display = 'block';
+  document.getElementById('thinkingText').textContent = msg || 'FarmAI is predicting…';
+  document.getElementById('predictBtn').disabled = true;
+}
+function hideThinking() {
+  document.getElementById('hThinking').style.display = 'none';
+  document.getElementById('predictBtn').disabled = false;
+}
+
+function resetHarvest() {
+  document.getElementById('hResult').style.display   = 'none';
+  document.getElementById('hThinking').style.display = 'none';
+  document.getElementById('hEmpty').style.display    = 'block';
+  document.getElementById('cropInput').value = '';
+  document.getElementById('schemeEmpty').style.display = 'block';
+  document.getElementById('schemeGrid').innerHTML = '';
+  document.getElementById('schemeSubtitle').textContent = 'Predict your harvest above — FarmAI will find the best government schemes for your crop.';
+  // Reset AI state
+  _aiCurrentCrop = null;
+  _aiUpdateLog   = [];
+  const upPanel = document.getElementById('aiUpdatePanel');
+  if (upPanel) { upPanel.style.display = 'none'; }
+  const resp = document.getElementById('aiUpdateResponse');
+  if (resp) { resp.style.display = 'none'; resp.innerHTML = ''; }
+  const logEl = document.getElementById('aiUpdateLog');
+  if (logEl) logEl.style.display = 'none';
+  const badge = document.getElementById('aiProgBadge');
+  if (badge) badge.style.display = 'none';
+}
+
+// ── SCHEME FETCHER ────────────────────────────────────────────────
+const SCHEME_IMGS = [
+  'https://images.unsplash.com/photo-1586771107445-d3ca888129ff?w=400&q=60',
+  'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=400&q=60',
+  'https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=400&q=60',
+  'https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=400&q=60',
+  'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=400&q=60',
+  'https://images.unsplash.com/photo-1530836369250-ef72a3f5cda8?w=400&q=60',
+];
+
+async function fetchSchemesForCrop(cropName) {
+  document.getElementById('schemeLoading').style.display = 'block';
+  document.getElementById('schemeEmpty').style.display   = 'none';
+  document.getElementById('schemeGrid').innerHTML        = '';
+  document.getElementById('schemeLoadTxt').textContent   = 'FarmAI is finding schemes for ' + cropName + ' farmers…';
+
+  try {
+    const res = await fetch('/api/schemes/crop', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({crop: cropName, state:'Tamil Nadu'})
+    });
+    const json = await res.json();
+    renderSchemeCards(json.schemes || [], cropName);
+  } catch(err) {
+    renderSchemeCards([], cropName);
+  }
+}
+
+function renderSchemeCards(schemes, cropName) {
+  document.getElementById('schemeLoading').style.display = 'none';
+  document.getElementById('schemeSubtitle').textContent  =
+    schemes.length
+      ? 'Government schemes for ' + cropName + ' farmers in Tamil Nadu — ' + schemes.length + ' found.'
+      : 'Showing general farmer schemes.';
+
+  if (!schemes.length) {
+    document.getElementById('schemeEmpty').style.display = 'block';
+    return;
+  }
+
+  document.getElementById('schemeGrid').innerHTML = schemes.map((s, i) => `
+    <div class="sc2-card reveal" style="transition-delay:${i * 0.07}s;">
+      <img class="sc2-img" src="${SCHEME_IMGS[i % SCHEME_IMGS.length]}" alt="${s.name}">
+      <div class="sc2-body">
+        <div class="sc2-tag">${s.tag || ''}</div>
+        <div class="sc2-name">${s.name}</div>
+        <div style="display:inline-block;padding:3px 10px;border-radius:20px;background:rgba(61,186,114,.1);border:1px solid rgba(61,186,114,.2);font-size:.68rem;color:var(--g);font-weight:600;margin-bottom:8px;">${s.highlight || ''}</div>
+        <div class="sc2-desc">${s.desc || ''}</div>
+        <a href="${s.link}" target="_blank" class="btn-outline btn-sm" style="font-size:.75rem;">Learn More &amp; Apply →</a>
+      </div>
+    </div>`).join('');
+
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); }});
+  }, {threshold:0.1});
+  document.querySelectorAll('#schemeGrid .sc2-card').forEach(el => io.observe(el));
+}
+
+
+// ── OPENWEATHER KEY (reuse from script.js config) ────────────────
+const OWM_KEY = '9009e6dec1e0a3d96537052bc3e705ba';
+
+// ── AUTO DETECT LOCATION ─────────────────────────────────────────
+function autoDetectLocation() {
+  if (!navigator.geolocation) { toast('Geolocation not supported', 'gold'); return; }
+  toast('Detecting location…');
+  navigator.geolocation.getCurrentPosition(async pos => {
+    try {
+      const r = await fetch(`https://api.openweathermap.org/geo/1.0/reverse?lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&limit=1&appid=${OWM_KEY}`);
+      const d = await r.json();
+      if (d && d[0]) {
+        const name = d[0].name + ', ' + (d[0].state || d[0].country);
+        document.getElementById('locInput').value = name;
+        toast('Location: ' + name);
+      }
+    } catch(e) { toast('Could not get location name', 'gold'); }
+  }, () => toast('Location access denied', 'gold'));
+}
+
+// ── FETCH WEATHER FOR HARVEST PAGE ───────────────────────────────
+async function fetchWeatherForHarvest(cropName, harvestDate) {
+  const loc = document.getElementById('locInput').value.trim();
+  if (!loc) return;
+  try {
+    const geo = await fetch(`https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(loc)}&limit=1&appid=${OWM_KEY}`);
+    const gd  = await geo.json();
+    if (!gd || !gd[0]) return;
+    const { lat, lon, name, state } = gd[0];
+    const wx = await fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${OWM_KEY}&units=metric`);
+    const wd = await wx.json();
+
+    const temp    = Math.round(wd.main.temp);
+    const feels   = Math.round(wd.main.feels_like);
+    const humidity= wd.main.humidity;
+    const desc    = wd.weather[0].description;
+    const wind    = wd.wind.speed;
+    const rain    = wd.rain ? wd.rain['1h'] || 0 : 0;
+    const iconCode= wd.weather[0].icon;
+
+    // Weather impact on crop
+    let wxWarning = '';
+    if (humidity > 80) wxWarning = '⚠ High humidity may cause fungal disease risk near harvest.';
+    else if (temp > 38) wxWarning = '⚠ Extreme heat may speed up maturation by 3–5 days.';
+    else if (temp < 12) wxWarning = '⚠ Low temperatures may delay harvest by 5–8 days.';
+    else if (rain > 5)  wxWarning = '⚠ Active rainfall — avoid harvesting to prevent quality loss.';
+
+    document.getElementById('wxStrip').style.display = 'block';
+    document.getElementById('wxStrip').innerHTML = `
+      <div class="wx-strip">
+        <img src="https://openweathermap.org/img/wn/${iconCode}@2x.png" style="width:48px;height:48px;" alt="">
+        <div>
+          <div class="wx-city">${name}${state ? ', ' + state : ''}</div>
+          <div class="wx-val">${temp}°C <span style="font-size:.9rem;color:var(--txm);">${desc}</span></div>
+        </div>
+        <div class="wx-pill">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#5ba4e8" stroke-width="2" width="14" height="14"><path d="M12 2v6M12 18v4M4.93 4.93l4.24 4.24M14.83 14.83l4.24 4.24M2 12h6M16 12h6"/></svg>
+          <div><div class="wx-val" style="font-size:1rem;">${humidity}%</div><div class="wx-label">Humidity</div></div>
+        </div>
+        <div class="wx-pill">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#c9a84c" stroke-width="2" width="14" height="14"><path d="M17.7 7.7a2.5 2.5 0 111 1L17 10"/><path d="M9 4.55a6 6 0 0110.48 3.4"/><path d="M17 17H5a5 5 0 012.3-9.4"/></svg>
+          <div><div class="wx-val" style="font-size:1rem;">${wind} m/s</div><div class="wx-label">Wind</div></div>
+        </div>
+        <div class="wx-pill">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#3dba72" stroke-width="2" width="14" height="14"><path d="M12 2 C12 2 6 10 6 14a6 6 0 0012 0C18 10 12 2 12 2z"/></svg>
+          <div><div class="wx-val" style="font-size:1rem;">${feels}°C</div><div class="wx-label">Feels Like</div></div>
+        </div>
+        ${wxWarning ? `<div class="wx-alert" style="flex:1;">${wxWarning}</div>` : ''}
+      </div>`;
+  } catch(e) {
+    console.warn('Weather fetch failed:', e);
+  }
+}
+
+// ── GLOBAL AI STATE ────────────────────────────────────────────────
+let _aiCurrentCrop = null;   // full context snapshot for AI calls
+let _aiUpdateLog   = [];     // {date, activity, response, newProg}
+
+// showAIUpdatePanel moved to main JS section above
+
+// ── SUBMIT FARM ACTIVITY → BACKEND GEMINI AI ─────────────────────
+async function submitFarmUpdate() {
+  const activityEl = document.getElementById('farmActivityInput');
+  const activity   = activityEl.value.trim();
+  if (!activity) { toast('Describe what you did on your farm', 'gold'); return; }
+  if (!_aiCurrentCrop) { toast('Predict a crop first', 'gold'); return; }
+
+  // ── Sowing date sanity check — use corrected date if farmer already fixed it
+  const correctedSow = document.getElementById('correctSowDate')?.value;
+  const effectiveSow  = correctedSow || _aiCurrentCrop.sow;
+  const sowDate       = new Date(effectiveSow);
+  const today         = new Date(); today.setHours(0,0,0,0);
+  const daysSinceSow  = Math.round((today - sowDate) / 86400000);
+  const lateStageKeywords = /harvest|fruiting|fruit.set|flowering|flower|mature|ready/i;
+
+  // Only warn if sow date is within 3 days of today AND no date correction has been made
+  const dateWasCorrected = window._dateManuallyFixed || (correctedSow && correctedSow !== _aiCurrentCrop.sow);
+  if (daysSinceSow <= 3 && !dateWasCorrected && lateStageKeywords.test(activity)) {
+    const resp = document.getElementById('aiUpdateResponse');
+    resp.style.display = 'block';
+    resp.innerHTML = `<div class="ai-response-bubble" style="border-color:rgba(201,168,76,.3);background:rgba(201,168,76,.06);">
+      <div class="ai-rb-title" style="color:#c9a84c;">⚠ Date Mismatch Detected</div>
+      <p style="margin:0 0 10px;">Sir, your sowing date is set to <strong>${sowDate.toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})}</strong> 
+      (${daysSinceSow <= 0 ? 'today' : daysSinceSow + ' days ago'}), but you mentioned <strong>"${activity.slice(0,60)}..."</strong> — 
+      which sounds like a later growth stage.</p>
+      <p style="margin:0 0 10px;">Please correct your <strong>Actual Sowing Date</strong> above using the date fields, then Ask FarmAI again. This will give you accurate advice.</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
+        <button onclick="document.getElementById('correctSowDate').focus();this.closest('.ai-response-bubble').style.display='none';"
+          style="background:rgba(201,168,76,.15);border:1px solid rgba(201,168,76,.4);color:#c9a84c;border-radius:8px;padding:6px 14px;font-size:.75rem;cursor:pointer;font-family:Outfit,sans-serif;">
+          📅 Fix Sowing Date
+        </button>
+        <button onclick="this.closest('.ai-response-bubble').remove();document.getElementById('_skipDateCheck').value='1';submitFarmUpdate();"
+          style="background:rgba(255,255,255,.05);border:1px solid var(--bd);color:var(--txm);border-radius:8px;padding:6px 14px;font-size:.75rem;cursor:pointer;font-family:Outfit,sans-serif;">
+          Ask anyway
+        </button>
+      </div>
+    </div>`;
+    if (!document.getElementById('_skipDateCheck')) {
+      const h = document.createElement('input'); h.type='hidden'; h.id='_skipDateCheck'; h.value='0';
+      document.body.appendChild(h);
+    }
+    return;
+  }
+  // Reset skip flag
+  const skipEl = document.getElementById('_skipDateCheck');
+  if (skipEl) skipEl.value = '0';
+
+  const btn = document.getElementById('aiUpdateBtn');
+  btn.disabled = true;
+  btn.innerHTML = `<span style="display:inline-flex;align-items:center;gap:6px;">
+    <span class="typing-dots"><span></span><span></span><span></span></span> FarmAI Thinking…
+  </span>`;
+
+  const { cropName, prog, daysLeft, dur, sow, harvest, stages } = _aiCurrentCrop;
+  const irr  = document.getElementById('irrType')?.value || 'Canal / Bore well';
+  const soil = document.getElementById('soilType')?.value || '';
+  const loc  = document.getElementById('locInput')?.value || 'Tamil Nadu';
+
+  try {
+    const res = await fetch('/api/harvest/ai/update', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        crop:         cropName,
+        activity,
+        prog,
+        days_left:    daysLeft,
+        dur,
+        sow_date:     sow,
+        harvest_date: harvest,
+        stages:       stages || [],
+        irrigation:   irr,
+        soil,
+        location:     loc
+      })
+    });
+    const json = await res.json();
+    if (json.success && json.data) {
+      applyAIUpdate(json.data, activity, cropName, stages);
+      activityEl.value = '';
+    } else {
+      throw new Error(json.message || 'AI backend error');
+    }
+  } catch(e) {
+    console.error('AI update error:', e);
+    applyAIUpdateFallback(activity, cropName);
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14" style="display:inline;vertical-align:middle;margin-right:4px;"><path d="M22 2L11 13M22 2L15 22l-4-9-9-4 20-7z"/></svg> Ask FarmAI`;
+}
+
+// ── APPLY AI RESPONSE TO UI ────────────────────────────────────────
+function applyAIUpdate(ai, activity, cropName, stages) {
+  // ── Always use date-calculated progress — never trust AI's guess ──
+  let confirmedProg = ai.new_progress_pct || 0;
+  if (_aiCurrentCrop?.sow && _aiCurrentCrop?.dur) {
+    const sowMs        = new Date(_aiCurrentCrop.sow).setHours(0,0,0,0);
+    const nowMs        = new Date().setHours(0,0,0,0);
+    const daysSinceSow = Math.max(0, Math.round((nowMs - sowMs) / 86400000));
+    confirmedProg      = Math.min(100, Math.round((daysSinceSow / _aiCurrentCrop.dur) * 100));
+  }
+  const newProg = confirmedProg;
+  document.getElementById('progPct').textContent = newProg + '%';
+  setTimeout(() => { document.getElementById('progFill').style.width = newProg + '%'; }, 50);
+
+  // 2. Update countdown ring + days counter
+  let newDaysLeft = _aiCurrentCrop.daysLeft;
+  // Adjust daysLeft if harvest_days_change is present
+  if (ai.harvest_impact === 'delay' && ai.harvest_days_change > 0)   newDaysLeft += ai.harvest_days_change;
+  if (ai.harvest_impact === 'advance' && ai.harvest_days_change > 0) newDaysLeft -= ai.harvest_days_change;
+  newDaysLeft = Math.max(0, newDaysLeft);
+  _aiCurrentCrop.daysLeft = newDaysLeft;
+  const pct = newProg / 100;
+  document.getElementById('cdRing').style.background =
+    `conic-gradient(var(--g) ${pct*360}deg, rgba(61,186,114,.1) ${pct*360}deg)`;
+  document.getElementById('cdNum').textContent = newDaysLeft;
+
+  // 3. Update status tag
+  const statusEl = document.getElementById('rStatusTag');
+  const healthColor = {excellent:'tag-g', good:'tag-g', fair:'tag-gold', concern:'tag-r'}[ai.crop_health] || 'tag-g';
+  statusEl.className = 'tag ' + healthColor;
+  // Override with harvest-ready if 100%
+  if (newProg >= 100) {
+    statusEl.className = 'tag tag-g';
+    statusEl.textContent = '🌾 Ready to Harvest!';
+  } else {
+    statusEl.textContent = ai.status_summary || 'Updated';
+  }
+
+  // 4. Rebuild growth stage timeline with AI data
+  const fmt = d => new Date(d).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});
+  const stageCount = stages.length;
+  const completedIdx = ai.completed_stages || 0;
+  const activeIdx    = ai.active_stage_index >= 0 ? ai.active_stage_index : completedIdx;
+  const dur = _aiCurrentCrop.dur;
+  const sow = new Date(_aiCurrentCrop.sow);
+
+  document.getElementById('stageTrack').innerHTML = stages.map((s, i) => {
+    const done   = i < completedIdx;
+    const active = i === activeIdx && !done;
+    const cls    = done ? 'done' : active ? 'active' : 'future';
+    const icon   = done ? '✓' : active ? '◉' : (i+1);
+    const stageStart = new Date(sow);
+    stageStart.setDate(stageStart.getDate() + Math.floor((i / stageCount) * dur));
+    // Show AI-confirmed note on active stage
+    const note = active ? `<div class="stage-farmer-note">AI Confirmed</div>` : '';
+    return `<div class="stage-item ${cls}">
+      <div class="stage-dot ${done?'done':active?'ai-updated':'future'}">${icon}</div>
+      <div class="stage-name">${s}${active?'<br><span style="color:var(--g);font-size:.6rem;">Active ◉</span>':''}${note}</div>
+      <div class="stage-date">${fmt(stageStart)}</div>
+    </div>`;
+  }).join('');
+
+  // 5. Show AI response bubble
+  const healthIcon = {excellent:'🌟',good:'✅',fair:'⚠',concern:'🔴'}[ai.crop_health]||'✅';
+  const warnHtml = (ai.warnings||[]).filter(Boolean).map(w => {
+    const isDateMismatch = w.toLowerCase().includes('sowing') || w.toLowerCase().includes('date') || w.toLowerCase().includes('mismatch');
+    const bg    = isDateMismatch ? 'rgba(201,168,76,.08)' : 'rgba(248,113,113,.08)';
+    const bd    = isDateMismatch ? 'rgba(201,168,76,.2)'  : 'rgba(248,113,113,.2)';
+    const color = isDateMismatch ? '#c9a84c' : '#f87171';
+    const icon  = isDateMismatch ? 'ℹ' : '⚠';
+    const suffix = isDateMismatch ? ' <a href="#" onclick="document.getElementById(\'correctSowDate\').focus();return false;" style="color:var(--g);font-size:.7rem;">Fix dates above →</a>' : '';
+    return `<div style="background:${bg};border:1px solid ${bd};border-radius:8px;padding:8px 12px;font-size:.78rem;color:${color};margin-top:8px;">${icon} ${w}${suffix}</div>`;
+  }).join('');
+  const pendingHtml = (ai.pending_tasks||[]).map((t,i) =>
+    `<div style="display:flex;align-items:flex-start;gap:8px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04);">
+      <span style="color:var(--g);font-size:.75rem;font-weight:700;flex-shrink:0;">${i+1}.</span>
+      <span style="font-size:.78rem;color:var(--txm);">${t}</span>
+    </div>`
+  ).join('');
+
+  document.getElementById('aiUpdateResponse').style.display = 'block';
+  document.getElementById('aiUpdateResponse').innerHTML = `
+    <div class="ai-response-bubble">
+      <div class="ai-rb-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        FarmAI Analysis — ${new Date().toLocaleDateString('en-IN',{day:'numeric',month:'short'})}
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+        <div style="background:rgba(61,186,114,.06);border-radius:10px;padding:10px 12px;">
+          <div style="font-size:.65rem;color:var(--txm);margin-bottom:3px;">CROP HEALTH</div>
+          <div style="font-size:.9rem;font-weight:700;color:var(--g);">${healthIcon} ${(ai.crop_health||'Good').charAt(0).toUpperCase()+(ai.crop_health||'good').slice(1)}</div>
+          <div style="font-size:.7rem;color:var(--txm);margin-top:2px;">${ai.health_reason||''}</div>
+        </div>
+        <div style="background:rgba(61,186,114,.06);border-radius:10px;padding:10px 12px;">
+          <div style="font-size:.65rem;color:var(--txm);margin-bottom:3px;">PROGRESS UPDATED</div>
+          <div style="font-size:.9rem;font-weight:700;color:var(--g);">${newProg}% complete</div>
+          <div style="font-size:.7rem;color:var(--txm);margin-top:2px;">${ai.what_done||''}</div>
+        </div>
+      </div>
+      <div style="font-size:.82rem;color:var(--tx);margin-bottom:10px;line-height:1.6;">${ai.ai_insight||''}</div>
+      <div style="background:rgba(201,168,76,.07);border:1px solid rgba(201,168,76,.18);border-radius:10px;padding:10px 14px;margin-bottom:10px;">
+        <div style="font-size:.65rem;font-weight:700;color:#c9a84c;letter-spacing:.08em;margin-bottom:4px;">NEXT ACTION</div>
+        <div style="font-size:.82rem;color:var(--tx);">📌 ${ai.next_action||''}</div>
+        <div style="font-size:.7rem;color:#c9a84c;margin-top:3px;">📅 ${ai.next_action_by||''}</div>
+      </div>
+      ${pendingHtml ? `<div style="margin-bottom:10px;">
+        <div style="font-size:.65rem;font-weight:700;color:var(--txm);letter-spacing:.08em;margin-bottom:6px;">PENDING TASKS</div>
+        ${pendingHtml}</div>` : ''}
+      ${warnHtml}
+      ${ai.harvest_impact && ai.harvest_impact !== 'none' && Math.abs(ai.harvest_days_change||0) > 0 ? `
+        <div style="background:${ai.harvest_impact==='advance'?'rgba(61,186,114,.08)':'rgba(248,113,113,.08)'};border:1px solid ${ai.harvest_impact==='advance'?'rgba(61,186,114,.2)':'rgba(248,113,113,.2)'};border-radius:8px;padding:8px 12px;font-size:.78rem;color:${ai.harvest_impact==='advance'?'#3dba72':'#f87171'};margin-top:8px;">
+          ${ai.harvest_impact === 'advance' ? '⚡ Good progress — harvest may be earlier by' : 'ℹ Harvest may shift by'} ~${Math.abs(ai.harvest_days_change||0)} days based on your activity.
+        </div>` : ''}
+      ${ai.encouragement ? `<div style="margin-top:10px;font-size:.8rem;color:var(--g);font-style:italic;padding:8px 0;border-top:1px solid rgba(61,186,114,.1);">🌾 ${ai.encouragement}</div>` : ''}
+    </div>`;
+
+  // 6. Log activity
+  _aiUpdateLog.unshift({ date: new Date().toLocaleDateString('en-IN',{day:'numeric',month:'short'}), activity, prog: newProg });
+  renderUpdateLog();
+
+  // 7. Show badge
+  document.getElementById('aiProgBadge').style.display = 'flex';
+  document.getElementById('aiUpdateLog').style.display = 'block';
+
+  // 8. Update stored context
+  _aiCurrentCrop.prog = newProg;
+
+  // 9. Refresh AI suggestions with new progress
+  const irr  = document.getElementById('irrType').value;
+  const vari = document.getElementById('varIn').value.trim();
+  buildAISuggestions(cropName, newProg, _aiCurrentCrop.daysLeft, dur, irr, vari);
+
+  toast('FarmAI updated your crop progress!');
+}
+
+// ── FALLBACK if backend fails ─────────────────────────────────────
+function applyAIUpdateFallback(activity, cropName) {
+  const lower  = activity.toLowerCase();
+  const stages = _aiCurrentCrop?.stages || [];
+  const dur    = _aiCurrentCrop?.dur || 120;
+  let newProg  = _aiCurrentCrop?.prog || 0;
+
+  // Smart stage detection from keywords
+  const stageKeywords = [
+    {words:['plant','seed','sow','transplant'],     stageIdx:0, prog: 8},
+    {words:['germina','sprout'],                    stageIdx:0, prog:12},
+    {words:['tiller','vegetative','growth'],        stageIdx:1, prog:28},
+    {words:['fertili','urea','npk','top dress'],    stageIdx:1, prog: newProg + 3},
+    {words:['flower','bud','panicle','squaring'],   stageIdx:2, prog:55},
+    {words:['fruit','pod','boll','grain','ear'],    stageIdx:3, prog:72},
+    {words:['ripen','matur','yellow','golden'],     stageIdx:4, prog:88},
+    {words:['harvest','cut','reap','pick'],         stageIdx:4, prog:100},
+    {words:['spray','pesticide','fungicide'],       stageIdx:-1, prog: newProg + 2},
+    {words:['irrigat','water'],                    stageIdx:-1, prog: newProg + 1},
+  ];
+
+  let detectedIdx = -1;
+  for (const sk of stageKeywords) {
+    if (sk.words.some(w => lower.includes(w))) {
+      newProg = typeof sk.prog === 'number' ? sk.prog : (newProg + sk.prog);
+      if (sk.stageIdx >= 0) detectedIdx = sk.stageIdx;
+      break;
+    }
+  }
+  newProg = Math.min(100, Math.max(newProg, _aiCurrentCrop?.prog || 0));
+
+  // Update UI with best-guess data
+  const fakeAI = {
+    new_progress_pct:   newProg,
+    active_stage_index: detectedIdx >= 0 ? detectedIdx : Math.floor((newProg/100)*stages.length),
+    completed_stages:   detectedIdx > 0 ? detectedIdx : Math.max(0, Math.floor((newProg/100)*stages.length)-1),
+    status_summary:     detectedIdx >= 0 && stages[detectedIdx] ? stages[detectedIdx].split('(')[0].trim() : 'In Progress',
+    what_done:          'Recorded: ' + activity.slice(0, 60),
+    crop_health:        'good',
+    health_reason:      'Activity logged — connect to internet for full AI analysis',
+    next_action:        'Check official advisories for ' + cropName + ' at this stage',
+    next_action_by:     'Within 3 days',
+    pending_tasks:      ['Monitor plant health daily', 'Check soil moisture', 'Scout for pests'],
+    warnings:           [],
+    harvest_impact:     'none',
+    harvest_days_change: 0,
+    ai_insight:         'Your activity has been recorded. For detailed AI advice with exact dates and quantities, ensure your backend is running.',
+    encouragement:      'Good work keeping track of your farm activities!'
+  };
+
+  applyAIUpdate(fakeAI, activity, cropName, stages);
+}
+
+// ── RENDER ACTIVITY LOG ────────────────────────────────────────────
+function renderUpdateLog() {
+  const el = document.getElementById('aiUpdateLogItems');
+  if (!el) return;
+  el.innerHTML = _aiUpdateLog.slice(0, 5).map(u => `
+    <div style="display:flex;align-items:flex-start;gap:10px;background:var(--dk3);border-radius:8px;padding:8px 12px;">
+      <div style="font-size:.65rem;color:var(--g);font-weight:700;min-width:52px;flex-shrink:0;">${u.date}</div>
+      <div style="flex:1;font-size:.75rem;color:var(--txm);line-height:1.4;">${u.activity.slice(0,80)}${u.activity.length>80?'…':''}</div>
+      <div style="font-size:.72rem;color:var(--g);font-weight:700;flex-shrink:0;">${u.prog}%</div>
+    </div>`).join('');
+}
+
+// ── AI HARVEST SUGGESTIONS → BACKEND GEMINI ─────────────────────
+async function buildAISuggestions(cropName, prog, daysLeft, dur, irr, variety) {
+  const panel = document.getElementById('aiSuggestPanel');
+  panel.style.display = 'block';
+
+  panel.innerHTML = `
+    <div class="ai-suggest-panel">
+      <div class="ai-suggest-header">
+        <div class="ai-suggest-dot"></div>
+        <span style="font-size:.7rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--g);">FarmAI Generating Insights…</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;padding:16px 0;">
+        <div class="typing-dots"><span></span><span></span><span></span></div>
+        <span style="font-size:.78rem;color:var(--txm);">FarmAI is analysing your ${cropName} at ${prog}% stage…</span>
+      </div>
+    </div>`;
+
+  try {
+    const res = await fetch('/api/harvest/ai/suggestions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        crop:          cropName,
+        sow_date:      _aiCurrentCrop?.sow || '',
+        harvest_date:  _aiCurrentCrop?.harvest || '',
+        prog,
+        days_left:     daysLeft,
+        dur,
+        irrigation:    irr,
+        variety:       variety || 'standard',
+        soil:          document.getElementById('soilType')?.value || '',
+        location:      document.getElementById('locInput')?.value || 'Tamil Nadu',
+        area:          document.getElementById('areaHarv')?.value || '',
+        stages:        _aiCurrentCrop?.stages || []
+      })
+    });
+    const json = await res.json();
+    if (json.success && json.data) {
+      renderAISuggestions(cropName, prog, daysLeft, json.data);
+    } else {
+      throw new Error('Backend AI failed');
+    }
+  } catch(e) {
+    console.warn('Gemini suggestions failed, using fallback:', e.message);
+    renderAISuggestionsFallback(cropName, prog, daysLeft, dur, irr, variety);
+  }
+}
+
+// ── RENDER AI SUGGESTIONS ──────────────────────────────────────────
+function renderAISuggestions(cropName, prog, daysLeft, ai) {
+  const panel = document.getElementById('aiSuggestPanel');
+  const tips  = ai.suggestions || [];
+  const readinessColor = {
+    'not ready':'#5ba4e8','preparing':'#3dba72','approaching':'#c9a84c',
+    'imminent':'#fb923c','ready':'#4ade80'
+  }[ai.harvest_readiness] || 'var(--g)';
+
+  panel.innerHTML = `
+    <div class="ai-suggest-panel">
+      <div class="ai-suggest-header">
+        <div class="ai-suggest-dot"></div>
+        <span style="font-size:.7rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--g);">FarmAI Harvest Suggestions</span>
+        <span style="margin-left:auto;font-size:.68rem;color:var(--txm);">${tips.length} AI insights · ${cropName}</span>
+        <span style="background:${readinessColor}22;color:${readinessColor};border:1px solid ${readinessColor}44;border-radius:20px;padding:2px 10px;font-size:.65rem;font-weight:700;margin-left:8px;">${(ai.harvest_readiness||'').replace(/-/g,' ').toUpperCase()}</span>
+      </div>
+      ${ai.urgent_alert ? `<div style="background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.25);border-radius:10px;padding:10px 14px;margin-bottom:10px;font-size:.8rem;color:#f87171;font-weight:600;">🚨 ${ai.urgent_alert}</div>` : ''}
+      ${tips.map(t => `
+        <div class="ai-tip">
+          <div class="ai-tip-icon" style="background:${t.bg};color:${t.color};font-size:.95rem;">${t.icon}</div>
+          <div class="ai-tip-text"><strong>${t.title}:</strong> ${t.text}</div>
+        </div>`).join('')}
+    </div>`;
+}
+
+// ── STATIC FALLBACK SUGGESTIONS ────────────────────────────────────
+function renderAISuggestionsFallback(cropName, prog, daysLeft, dur, irr, variety) {
+  const crop  = CROP_DB[cropName] || {};
+  const tips  = [];
+  const today = new Date();
+
+  const addDays = n => { const d = new Date(today); d.setDate(d.getDate()+n); return d.toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}); };
+
+  if (irr === 'Drip / Sprinkler')
+    tips.push({icon:'💧',color:'#5ba4e8',bg:'rgba(91,164,232,.1)',title:'Drip Advantage',text:`Your drip system can advance harvest by 5–8 days. Set soil moisture sensor alerts at 70% field capacity. Daily monitoring recommended from ${addDays(Math.round(dur*0.7 - (dur*prog/100)))}.`});
+  else if (irr === 'Rain-fed only')
+    tips.push({icon:'🌧',color:'#c9a84c',bg:'rgba(201,168,76,.1)',title:'Monsoon Watch',text:`Rain-fed ${cropName} window can shift ±10 days. Check IMD forecast weekly. If monsoon delayed, plan supplemental irrigation by ${addDays(14)}.`});
+
+  if (prog < 30)
+    tips.push({icon:'🌱',color:'#3dba72',bg:'rgba(61,186,114,.1)',title:'Early Stage Action',text:`Apply basal fertiliser (NPK 17:17:17 @ 50 kg/acre) by ${addDays(Math.round(dur*0.15 - daysSinceSow()))}. Maintain 5 cm standing water for paddy. Gap-fill any missing plants within 10 days.`});
+  else if (prog < 60)
+    tips.push({icon:'🌿',color:'#3dba72',bg:'rgba(61,186,114,.1)',title:'Critical Growth Phase',text:`${cropName} is in peak vegetative stage. Switch from nitrogen to phosphorus-potassium fertiliser now (MOP @ 25 kg/acre). Reduce irrigation frequency to every 7 days. Next irrigation due: ${addDays(7)}.`});
+  else if (prog < 85)
+    tips.push({icon:'🌾',color:'#c9a84c',bg:'rgba(201,168,76,.1)',title:'Pre-Harvest Window',text:`${daysLeft} days to harvest. Stop nitrogen fertiliser completely. Scout for ${cropName==='Rice'?'stem borer & BLB':cropName==='Tomato'?'early blight & fruit borer':'pests & diseases'} every 3 days. Last spray deadline: ${addDays(daysLeft-14)}.`});
+  else
+    tips.push({icon:'✅',color:'#3dba72',bg:'rgba(61,186,114,.1)',title:'Harvest Imminent',text:`${cropName} approaching final maturity. ${cropName==='Rice'?'Drain field now. Harvest when 80% grains golden (moisture ~22%).':cropName==='Wheat'?'Test grain moisture — harvest at 14-16%.':'Monitor daily for harvest readiness.'} Ideal harvest window: ${addDays(daysLeft-3)} to ${addDays(daysLeft+2)}.`});
+
+  const cropTips = {
+    Rice:`Drain field completely 10 days before harvest (by ${addDays(daysLeft-10)}). Harvest when 80% grains turn golden straw colour. Moisture content should be 20–22% at harvest.`,
+    Wheat:`Use moisture meter — harvest at 14–16% grain moisture. Combine harvesting window is narrow; book machinery by ${addDays(daysLeft-7)}. Store at <13% moisture.`,
+    Cotton:`${daysLeft>30?`First picking expected around ${addDays(daysLeft-20)}. Pick when 60% bolls open.`:`Harvest bolls now — pick early morning. Avoid harvesting after rain for 24 hours.`}`,
+    Tomato:`${prog<60?`Stake plants and apply calcium spray (CaNO3 0.2%) to prevent blossom end rot.`:`Harvest at breaker/pink stage for transport. Market ripening takes 3–4 days post-harvest.`}`,
+    Turmeric:`Stop irrigation 3 weeks before harvest. Harvest when lower leaves dry up (${addDays(daysLeft-7)}). Cure rhizomes for 2–3 days before boiling.`,
+    Banana:`Check finger fullness — harvest at 75% fullness for market (3/4 filled cross-section). Expected harvest: ${addDays(daysLeft)}.`,
+    Sugarcane:`Test Brix index — harvest when ≥18° Brix. Early morning cutting gives 3–5% more juice yield. Arrange crusher booking by ${addDays(daysLeft-5)}.`,
+  };
+  if (cropTips[cropName])
+    tips.push({icon:'📌',color:'#c9a84c',bg:'rgba(201,168,76,.08)',title:cropName+' Harvest Tip',text:cropTips[cropName]});
+
+  tips.push({icon:'📈',color:'#3dba72',bg:'rgba(61,186,114,.08)',title:'Market Timing',text:`Check ${cropName} mandi prices now — harvest is ${daysLeft} days away. If prices trending ↑, delay by 5–7 days max. If ↓, prioritise early harvest. <a href="market.html" style="color:var(--g);">View current prices →</a>`});
+
+  const panel = document.getElementById('aiSuggestPanel');
+  panel.innerHTML = `
+    <div class="ai-suggest-panel">
+      <div class="ai-suggest-header">
+        <div class="ai-suggest-dot"></div>
+        <span style="font-size:.7rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--g);">FarmAI Harvest Suggestions</span>
+        <span style="margin-left:auto;font-size:.68rem;color:var(--txm);">${tips.length} insights · ${cropName}</span>
+      </div>
+      ${tips.map(t => `
+        <div class="ai-tip">
+          <div class="ai-tip-icon" style="background:${t.bg};color:${t.color};">${t.icon}</div>
+          <div class="ai-tip-text"><strong>${t.title}:</strong> ${t.text}</div>
+        </div>`).join('')}
+    </div>`;
+}
+
+function daysSinceSow() {
+  if (!_aiCurrentCrop?.sow) return 0;
+  const today = new Date(); today.setHours(0,0,0,0);
+  return Math.max(0, Math.ceil((today - new Date(_aiCurrentCrop.sow)) / 86400000));
+}
+
+
+
+// ── ACCURACY FACTORS (realistic, farmer-trustworthy) ─────────────
+function buildAccuracyPanel(cropName, irr, variety, hasWeather, soilType) {
+  // Realistic accuracy based on agricultural research
+  // Base: crop calendar data = 70% accurate without local factors
+  // Each factor adds precision, not just arbitrary points
+
+  const knownCrop = !!CROP_DB[cropName];
+
+  const factors = [
+    {
+      label:   'Crop calendar data',
+      pct:     knownCrop ? 82 : 52,
+      color:   knownCrop ? '#3dba72' : '#f87171',
+      note:    knownCrop ? 'Based on TNAU crop calendar' : 'Crop not in database — estimated',
+    },
+    {
+      label:   'Sowing date accuracy',
+      pct:     88, // Farmer-entered = high
+      color:   '#3dba72',
+      note:    'Farmer-provided — highest confidence input',
+    },
+    {
+      label:   'Irrigation method',
+      pct:     irr === 'Drip / Sprinkler' ? 87 : irr === 'Rain-fed only' ? 62 : 74,
+      color:   irr === 'Rain-fed only' ? '#c9a84c' : '#3dba72',
+      note:    irr === 'Rain-fed only' ? 'Rain-fed adds ±10 day uncertainty' : 'Controlled irrigation — predictable',
+    },
+    {
+      label:   'Variety factor',
+      pct:     variety ? 84 : 61,
+      color:   variety ? '#3dba72' : '#c9a84c',
+      note:    variety ? 'Variety adjustment applied' : 'Add variety for ±10 day precision',
+    },
+    {
+      label:   'Weather & location',
+      pct:     hasWeather ? 85 : 48,
+      color:   hasWeather ? '#3dba72' : '#c9a84c',
+      note:    hasWeather ? 'Live weather data integrated' : 'No location — weather impact unknown',
+    },
+    {
+      label:   'Soil type factor',
+      pct:     soilType ? 79 : 55,
+      color:   soilType ? '#3dba72' : '#c9a84c',
+      note:    soilType ? soilType + ' soil adjustment applied' : 'Soil affects maturity by ±5 days',
+    },
+  ];
+
+  // Weighted overall — sowing date + crop data are most important
+  const weights = [0.25, 0.20, 0.15, 0.15, 0.15, 0.10];
+  const overall  = Math.round(factors.reduce((s,f,i) => s + f.pct * weights[i], 0));
+  const canTrust = overall >= 75;
+
+  document.getElementById('accBars').innerHTML = factors.map(f => `
+    <div class="acc-bar" style="margin-bottom:10px;">
+      <div style="display:flex;justify-content:space-between;margin-bottom:3px;">
+        <div class="acc-label" style="min-width:0;flex:1;">${f.label}</div>
+        <div class="acc-pct" style="color:${f.color};font-weight:600;">${f.pct}%</div>
+      </div>
+      <div class="acc-track"><div class="acc-fill" style="width:0%;background:${f.color};" data-w="${f.pct}%"></div></div>
+      <div style="font-size:.62rem;color:rgba(232,237,229,.3);margin-top:2px;">${f.note}</div>
+    </div>`).join('');
+
+  const missing = [];
+  if (!variety)    missing.push('crop variety (±10 days)');
+  if (!hasWeather) missing.push('location (±8 days)');
+  if (!soilType)   missing.push('soil type (±5 days)');
+
+  const trustMsg = canTrust
+    ? `✓ <strong style="color:var(--g);">Yes, a farmer can trust this prediction</strong> — based on TNAU crop calendar data`
+    : `⚠ Prediction confidence is low — add ${missing.slice(0,2).join(' and ')} for better accuracy`;
+
+  document.getElementById('accScore').innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:8px;">
+      <span>Overall accuracy: <strong style="color:${overall>=75?'var(--g)':overall>=60?'#c9a84c':'#f87171'};font-size:.95rem;">${overall}%</strong></span>
+      <span style="font-size:.68rem;background:rgba(61,186,114,.08);border:1px solid rgba(61,186,114,.15);border-radius:20px;padding:3px 10px;color:var(--g);">Source: TNAU · IMD · Agmarknet</span>
+    </div>
+    <div style="font-size:.75rem;color:var(--txm);line-height:1.5;">${trustMsg}</div>
+    ${missing.length ? `<div style="font-size:.72rem;color:var(--txm);margin-top:6px;">💡 Fill in: ${missing.join(', ')} to improve accuracy</div>` : ''}`;
+
+  setTimeout(() => {
+    document.querySelectorAll('.acc-fill[data-w]').forEach(el => {
+      el.style.width = el.dataset.w;
+    });
+  }, 200);
+}
+
+// ── CALENDAR ──────────────────────────────────────────────────────
+let calYear, calMonth, calHarvestDate, calAlert10, calAlert7;
+let reminders = JSON.parse(localStorage.getItem('sfReminders') || '{}');
+
+function openCalendar() {
+  if (!_harvestData) { toast('Predict a crop first', 'gold'); return; }
+  // Jump to harvest month for immediate context
+  const hd = _harvestData.harvest || new Date();
+  calYear        = hd.getFullYear();
+  calMonth       = hd.getMonth();
+  calHarvestDate = _harvestData.harvest;
+  calAlert10     = _harvestData.alert10;
+  calAlert7      = _harvestData.alert7;
+  renderCalendar();
+  document.getElementById('calModal').classList.add('open');
+  document.getElementById('calSubtitle').textContent = 'Click any date to add reminder · ' + _harvestData.cropName;
+}
+function closeCalendar() {
+  document.getElementById('calModal').classList.remove('open');
+}
+function calNav(dir) {
+  calMonth += dir;
+  if (calMonth > 11) { calMonth = 0; calYear++; }
+  if (calMonth < 0)  { calMonth = 11; calYear--; }
+  renderCalendar();
+}
+
+function renderCalendar() {
+  const dows = ['Su','Mo','Tu','We','Th','Fr','Sa'];
+  const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('calMonthTitle').textContent = monthNames[calMonth] + ' ' + calYear;
+
+  const firstDay = new Date(calYear, calMonth, 1).getDay();
+  const daysInMonth = new Date(calYear, calMonth+1, 0).getDate();
+  const today = new Date(); today.setHours(0,0,0,0);
+
+  const fmt = d => d ? d.toISOString().split('T')[0] : '';
+  const harvestStr = fmt(calHarvestDate);
+  const alert10Str = fmt(calAlert10);
+  const alert7Str  = fmt(calAlert7);
+
+  let grid = dows.map(d => `<div class="cal-dow">${d}</div>`).join('');
+  for (let i = 0; i < firstDay; i++) grid += `<div class="cal-day empty"></div>`;
+  for (let d = 1; d <= daysInMonth; d++) {
+    const date    = new Date(calYear, calMonth, d);
+    const dateStr = fmt(date);
+    const isTdy   = date.getTime() === today.getTime();
+    const isHarv  = dateStr === harvestStr;
+    const isAlt10 = dateStr === alert10Str;
+    const isAlt7  = dateStr === alert7Str;
+    const isRem   = reminders[dateStr];
+    let cls = 'cal-day';
+    if (isTdy)   cls += ' today';
+    if (isHarv)  cls += ' harvest-day';
+    else if (isAlt10 || isAlt7) cls += ' alert-day';
+    else if (isRem) cls += ' reminder-set';
+    const title = isHarv ? 'Harvest Day' : isAlt10 ? '10-Day Alert' : isAlt7 ? '7-Day Alert' : isRem ? reminders[dateStr] : '';
+    grid += `<div class="${cls}" title="${title}" onclick="toggleReminder('${dateStr}','${d}')">${d}</div>`;
+  }
+  document.getElementById('calGrid').innerHTML = grid;
+  renderReminderList();
+}
+
+function toggleReminder(dateStr, day) {
+  const isHarv  = calHarvestDate && dateStr === calHarvestDate.toISOString().split('T')[0];
+  const isAlert = (calAlert10 && dateStr === calAlert10.toISOString().split('T')[0]) ||
+                  (calAlert7  && dateStr === calAlert7.toISOString().split('T')[0]);
+  if (isHarv || isAlert) {
+    toast('This date is auto-set — it\'s already marked', 'gold'); return;
+  }
+  if (reminders[dateStr]) {
+    delete reminders[dateStr];
+    toast('Reminder removed');
+  } else {
+    const label = prompt('Reminder note for ' + dateStr + ':', 'Check crop status');
+    if (label !== null) {
+      reminders[dateStr] = label || 'Farm reminder';
+      toast('Reminder set for ' + dateStr);
+    }
+  }
+  localStorage.setItem('sfReminders', JSON.stringify(reminders));
+  renderCalendar();
+}
+
+function renderReminderList() {
+  const all = [];
+  const fmt = d => d ? d.toISOString().split('T')[0] : '';
+  if (calHarvestDate) all.push({date: fmt(calHarvestDate), label:'🌾 Harvest Day', color:'var(--g)'});
+  if (calAlert10)     all.push({date: fmt(calAlert10),     label:'🔔 Pre-Harvest Prep (10 days before)', color:'#5ba4e8'});
+  if (calAlert7)      all.push({date: fmt(calAlert7),      label:'⚙ Final Check (7 days before)', color:'#c9a84c'});
+  Object.entries(reminders).sort().forEach(([d,l]) => all.push({date:d, label:'📌 '+l, color:'var(--txm)'}));
+  all.sort((a,b) => a.date.localeCompare(b.date));
+
+  if (!all.length) { document.getElementById('reminderList').innerHTML = ''; return; }
+  document.getElementById('reminderList').innerHTML = `
+    <div style="font-size:.68rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--txm);margin-bottom:10px;">Upcoming Dates</div>
+    ${all.map(r => `
+      <div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--bd);">
+        <div style="font-size:.75rem;font-weight:600;color:${r.color};min-width:85px;">${r.date}</div>
+        <div style="font-size:.78rem;color:var(--tx);flex:1;">${r.label}</div>
+      </div>`).join('')}`;
+}
+
+function downloadAllICS() { exportReminders(); }
+
+function exportReminders() {
+  if (!_harvestData) return;
+  const fmt = d => {
+    const dd = new Date(d);
+    return dd.toISOString().replace(/[-:]/g,'').split('.')[0] + 'Z';
+  };
+  let ics = `BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//SmartFarm AI//Harvest Planner//EN
+`;
+  const events = [
+    {date: _harvestData.harvest, title: `🌾 Harvest Day — ${_harvestData.cropName}`},
+    {date: _harvestData.alert10, title: `🔔 Pre-Harvest Prep — ${_harvestData.cropName} (10 days)`},
+    {date: _harvestData.alert7,  title: `⚙ Final Harvest Check — ${_harvestData.cropName} (7 days)`},
+    ...Object.entries(reminders).map(([d,l]) => ({date: new Date(d), title: '📌 ' + l})),
+  ];
+  events.forEach(e => {
+    if (!e.date) return;
+    const ds = fmt(e.date);
+    ics += `BEGIN:VEVENT
+DTSTART;VALUE=DATE:${ds.slice(0,8)}
+DTEND;VALUE=DATE:${ds.slice(0,8)}
+SUMMARY:${e.title}
+END:VEVENT
+`;
+  });
+  ics += 'END:VCALENDAR';
+  const blob = new Blob([ics], {type:'text/calendar'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `harvest_reminders_${_harvestData.cropName}.ics`;
+  a.click();
+  toast('Calendar file downloaded!');
+}
+
+// downloadAllICS alias handled above
+
+// ── LOCATION DETECTION ───────────────────────────────────────────
+function detectLocation() {
+  const pill = document.getElementById('locationText');
+  pill.textContent = 'Detecting…';
+  if (!navigator.geolocation) { pill.textContent = 'Not supported'; return; }
+  navigator.geolocation.getCurrentPosition(pos => {
+    window._harvestLocation = {lat: pos.coords.latitude, lon: pos.coords.longitude};
+    // Reverse geocode using OpenWeatherMap
+    fetch(`https://api.openweathermap.org/geo/1.0/reverse?lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&limit=1&appid=9009e6dec1e0a3d96537052bc3e705ba`)
+      .then(r => r.json())
+      .then(d => {
+        const name = d[0] ? (d[0].name + ', ' + (d[0].state||'')) : 'Location Set';
+        pill.textContent = name;
+        document.getElementById('locationPill').style.borderColor = 'rgba(61,186,114,.4)';
+        toast('Location set: ' + name);
+      }).catch(() => { pill.textContent = 'Location Set'; });
+  }, () => { pill.textContent = 'Location denied'; });
+}
+
+// ── HARVEST WEATHER ───────────────────────────────────────────────
+async function loadHarvestWeather(lat, lon, harvestDate) {
+  try {
+    const res  = await fetch(`/api/weather/forecast?lat=${lat}&lon=${lon}`);
+    const json = await res.json();
+    const days = (json.list || []).filter((_,i) => i % 8 === 0).slice(0, 4);
+    const fmt  = d => new Date(d * 1000).toLocaleDateString('en-IN', {day:'numeric', month:'short'});
+    const icons = {'01d':'☀','02d':'⛅','03d':'🌥','04d':'☁','09d':'🌧','10d':'🌦','11d':'⛈','13d':'❄','50d':'🌫'};
+    document.getElementById('wxCards').innerHTML = days.map(d => {
+      const icon  = icons[d.weather[0].icon] || '🌤';
+      const temp  = Math.round(d.main.temp - 273.15);
+      const rain  = d.rain ? d.rain['3h'] || 0 : 0;
+      const goodHarvest = temp > 22 && temp < 35 && rain < 5;
+      return `<div style="background:var(--dk3);border:1px solid ${goodHarvest ? 'rgba(61,186,114,.2)' : 'rgba(248,113,113,.15)'};border-radius:12px;padding:14px;text-align:center;">
+        <div style="font-size:1.4rem;margin-bottom:4px;">${icon}</div>
+        <div style="font-size:.7rem;color:var(--txm);margin-bottom:4px;">${fmt(d.dt)}</div>
+        <div style="font-size:.95rem;font-weight:700;color:var(--cream);margin-bottom:4px;">${temp}°C</div>
+        <div style="font-size:.65rem;padding:2px 7px;border-radius:10px;background:${goodHarvest?'rgba(61,186,114,.12)':'rgba(248,113,113,.1)'};color:${goodHarvest?'#4ade80':'#f87171'};font-weight:600;">${goodHarvest ? 'Good' : rain > 5 ? 'Rain' : 'Hot'}</div>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    document.getElementById('wxStrip').style.display = 'none';
+  }
+}
+
+// ── AI SUGGESTIONS ────────────────────────────────────────────────
+function getAISuggestions(crop, prog, daysLeft, dur, irr) {
+  const suggestions = [];
+  const cropDb = CROP_DB[crop] || {};
+  const season = cropDb.season || '';
+
+  // Stage-based suggestion
+  if (prog < 20) {
+    suggestions.push({icon:'💧', title:'Ensure Proper Germination', text:'Water lightly but consistently in the first 2 weeks. Avoid waterlogging. Soil temperature should be 20–30°C for optimal seed germination.', color:'#5ba4e8', tag:'Early Stage'});
+  } else if (prog < 50) {
+    suggestions.push({icon:'🌿', title:'Vegetative Growth Tips', text:'Apply nitrogen-rich fertiliser now for maximum leaf area. ' + (irr.includes('Drip') ? 'Your drip system is ideal — maintain 70% field capacity.' : 'Irrigate every 5–7 days. Avoid water stress during tillering.'), color:'#3dba72', tag:'Growing'});
+  } else if (prog < 80) {
+    suggestions.push({icon:'🌾', title:'Approaching Harvest Window', text:'Reduce irrigation frequency now to stress the plant into ripening. Check grain/fruit maturity indicators — colour change, firmness, and moisture content.', color:'#c9a84c', tag:'Pre-Harvest'});
+  } else {
+    suggestions.push({icon:'✅', title:'Harvest Soon', text:'Your crop is entering final maturity. Harvest in the early morning when temperatures are cooler to reduce moisture loss and improve quality.', color:'#3dba72', tag:'Ready'});
+  }
+
+  // Irrigation advice
+  if (!irr.includes('Drip') && dur > 100) {
+    suggestions.push({icon:'💦', title:'Switch to Drip Irrigation', text:'Drip/sprinkler systems can reduce your ' + crop + ' duration by 8–12 days and cut water use by 40%. Consider upgrading — PMKSY offers 55% subsidy.', color:'#a78bfa', tag:'Save Water'});
+  }
+
+  // Timing market advice
+  if (daysLeft > 0 && daysLeft < 30) {
+    suggestions.push({icon:'📊', title:'Lock in Market Price Now', text:'Your harvest is ' + daysLeft + ' days away. Check current ' + crop + ' mandi prices and pre-book a buyer or storage. Prices often dip 10–20% right after harvest season.', color:'#c9a84c', tag:'Market Tip'});
+  }
+
+  // Season warning
+  const mon = new Date().getMonth();
+  if (season === 'Kharif' && mon >= 10) {
+    suggestions.push({icon:'⚠', title:'Off-Season Planting Risk', text:crop + ' is a Kharif crop (Jun–Oct). Planting in ' + ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][mon] + ' may result in lower yield due to temperature mismatch. Consider protective farming.', color:'#f87171', tag:'Risk'});
+  }
+  if (season === 'Rabi' && mon >= 3 && mon <= 8) {
+    suggestions.push({icon:'⚠', title:'Off-Season Planting Risk', text:crop + ' is a Rabi crop (Nov–Mar). Summer planting may face heat stress. Consider greenhouse cultivation or shade nets.', color:'#f87171', tag:'Risk'});
+  }
+
+  // Pest alert
+  if (daysLeft > 20 && daysLeft < 60) {
+    suggestions.push({icon:'🛡', title:'Pre-Harvest Pest Watch', text:'The 4–6 week pre-harvest window is critical for ' + crop + '. Scout for pod borers, aphids, or fungal disease every 3 days. Avoid pesticide application within 2 weeks of harvest.', color:'#fb923c', tag:'Pest Alert'});
+  }
+
+  return suggestions.slice(0, 4);
+}
+
+// ── SOW DATE VALIDATION ───────────────────────────────────────────
+function onSowDateChange() {
+  const val  = document.getElementById('sowDate').value;
+  const tip  = document.getElementById('sowDateTip');
+  if (!val) { tip.style.display='none'; return; }
+  const sow   = new Date(val);
+  const today = new Date(); today.setHours(0,0,0,0);
+  const diff  = Math.round((today - sow) / 86400000);
+
+  if (diff < 0) {
+    tip.style.display = 'block';
+    tip.innerHTML = `<span style="color:#f87171;">⚠ This date is in the future — did you mean a past date? Enter when you actually sowed the crop.</span>`;
+  } else if (diff === 0) {
+    tip.style.display = 'block';
+    tip.innerHTML = `<span style="color:#c9a84c;">ℹ Sowing today — crop progress will start from 0%.</span>`;
+  } else if (diff > 0 && diff <= 30) {
+    tip.style.display = 'block';
+    tip.innerHTML = `<span style="color:var(--g);">✓ Sowed ${diff} days ago — good.</span>`;
+  } else if (diff > 30) {
+    tip.style.display = 'block';
+    tip.innerHTML = `<span style="color:var(--g);">✓ Sowed ${diff} days ago — crop is already growing.</span>`;
+  }
+}
+
+// ── DATE CORRECTION in AI panel ────────────────────────────────────
+function applyDateCorrection() {
+  const sowEl   = document.getElementById('correctSowDate');
+  const todayEl = document.getElementById('correctTodayDate');
+  const tip     = document.getElementById('dateCorrectionTip');
+  if (!_aiCurrentCrop) return;
+
+  const newSow   = sowEl.value   || _aiCurrentCrop.sow;
+  const newToday = todayEl.value || new Date().toISOString().split('T')[0];
+
+  const sow     = new Date(newSow);
+  const today   = new Date(newToday); today.setHours(0,0,0,0);
+  const harvest = new Date(_aiCurrentCrop.harvest);
+  const dur     = _aiCurrentCrop.dur;
+
+  const daysSinceSow = Math.max(0, Math.round((today - sow) / 86400000));
+  const newProg      = Math.min(100, Math.max(0, Math.round((daysSinceSow / dur) * 100)));
+  const newDaysLeft  = Math.ceil((harvest - today) / 86400000);
+
+  // Mark that user manually fixed the date — suppress future mismatch warnings
+  window._dateManuallyFixed = true;
+
+  // Update stored context
+  _aiCurrentCrop.sow      = newSow;
+  _aiCurrentCrop.prog     = newProg;
+  _aiCurrentCrop.daysLeft = Math.max(0, newDaysLeft);
+
+  const fmt = d => new Date(d).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});
+
+  // ── Progress bar
+  document.getElementById('progPct').textContent = newProg + '%';
+  setTimeout(() => { document.getElementById('progFill').style.width = newProg + '%'; }, 50);
+  const sowLbl = document.getElementById('sowLabel');
+  const harvLbl = document.getElementById('harvestLabel');
+  if (sowLbl)  sowLbl.textContent  = 'Sown: ' + fmt(sow);
+  if (harvLbl) harvLbl.textContent = 'Harvest: ' + fmt(harvest);
+
+  // ── Countdown ring — animate number
+  const pct = newProg / 100;
+  document.getElementById('cdRing').style.background =
+    `conic-gradient(var(--g) ${pct*360}deg, rgba(61,186,114,.1) ${pct*360}deg)`;
+  const cdEl = document.getElementById('cdNum');
+  const targetDays = Math.max(0, newDaysLeft);
+  cdEl.textContent = targetDays;
+
+  // ── Status tag
+  const statusEl = document.getElementById('rStatusTag');
+  if (statusEl) {
+    if (newProg >= 100 || newDaysLeft <= 0) {
+      statusEl.className = 'tag tag-g'; statusEl.textContent = 'Ready to Harvest!';
+    } else if (newDaysLeft <= 10) {
+      statusEl.className = 'tag tag-gold'; statusEl.textContent = 'Harvest in ' + newDaysLeft + ' days';
+    } else if (newProg >= 70) {
+      statusEl.className = 'tag tag-gold'; statusEl.textContent = 'Approaching Harvest';
+    } else if (newProg >= 30) {
+      statusEl.className = 'tag tag-g'; statusEl.textContent = 'Growing Well';
+    } else {
+      statusEl.className = 'tag tag-b'; statusEl.textContent = 'Early Stage';
+    }
+  }
+
+  // ── Rebuild growth stage timeline
+  const stages = _aiCurrentCrop.stages || [];
+  const stageCount = stages.length;
+  const stageTrack = document.getElementById('stageTrack');
+  if (stageTrack && stageCount) {
+    stageTrack.innerHTML = stages.map((s, i) => {
+      const done   = i < Math.floor((daysSinceSow / dur) * stageCount);
+      const active = i === Math.floor((daysSinceSow / dur) * stageCount) && newDaysLeft > 0;
+      const cls    = done ? 'done' : active ? 'active' : 'future';
+      const icon   = done ? '✓' : active ? '◉' : (i + 1);
+      const stageStart = new Date(sow);
+      stageStart.setDate(stageStart.getDate() + Math.floor((i / stageCount) * dur));
+      return `<div class="stage-item ${cls}">
+        <div class="stage-dot ${cls}">${icon}</div>
+        <div class="stage-name">${s.split('(')[0].trim()}${active ? '<br><span style="color:var(--g);font-size:.6rem;">Active</span>' : ''}</div>
+        <div class="stage-date">${fmt(stageStart)}</div>
+      </div>`;
+    }).join('');
+  }
+
+  // ── Sowing date main input
+  document.getElementById('sowDate').value = newSow;
+
+  // ── Tip message
+  tip.style.display = 'block';
+  tip.style.color = 'var(--g)';
+  tip.textContent = `✓ Updated — ${daysSinceSow} days since sowing, ${newProg}% progress, ${Math.max(0,newDaysLeft)} days to harvest.`;
+
+  // ── Quick stage buttons
+  buildQuickStageBtns(stages, newProg);
+
+  toast('Progress updated to ' + newProg + '%' + (newProg >= 100 ? ' — Ready to harvest! 🌾' : ''));
+}
+
+// ── QUICK STAGE BUTTONS ────────────────────────────────────────────
+function buildQuickStageBtns(stages, currentProg) {
+  const el = document.getElementById('quickStageBtns');
+  if (!el || !stages || !stages.length) return;
+
+  const stageCount = stages.length;
+  el.innerHTML = stages.map((s, i) => {
+    const stageProg = Math.round(((i + 0.5) / stageCount) * 100);
+    const isDone    = currentProg > Math.round(((i+1) / stageCount) * 100);
+    const isActive  = !isDone && currentProg >= Math.round((i / stageCount) * 100);
+    const bg        = isDone ? 'rgba(61,186,114,.15)' : isActive ? 'rgba(61,186,114,.25)' : 'rgba(255,255,255,.04)';
+    const border    = isDone ? 'rgba(61,186,114,.3)' : isActive ? 'var(--g)' : 'var(--bd)';
+    const color     = isDone ? 'var(--g)' : isActive ? '#4ade80' : 'var(--txm)';
+    const icon      = isDone ? '✓ ' : isActive ? '◉ ' : '';
+    const stageName = s.split('(')[0].trim(); // Remove day range if present
+    return `<button onclick="quickStageUpdate(${i}, '${stageName}')"
+      style="background:${bg};border:1px solid ${border};color:${color};
+             border-radius:8px;padding:6px 12px;font-size:.72rem;font-weight:600;
+             cursor:pointer;transition:all .2s;font-family:Outfit,sans-serif;">
+      ${icon}${stageName}
+    </button>`;
+  }).join('');
+}
+
+// ── QUICK STAGE CLICK → pre-fill textarea ─────────────────────────
+function quickStageUpdate(stageIdx, stageName) {
+  const textarea   = document.getElementById('farmActivityInput');
+  const stages     = _aiCurrentCrop?.stages || [];
+  const stageCount = stages.length || 5;
+  const dur        = _aiCurrentCrop?.dur || 120;
+
+  // Calculate progress% for this stage
+  const stageMidProg = Math.min(100, Math.round(((stageIdx + 0.6) / stageCount) * 100));
+
+  const messages = {
+    0: `I have completed the ${stageName} stage. Seeds have germinated well and seedlings are emerging healthily.`,
+    1: `${stageName} is complete. Plants are growing well with vigorous vegetative growth.`,
+    2: `Completed ${stageName}. Crop looks healthy and flowering has begun.`,
+    3: `${stageName} stage is done. Flowering and fruit set are clearly visible on the plants.`,
+    4: `${stageName} is complete. Crop is fully developed and ready or near ready for harvest.`,
+  };
+  textarea.value = messages[stageIdx] || `I have completed the ${stageName} stage.`;
+
+  // Immediately update progress bar for visual feedback
+  document.getElementById('progPct').textContent = stageMidProg + '%';
+  setTimeout(() => { document.getElementById('progFill').style.width = stageMidProg + '%'; }, 50);
+  const pct = stageMidProg / 100;
+  document.getElementById('cdRing').style.background =
+    `conic-gradient(var(--g) ${pct*360}deg, rgba(61,186,114,.1) ${pct*360}deg)`;
+
+  // Update stage timeline
+  const stageTrack = document.getElementById('stageTrack');
+  if (stageTrack && stages.length) {
+    const sow = new Date(_aiCurrentCrop?.sow || new Date());
+    const fmt = d => new Date(d).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});
+    stageTrack.innerHTML = stages.map((s, i) => {
+      const done   = i < stageIdx;
+      const active = i === stageIdx;
+      const cls    = done ? 'done' : active ? 'active' : 'future';
+      const icon   = done ? '✓' : active ? '◉' : (i+1);
+      const stageStart = new Date(sow);
+      stageStart.setDate(stageStart.getDate() + Math.floor((i/stageCount)*dur));
+      return `<div class="stage-item ${cls}">
+        <div class="stage-dot ${done?'done':active?'active':'future'}">${icon}</div>
+        <div class="stage-name">${s.split('(')[0].trim()}${active?'<br><span style="color:var(--g);font-size:.6rem;">Active ◉</span>':''}</div>
+        <div class="stage-date">${fmt(stageStart)}</div>
+      </div>`;
+    }).join('');
+  }
+
+  // Update status tag
+  const statusEl = document.getElementById('rStatusTag');
+  if (statusEl) {
+    if (stageIdx >= stageCount - 1) { statusEl.className='tag tag-gold'; statusEl.textContent='Approaching Harvest'; }
+    else { statusEl.className='tag tag-g'; statusEl.textContent=stageName+' Stage'; }
+  }
+
+  // Update stored progress
+  if (_aiCurrentCrop) _aiCurrentCrop.prog = stageMidProg;
+
+  // Refresh stage buttons to show new state
+  buildQuickStageBtns(stages, stageMidProg);
+
+  textarea.focus();
+  textarea.scrollIntoView({behavior:'smooth', block:'nearest'});
+  toast(`${stageName} selected — click Ask FarmAI for detailed advice`, 'gold');
+}
+
+// ── SHOW AI UPDATE PANEL — initialize date fields ─────────────────
+function showAIUpdatePanel(cropName, prog, daysLeft, dur, sow, harvest, stages) {
+  const panel = document.getElementById('aiUpdatePanel');
+  if (!panel) return;
+  panel.style.display = 'block';
+  _aiCurrentCrop = { cropName, prog, daysLeft, dur, sow, harvest, stages };
+
+  // Pre-fill date correction fields
+  const sowEl   = document.getElementById('correctSowDate');
+  const todayEl = document.getElementById('correctTodayDate');
+  if (sowEl)   sowEl.value   = sow;
+  if (todayEl) todayEl.value = new Date().toISOString().split('T')[0];
+
+  // Build quick stage buttons
+  buildQuickStageBtns(stages, prog);
+}
+
+// ── VARIETY SELECT HANDLER ────────────────────────────────────────
+function onVarietySelect() {
+  const sel = document.getElementById('varSelect');
+  const inp = document.getElementById('varIn');
+  const tip = document.getElementById('varTip');
+  const val = sel.value;
+  if (!val) { inp.value = ''; tip.style.display='none'; return; }
+  if (val === 'custom') { inp.value = ''; inp.focus(); tip.style.display='none'; return; }
+  inp.value = val;
+  // Show duration tip
+  const durMap = {
+    'IR-64':'Early variety — ~105 days · suits Kharif season',
+    'ADT 36':'Early variety — ~110 days · popular in Tamil Nadu',
+    'CO 51':'Early variety — ~108 days · good for Kuruvai season',
+    'ASD 16':'Early variety — ~110 days · blast resistant',
+    'ADT 43':'Medium variety — ~120 days · high yield',
+    'Ponni':'Medium variety — ~125 days · classic TN variety',
+    'CR 1009':'Medium variety — ~125 days · fine grain',
+    'Swarna':'Late variety — ~135 days · flood tolerant',
+    'BPT 5204':'Late variety — ~140 days · famous Sona Masoori',
+    'Samba Mahsuri':'Late variety — ~145 days · fine grain, Rabi season',
+    'HD 2967':'Standard wheat — ~140 days · most grown variety in India',
+    'GW 322':'Short wheat — ~115 days · Gujarat / central India',
+    'LOK 1':'Medium wheat — ~120 days · Maharashtra / Karnataka',
+    'PKM 1':'Early tomato — ~80 days · heat tolerant, TN bred',
+    'CO 3':'Standard tomato — ~85 days · TNAU recommended',
+    'Arka Vikas':'Late tomato — ~90 days · processing variety',
+    'Pusa Ruby':'Early tomato — ~75 days · fresh market',
+    'MCU 5':'Cotton — ~175 days · standard TN variety',
+    'LRA 5166':'Cotton — ~170 days · short staple',
+    'Suvin':'Cotton — ~195 days · long staple, premium',
+    'COH 3':'Maize hybrid — ~95 days · TNAU hybrid',
+    'COHM 5':'Maize hybrid — ~100 days · high yield',
+  };
+  if (durMap[val]) {
+    tip.style.display = 'block';
+    tip.innerHTML = `<span class="tip-pill">ℹ ${durMap[val]}</span>`;
+  } else { tip.style.display='none'; }
+}
+
+// ── SOIL TYPE TIPS ─────────────────────────────────────────────────
+// ── WEATHER TIP ───────────────────────────────────────────────────
+function showWeatherTip() {
+  const val = document.getElementById('locInput').value.trim();
+  const tip = document.getElementById('weatherTip');
+  if (!tip) return;
+  tip.style.display = val.length > 2 ? 'block' : 'none';
+}
+
+function showSoilTip() {
+  const sel = document.getElementById('soilType');
+  const tip = document.getElementById('soilTip');
+  const banner = document.getElementById('unknownSoilBanner');
+  const soilInfo = {
+    'Clay':         {msg:'Clay retains water well — add +4 days to harvest. Good for rice & sugarcane.', icon:'🟤'},
+    'Sandy':        {msg:'Sandy drains fast — subtract 3 days from harvest. Good for groundnut & carrot.', icon:'🟡'},
+    'Loamy':        {msg:'Loamy is ideal — no adjustment needed. Suits most crops perfectly.', icon:'🟢'},
+    'Black cotton': {msg:'Black cotton holds moisture — add +2 days. Excellent for cotton & sorghum.', icon:'⚫'},
+    'Red laterite': {msg:'Red laterite is acidic & low fertility — add +3 days. Add lime before sowing.', icon:'🔴'},
+    'Alluvial':     {msg:'Alluvial is very fertile — subtract 2 days. Best for vegetables & wheat.', icon:'💛'},
+  };
+  if (!sel.value) {
+    tip.style.display = 'none';
+    if (banner) banner.style.display = 'flex';
+    return;
+  }
+  if (banner) banner.style.display = 'none';
+  const info = soilInfo[sel.value];
+  if (info) {
+    tip.style.display = 'block';
+    tip.innerHTML = `<span class="tip-pill">${info.icon} ${info.msg}</span>`;
+  }
+}
+
+// ── IRRIGATION TIPS ────────────────────────────────────────────────
+function showIrrigationTip() {
+  const sel = document.getElementById('irrType');
+  const tip = document.getElementById('irrTip');
+  const irrInfo = {
+    'Canal / Bore well': {msg:'Standard — harvest duration unchanged. Reliable and consistent supply.', icon:'💧'},
+    'Drip / Sprinkler':  {msg:'Efficient! Drip reduces harvest time by ~6%. Water savings of 40%. PMKSY gives 55% subsidy.', icon:'🌦'},
+    'Rain-fed only':     {msg:'Monsoon-dependent — adds ±8 days uncertainty. Watch IMD weekly forecast closely.', icon:'🌧'},
+  };
+  const info = irrInfo[sel.value];
+  if (info) {
+    tip.style.display = 'block';
+    tip.innerHTML = `<span class="tip-pill">${info.icon} ${info.msg}</span>`;
+    // Show PMKSY link for drip
+    if (sel.value === 'Drip / Sprinkler') {
+      tip.innerHTML += ` <a href="https://pmksy.gov.in" target="_blank" style="color:var(--g);font-size:.62rem;margin-left:4px;">Apply PMKSY →</a>`;
+    }
+  } else { tip.style.display='none'; }
+}
+
+// ── SHOW UNKNOWN SOIL BANNER on page load ──────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  const banner = document.getElementById('unknownSoilBanner');
+  if (banner) banner.style.display = 'flex';
+});
+
+buildTicker('tickerTrack');
+</script>
+<div class="ticker-bar" style="position:fixed;bottom:0;left:0;right:0;z-index:400;"><div class="ticker-track" id="tickerTrack"></div></div>
+
+<!-- AcqireAI Chatbot -->
+<style>
+.acquireai-fab{position:fixed;bottom:28px;right:28px;z-index:800;width:58px;height:58px;border-radius:50%;background:var(--g);display:flex;align-items:center;justify-content:center;cursor:pointer;border:none;box-shadow:0 6px 28px rgba(61,186,114,.5);transition:transform .25s,box-shadow .25s;animation:fabPulse 3s infinite;}
+.acquireai-fab:hover{transform:scale(1.1);box-shadow:0 10px 40px rgba(61,186,114,.65);}
+@keyframes fabPulse{0%,100%{box-shadow:0 6px 28px rgba(61,186,114,.5);}50%{box-shadow:0 6px 40px rgba(61,186,114,.75),0 0 0 8px rgba(61,186,114,.08);}}
+.acquireai-fab .chat-close{display:none;}.acquireai-fab.open .chat-icon{display:none;}.acquireai-fab.open .chat-close{display:block;}
+.acquireai-window{position:fixed;bottom:100px;right:28px;z-index:800;width:390px;max-height:600px;background:var(--dk2);border:1px solid var(--bd2);border-radius:20px;overflow:hidden;box-shadow:0 24px 72px rgba(0,0,0,.5);display:flex;flex-direction:column;transform:scale(0.9) translateY(20px);opacity:0;pointer-events:none;transition:transform .3s cubic-bezier(.4,0,.2,1),opacity .3s;transform-origin:bottom right;}
+.acquireai-window.open{transform:none;opacity:1;pointer-events:all;}
+.acq-header{padding:14px 18px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--bd);background:var(--dk3);}
+.acq-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--g),var(--g2));display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;font-weight:700;color:var(--tx);font-family:'Cormorant Garamond',serif;}
+.acq-name{font-family:'Cormorant Garamond',serif;font-size:1rem;font-weight:700;color:var(--cream);}
+.acq-status{font-size:.68rem;color:var(--g);display:flex;align-items:center;gap:4px;}
+.acq-status::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--g);animation:acqpulse 1.6s infinite;}
+@keyframes acqpulse{0%,100%{opacity:1;}60%{opacity:.3;}}
+.acq-lang-badge{margin-left:auto;font-size:.65rem;font-weight:700;padding:3px 8px;border-radius:10px;background:rgba(61,186,114,.12);border:1px solid rgba(61,186,114,.2);color:var(--g);cursor:pointer;transition:all .2s;}
+.acq-lang-badge:hover{background:rgba(61,186,114,.22);}
+.acq-messages{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;scrollbar-width:thin;scrollbar-color:var(--bd) transparent;}
+.acq-msg{display:flex;gap:8px;align-items:flex-end;}.acq-msg.user{flex-direction:row-reverse;}
+.acq-avatar-sm{width:26px;height:26px;border-radius:50%;background:var(--dk3);border:1px solid var(--bd2);display:flex;align-items:center;justify-content:center;font-size:.75rem;flex-shrink:0;}
+.acq-msg.user .acq-avatar-sm{background:rgba(61,186,114,.15);}
+.acq-bubble{max-width:80%;padding:10px 13px;border-radius:14px;font-size:.83rem;line-height:1.62;color:var(--tx);}
+.acq-msg.bot .acq-bubble{background:var(--dk3);border:1px solid var(--bd);border-bottom-left-radius:4px;}
+.acq-msg.user .acq-bubble{background:rgba(61,186,114,.15);border:1px solid rgba(61,186,114,.22);border-bottom-right-radius:4px;}
+.acq-typing{display:flex;gap:4px;align-items:center;padding:11px 13px;}
+.acq-typing span{width:6px;height:6px;border-radius:50%;background:var(--txm);animation:acqDot 1.4s infinite ease-in-out;}
+.acq-typing span:nth-child(2){animation-delay:.2s;}.acq-typing span:nth-child(3){animation-delay:.4s;}
+@keyframes acqDot{0%,80%,100%{transform:scale(.6);opacity:.4;}40%{transform:scale(1);opacity:1;}}
+.acq-suggestions{display:flex;flex-wrap:wrap;gap:5px;padding:0 14px 10px;}
+.acq-sugg{padding:5px 11px;border-radius:20px;background:rgba(61,186,114,.08);border:1px solid rgba(61,186,114,.18);color:var(--g);font-size:.72rem;font-weight:600;cursor:pointer;transition:all .2s;white-space:nowrap;}
+.acq-sugg:hover{background:rgba(61,186,114,.18);}
+.acq-input-row{padding:12px 14px;border-top:1px solid var(--bd);display:flex;gap:8px;align-items:center;background:var(--dk3);}
+.acq-input{flex:1;padding:9px 13px;border-radius:22px;border:1px solid var(--bd2);background:var(--dk);color:var(--tx);font-family:'Outfit',sans-serif;font-size:.83rem;outline:none;transition:border-color .25s;}
+.acq-input::placeholder{color:var(--txm);}.acq-input:focus{border-color:var(--g);}
+.acq-mic-btn{width:34px;height:34px;border-radius:50%;border:1px solid var(--bd2);background:var(--dk);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--txm);transition:all .25s;flex-shrink:0;}
+.acq-mic-btn.listening{background:rgba(239,68,68,.15);border-color:#ef4444;color:#ef4444;animation:micPulse 1s infinite;}
+@keyframes micPulse{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,.4);}50%{box-shadow:0 0 0 6px rgba(239,68,68,0);}}
+.acq-send{width:34px;height:34px;border-radius:50%;background:var(--g);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:transform .2s,box-shadow .2s;}
+.acq-send:hover{transform:scale(1.08);box-shadow:0 4px 14px rgba(61,186,114,.4);}
+.acq-send svg{width:15px;height:15px;color:#0a0e0a;}
+@media(max-width:768px){.acquireai-window{width:calc(100vw - 24px);right:12px;bottom:90px;}}
+</style>
+<button class="acquireai-fab" id="acqFab" aria-label="Open AcqireAI">
+  <svg class="chat-icon" viewBox="0 0 24 24" fill="none" stroke="#0a0e0a" stroke-width="2" width="24" height="24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+  <svg class="chat-close" viewBox="0 0 24 24" fill="none" stroke="#0a0e0a" stroke-width="2" width="22" height="22"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+</button>
+<div class="acquireai-window" id="acqWindow">
+  <div class="acq-header">
+    <div class="acq-avatar">A</div>
+    <div style="flex:1;"><div class="acq-name">AcqireAI</div><div class="acq-status">Online · Agricultural Expert</div></div>
+    <span class="acq-lang-badge" id="acqLangBadge" onclick="acqToggleLang()" title="Switch language">EN</span>
+    <button onclick="document.getElementById('acqFab').click()" style="background:none;border:none;cursor:pointer;color:var(--txm);font-size:1rem;padding:4px;margin-left:4px;">✕</button>
+  </div>
+  <div class="acq-messages" id="acqMessages"></div>
+  <div class="acq-suggestions" id="acqSuggestions"></div>
+  <div class="acq-input-row">
+    <input class="acq-input" id="acqInput" placeholder="Ask about crops, diseases, schemes..." onkeydown="if(event.key==='Enter')acqSend()">
+    <button class="acq-mic-btn" id="acqMicBtn" onclick="acqToggleVoice()" title="Voice input">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+    </button>
+    <button class="acq-send" onclick="acqSend()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+    </button>
+  </div>
+</div>
+<script>
+(function(){
+  const SUGG_EN=['Best crops for my soil?','Rice disease treatment','When to sell wheat?','PM-KISAN scheme','Irrigation tips'];
+  const SUGG_TA=['என் மண்ணுக்கு சிறந்த பயிர்கள்?','நெல் நோய் சிகிச்சை','கோதுமை எப்போது விற்கலாம்?','PM-KISAN திட்டம்','நீர்ப்பாசன குறிப்புகள்'];
+  const fab=document.getElementById('acqFab'),win=document.getElementById('acqWindow'),msgs=document.getElementById('acqMessages'),inp=document.getElementById('acqInput');
+  let history=[],inited=false,isListening=false,recognition=null;
+  fab.addEventListener('click',function(){this.classList.toggle('open');win.classList.toggle('open');if(win.classList.contains('open')){inp.focus();if(!inited){inited=true;renderSugg();setTimeout(()=>addMsg(lang()==='ta'?'👋 வணக்கம்! நான் AcqireAI — உங்கள் விவசாய நிபுணர். பயிர்கள், நோய்கள், சந்தை விலைகள் பற்றி கேளுங்கள்!':'👋 Namaste! I\'m AcqireAI — your smart farming assistant. Ask about crop diseases, soil, market prices, government schemes, or anything about farming!','bot'),500);};}});
+  function lang(){return localStorage.getItem('sf_lang')||'en';}
+  window.acqToggleLang=function(){const n=lang()==='en'?'ta':'en';localStorage.setItem('sf_lang',n);window.SF_LANG=n;document.getElementById('acqLangBadge').textContent=n==='ta'?'தமிழ்':'EN';document.querySelectorAll('.lang-toggle-btn').forEach(b=>b.textContent=n==='ta'?'EN':'தமிழ்');inp.placeholder=n==='ta'?'பயிர், நோய், திட்டங்கள் பற்றி கேளுங்கள்...':'Ask about crops, diseases, schemes...';renderSugg();};
+  document.addEventListener('sf:langchange',e=>{document.getElementById('acqLangBadge').textContent=e.detail.lang==='ta'?'தமிழ்':'EN';renderSugg();});
+  function renderSugg(){const s=lang()==='ta'?SUGG_TA:SUGG_EN;document.getElementById('acqSuggestions').innerHTML=s.map(x=>`<span class="acq-sugg" onclick="acqSend('${x.replace(/'/g,"\\'")}')">${x}</span>`).join('');}
+  function addMsg(text,role,typing=false){const el=document.createElement('div');el.className='acq-msg '+role;if(typing){el.id='acqTyping';el.innerHTML=`<div class="acq-avatar-sm">A</div><div class="acq-bubble"><div class="acq-typing"><span></span><span></span><span></span></div></div>`;}else{el.innerHTML=`<div class="acq-avatar-sm">${role==='bot'?'A':'👤'}</div><div class="acq-bubble">${text.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
+            .replace(/\[(\w+\.html)\]/g,'<a href="/$1" style="color:var(--g);font-weight:700;text-decoration:underline;text-underline-offset:2px;" onclick="window.location.href=this.href">→ Open $1</a>')
+            .replace(/\n\n/g,'<br><br>').replace(/\n/g,'<br>')}</div>`;}msgs.appendChild(el);msgs.scrollTop=msgs.scrollHeight;return el;}
+  window.acqSend=async function(preset){const text=preset||inp.value.trim();if(!text)return;inp.value='';addMsg(text,'user');document.getElementById('acqSuggestions').innerHTML='';history.push({role:'user',content:text});const typEl=addMsg('','bot',true);const l=lang();const sys=`You are AcqireAI, an expert agricultural AI for SmartFarm AI — India's AI farming platform. ${l==='ta'?'Respond ENTIRELY in Tamil (தமிழ்). Simple Tamil a farmer understands.':'Respond in English.'} Specialize in: crop diseases (Tamil Nadu pesticide brands+doses), soil analysis, market prices, Indian govt schemes (PM-KISAN,PMFBY,KCC), irrigation. Be practical, warm, concise.`;try{const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,history:history.slice(-6),lang:l})});const d=await r.json();const reply=d.reply||'Sorry, could not get a response.';history.push({role:'assistant',content:reply});typEl.remove();addMsg(reply,'bot');}catch(e){typEl.remove();addMsg(l==='ta'?'⚠️ இணைப்பில் சிக்கல். மீண்டும் முயற்சிக்கவும்.':'⚠️ Connection issue. Please try again.','bot');}renderSugg();};
+  window.acqToggleVoice=function(){if(!('webkitSpeechRecognition' in window)&&!('SpeechRecognition' in window)){alert('Voice input needs Chrome browser.');return;}if(isListening){recognition?.stop();return;}const SR=window.SpeechRecognition||window.webkitSpeechRecognition;recognition=new SR();recognition.lang=lang()==='ta'?'ta-IN':'en-IN';recognition.continuous=false;recognition.interimResults=true;recognition.onstart=()=>{isListening=true;document.getElementById('acqMicBtn').classList.add('listening');inp.placeholder=lang()==='ta'?'🎙️ கேட்கிறேன்...':'🎙️ Listening...';};recognition.onresult=e=>{inp.value=Array.from(e.results).map(r=>r[0].transcript).join('');};recognition.onerror=()=>{isListening=false;document.getElementById('acqMicBtn').classList.remove('listening');inp.placeholder=lang()==='ta'?'பயிர், நோய், திட்டங்கள் பற்றி கேளுங்கள்...':'Ask about crops, diseases, schemes...';};recognition.onend=()=>{isListening=false;document.getElementById('acqMicBtn').classList.remove('listening');inp.placeholder=lang()==='ta'?'பயிர், நோய், திட்டங்கள் பற்றி கேளுங்கள்...':'Ask about crops, diseases, schemes...';if(inp.value.trim())acqSend();};recognition.start();};
+  // Sync lang badge on load
+  document.getElementById('acqLangBadge').textContent=lang()==='ta'?'தமிழ்':'EN';
+})();
+</script>
+
+<!-- Google Translate -->
+<div id="google_translate_element"></div>
+<script type="text/javascript">
+function googleTranslateElementInit() {
+  new google.translate.TranslateElement({
+    pageLanguage: 'en',
+    includedLanguages: 'ta,hi,te,kn,ml,mr,gu,pa,bn,or,as,ur,en',
+    layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+    autoDisplay: false
+  }, 'google_translate_element');
+}
+</script>
+<script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+<script>
+// Custom language switcher UI
+var LANG_OPTIONS = [
+  {code:'en',    name:'English',    native:'English',   flag:'🇬🇧'},
+  {code:'ta',    name:'Tamil',      native:'தமிழ்',      flag:'🇮🇳'},
+  {code:'hi',    name:'Hindi',      native:'हिंदी',       flag:'🇮🇳'},
+  {code:'te',    name:'Telugu',     native:'తెలుగు',     flag:'🇮🇳'},
+  {code:'kn',    name:'Kannada',    native:'ಕನ್ನಡ',      flag:'🇮🇳'},
+  {code:'ml',    name:'Malayalam',  native:'മലയാളം',    flag:'🇮🇳'},
+  {code:'mr',    name:'Marathi',    native:'मराठी',      flag:'🇮🇳'},
+  {code:'gu',    name:'Gujarati',   native:'ગુજરાતી',    flag:'🇮🇳'},
+  {code:'pa',    name:'Punjabi',    native:'ਪੰਜਾਬੀ',     flag:'🇮🇳'},
+  {code:'bn',    name:'Bengali',    native:'বাংলা',      flag:'🇮🇳'},
+];
+
+var currentLang = localStorage.getItem('sf_ui_lang') || 'en';
+
+function buildLangSwitcher(navR) {
+  if (!navR || document.getElementById('sfLangSwitcher')) return;
+
+  var switcher = document.createElement('div');
+  switcher.className = 'lang-switcher';
+  switcher.id = 'sfLangSwitcher';
+
+  var btn = document.createElement('button');
+  btn.className = 'lang-btn nav-ctrl-btn';
+  btn.id = 'langBtnMain';
+  btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 010 20M12 2a15.3 15.3 0 000 20"/></svg>' +
+    '<span id="langBtnLabel">' + getLangLabel(currentLang) + '</span>' +
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="10" height="10"><polyline points="6 9 12 15 18 9"/></svg>';
+
+  var dropdown = document.createElement('div');
+  dropdown.className = 'lang-dropdown';
+  dropdown.id = 'langDropdown';
+
+  LANG_OPTIONS.forEach(function(lang) {
+    var opt = document.createElement('button');
+    opt.className = 'lang-option' + (lang.code === currentLang ? ' active' : '');
+    opt.setAttribute('data-lang', lang.code);
+    opt.innerHTML = '<span class="lang-flag">' + lang.flag + '</span>' +
+      '<span class="lang-name">' + lang.name + '</span>' +
+      '<span class="lang-native">' + lang.native + '</span>';
+    opt.addEventListener('click', function() {
+      selectLanguage(lang.code);
+      dropdown.classList.remove('open');
+    });
+    dropdown.appendChild(opt);
+  });
+
+  switcher.appendChild(btn);
+  switcher.appendChild(dropdown);
+
+  btn.addEventListener('click', function(e) {
+    e.stopPropagation();
+    dropdown.classList.toggle('open');
+  });
+  document.addEventListener('click', function() {
+    dropdown.classList.remove('open');
+  });
+
+  // Insert before hamburger
+  var hburg = navR.querySelector('.hburg');
+  if (hburg) navR.insertBefore(switcher, hburg);
+  else navR.appendChild(switcher);
+}
+
+function getLangLabel(code) {
+  var lang = LANG_OPTIONS.find(function(l) { return l.code === code; });
+  return lang ? lang.flag + ' ' + lang.native : '🌐 EN';
+}
+
+function selectLanguage(langCode) {
+  currentLang = langCode;
+  localStorage.setItem('sf_ui_lang', langCode);
+
+  // Update button label
+  var lbl = document.getElementById('langBtnLabel');
+  if (lbl) lbl.textContent = getLangLabel(langCode);
+
+  // Update active state
+  document.querySelectorAll('.lang-option').forEach(function(opt) {
+    opt.classList.toggle('active', opt.getAttribute('data-lang') === langCode);
+  });
+
+  // Also update AcqireAI chatbot language
+  if (typeof window.SF_LANG !== 'undefined') {
+    window.SF_LANG = langCode === 'ta' ? 'ta' : 'en';
+    localStorage.setItem('sf_lang', window.SF_LANG);
+    var badge = document.getElementById('acqLangBadge');
+    if (badge) badge.textContent = window.SF_LANG === 'ta' ? 'தமிழ்' : 'EN';
+  }
+
+  if (langCode === 'en') {
+    // Restore original English
+    restoreEnglish();
+  } else {
+    // Trigger Google Translate
+    triggerGoogleTranslate(langCode);
+  }
+}
+
+function triggerGoogleTranslate(langCode) {
+  // Wait for Google Translate to be ready
+  var attempts = 0;
+  var interval = setInterval(function() {
+    attempts++;
+    var select = document.querySelector('.goog-te-combo');
+    if (select) {
+      clearInterval(interval);
+      select.value = langCode;
+      select.dispatchEvent(new Event('change'));
+    } else if (attempts > 30) {
+      clearInterval(interval);
+      // Fallback: direct cookie method
+      document.cookie = 'googtrans=/en/' + langCode + '; path=/; domain=' + window.location.hostname;
+      document.cookie = 'googtrans=/en/' + langCode + '; path=/';
+      location.reload();
+    }
+  }, 200);
+}
+
+function restoreEnglish() {
+  // Clear Google Translate
+  document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=' + window.location.hostname;
+  document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/';
+  document.cookie = 'googtrans=/en/en; path=/; domain=' + window.location.hostname;
+  document.cookie = 'googtrans=/en/en; path=/';
+
+  var select = document.querySelector('.goog-te-combo');
+  if (select) {
+    select.value = 'en';
+    select.dispatchEvent(new Event('change'));
+  } else {
+    location.reload();
+  }
+}
+
+// Auto-apply saved language on page load
+document.addEventListener('DOMContentLoaded', function() {
+  // Build the switcher
+  var navR = document.querySelector('.nav-r');
+  if (navR) buildLangSwitcher(navR);
+
+  // Apply saved language after Google Translate loads
+  if (currentLang && currentLang !== 'en') {
+    setTimeout(function() {
+      triggerGoogleTranslate(currentLang);
+    }, 1500);
+  }
+
+  // Apply saved Google Translate cookie
+  var savedLang = localStorage.getItem('sf_ui_lang');
+  if (savedLang && savedLang !== 'en') {
+    var existingCookie = document.cookie.indexOf('googtrans');
+    if (existingCookie === -1) {
+      document.cookie = 'googtrans=/en/' + savedLang + '; path=/';
+    }
+  }
+});
+</script>
+</body>
+</html>

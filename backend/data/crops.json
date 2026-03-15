@@ -1,0 +1,12 @@
+[
+  { "name": "Rice",      "duration": 120, "season": "Kharif", "sow_months": "June–July",     "soil": ["clay","silt","loam"] },
+  { "name": "Wheat",     "duration": 140, "season": "Rabi",   "sow_months": "Oct–Nov",        "soil": ["loam","clay","silt"] },
+  { "name": "Maize",     "duration": 100, "season": "Kharif", "sow_months": "June–July",     "soil": ["loam","sandy","silt"] },
+  { "name": "Cotton",    "duration": 180, "season": "Kharif", "sow_months": "May–June",      "soil": ["black","loam","clay"] },
+  { "name": "Soybean",   "duration": 110, "season": "Kharif", "sow_months": "June–July",     "soil": ["loam","clay","black"] },
+  { "name": "Groundnut", "duration": 130, "season": "Kharif", "sow_months": "June–July",     "soil": ["sandy","loam","red"] },
+  { "name": "Tomato",    "duration": 85,  "season": "Rabi",   "sow_months": "Sept–Oct",      "soil": ["loam","silt","red"] },
+  { "name": "Potato",    "duration": 90,  "season": "Rabi",   "sow_months": "Oct–Nov",        "soil": ["loam","sandy","silt"] },
+  { "name": "Onion",     "duration": 120, "season": "Rabi",   "sow_months": "Nov–Dec",        "soil": ["loam","sandy","silt"] },
+  { "name": "Sugarcane", "duration": 365, "season": "Annual", "sow_months": "Feb–Mar",        "soil": ["loam","clay","black"] }
+]

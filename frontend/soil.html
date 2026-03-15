@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>SmartFarm AI – Soil Analysis</title>
+<link rel="stylesheet" href="css/style.css">
+<style>
+.soil-card{
+  padding:18px 14px;border-radius:var(--r);
+  border:1.5px solid var(--bd);background:var(--dk3);
+  cursor:pointer;text-align:center;transition:all .28s var(--ease);
+}
+.soil-card:hover{border-color:rgba(61,186,114,.3);background:var(--dk4);}
+.soil-card.sel{border-color:var(--g);background:rgba(61,186,114,.08);}
+.soil-card .sc-img{width:56px;height:56px;border-radius:50%;object-fit:cover;margin:0 auto 10px;display:block;border:2px solid var(--bd2);transition:border-color .3s;}
+.soil-card.sel .sc-img{border-color:var(--g);}
+.soil-card .sc-name{font-size:.88rem;font-weight:600;color:var(--tx);}
+.soil-card .sc-desc{font-size:.72rem;color:var(--txm);margin-top:3px;}
+.sg{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+
+.ph-scale-bar{display:flex;height:14px;border-radius:7px;overflow:hidden;margin:14px 0 6px;}
+.ph-seg{flex:1;}
+.crop-chip{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:8px 15px;border-radius:30px;
+  background:rgba(61,186,114,.1);color:var(--g);
+  font-size:.83rem;font-weight:600;margin:4px;
+  border:1px solid rgba(61,186,114,.2);
+  animation:chipPop .3s ease;
+}
+@keyframes chipPop{from{transform:scale(.82);opacity:0;}to{transform:scale(1);opacity:1;}}
+.crop-chip img{width:20px;height:20px;border-radius:50%;object-fit:cover;}
+
+.fert-row{
+  display:flex;align-items:center;gap:14px;
+  padding:13px 16px;background:var(--dk3);
+  border-radius:var(--r);border:1px solid var(--bd);
+  margin-bottom:9px;
+}
+.fert-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.fert-name{font-size:.88rem;font-weight:600;color:var(--tx);}
+.fert-sub{font-size:.74rem;color:var(--txm);margin-top:2px;}
+
+.nut-label{display:flex;justify-content:space-between;margin-bottom:5px;}
+.nut-label span{font-size:.8rem;font-weight:500;color:var(--txm);}
+.nut-label strong{font-size:.8rem;color:var(--g);}
+@media(max-width:900px){
+  #mainGrid{grid-template-columns:1fr !important;}
+  #rightCol{position:static !important;}
+}
+</style>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#3dba72">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="SmartFarm AI">
+<script>if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js').then(()=>console.log('[PWA] SW registered')).catch(e=>console.warn('[PWA] SW failed:',e));}</script>
+<script src="/js/smartfarm.js"></script>
+<script>
+// AcqireAI config — set GROQ key if available
+// In production, inject via server-side template or env
+window.GROQ_API_KEY = window.GROQ_API_KEY || '';
+</script>
+
+<style>
+/* ── Language Switcher ── */
+.lang-switcher {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+.lang-btn {
+  display: inline-flex;align-items:center;gap:6px;
+  padding:6px 12px;border-radius:20px;
+  border:1px solid rgba(232,237,229,0.2);
+  background:transparent;cursor:pointer;
+  font-size:.72rem;font-weight:700;
+  color:var(--tx);transition:all .25s;
+  font-family:Outfit,sans-serif;
+  white-space:nowrap;
+}
+.lang-btn:hover{border-color:var(--g);color:var(--g);}
+.lang-btn svg{width:13px;height:13px;opacity:.7;}
+.lang-dropdown {
+  display:none;position:absolute;top:calc(100% + 8px);right:0;
+  background:var(--dk2);border:1px solid var(--bd2);
+  border-radius:12px;overflow:hidden;
+  box-shadow:0 12px 40px rgba(0,0,0,.4);
+  z-index:1000;min-width:160px;
+  animation:ddFade .2s ease;
+}
+@keyframes ddFade{from{opacity:0;transform:translateY(-6px);}to{opacity:1;transform:none;}}
+.lang-dropdown.open{display:block;}
+.lang-option {
+  display:flex;align-items:center;gap:10px;
+  padding:10px 16px;cursor:pointer;
+  font-size:.82rem;font-weight:500;color:var(--tx);
+  transition:background .2s;border:none;background:none;
+  width:100%;text-align:left;font-family:Outfit,sans-serif;
+}
+.lang-option:hover{background:rgba(61,186,114,.1);color:var(--g);}
+.lang-option.active{color:var(--g);font-weight:700;}
+.lang-option .lang-flag{font-size:1rem;}
+.lang-option .lang-name{flex:1;}
+.lang-option .lang-native{font-size:.72rem;color:var(--txm);}
+/* Hide Google's default widget bar */
+.goog-te-banner-frame{display:none!important;}
+.goog-te-menu-value span{color:var(--g)!important;}
+body{top:0!important;}
+.skiptranslate{display:none!important;}
+#google_translate_element{display:none!important;}
+</style>
+</head>
+<body>
+<div class="cursor" id="cur"></div><div class="cursor-ring" id="curRing"></div>
+<nav class="nav" id="nav">
+  <a href="index.html" class="nav-logo"><svg viewBox="0 0 36 36" fill="none"><circle cx="18" cy="18" r="17" stroke="rgba(61,186,114,0.22)" stroke-width="1"/><path d="M18 7 C13 11 9 17 10 23 C12 27 16 29 18 29 C20 29 24 27 26 23 C27 17 23 11 18 7Z" fill="rgba(61,186,114,0.12)" stroke="#3dba72" stroke-width="1.2"/><line x1="18" y1="29" x2="18" y2="34" stroke="#3dba72" stroke-width="1.5" stroke-linecap="round"/></svg><span class="nav-logo-t">SmartFarm <span>AI</span></span></a>
+  <ul class="nav-links" id="navLinks">
+    <li><a href="index.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>Home</a></li>
+    <li><a href="weather.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 10h-1.26A8 8 0 109 20h9a5 5 0 000-10z"/></svg>Weather</a></li>
+    <li><a href="soil.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>Soil</a></li>
+    <li><a href="disease.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Disease</a></li>
+    <li><a href="market.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Market</a></li>
+    <li><a href="harvest.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Harvest</a></li>
+  </ul>
+  <div class="nav-r"><a href="index.html" class="npill npo">← Home</a><a href="disease.html" class="npill nps">Disease Check</a><div class="hburg" id="hburg"><span></span><span></span><span></span></div></div>
+</nav>
+
+<div class="page-wrap">
+  <div class="page-hero">
+    <div class="ph-bg" style="background-image:url('https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=1600&q=80');"></div>
+    <div class="ph-grad"></div><div class="ph-grad2"></div>
+    <div class="ph-content">
+      <div class="ph-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>Soil Module</div>
+      <h1 class="ph-h1">Soil Analysis &amp;<br><em>Crop Recommendation</em></h1>
+      <p class="ph-p">Enter your soil type and pH value to receive personalised crop choices, fertiliser schedules and actionable guidance powered by agricultural science.</p>
+    </div>
+  </div>
+
+  <section class="section" style="padding-top:48px;padding-bottom:80px;">
+    <div id="mainGrid" style="display:grid;grid-template-columns:1fr 1.2fr;gap:28px;align-items:start;">
+
+      <!-- FORM -->
+      <div class="card card-pl reveal" style="background:var(--dk2);">
+
+        <!-- AI Soil Identifier -->
+        <div class="s-eye" style="margin-bottom:6px;"><div class="s-eye-l"></div><span>Optional — Let AI Identify Your Soil</span></div>
+        <h3 style="font-family:'Cormorant Garamond',serif;font-size:1.3rem;color:var(--cream);margin-bottom:8px;">Upload Soil Photo</h3>
+        <p style="font-size:.8rem;color:var(--txm);margin-bottom:14px;">Take a close-up photo of your dry soil. FarmAI will identify the soil type and auto-select it for you.</p>
+
+        <div class="upload-zone" id="soilUploadZone" onclick="document.getElementById('soilImgIn').click()" ondragover="event.preventDefault();this.classList.add('over')" ondragleave="this.classList.remove('over')" style="border:2px dashed var(--bd2);border-radius:var(--rl);padding:24px;text-align:center;cursor:pointer;transition:all .3s;background:var(--dk3);position:relative;">
+          <div id="soilUploadContent">
+            <div style="width:44px;height:44px;border-radius:50%;background:rgba(61,186,114,.1);border:1px solid rgba(61,186,114,.2);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="var(--g)" stroke-width="1.5" width="22" height="22"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+            </div>
+            <p style="font-weight:600;color:var(--tx);font-size:.88rem;margin-bottom:4px;">Click to upload soil photo</p>
+            <p style="font-size:.73rem;color:var(--txm);">JPG, PNG · Close-up of dry soil works best</p>
+          </div>
+          <input type="file" id="soilImgIn" accept="image/*" style="display:none" onchange="analyzeSoilImage(this)">
+        </div>
+
+        <div id="soilAIResult" style="display:none;margin-top:12px;"></div>
+
+        <hr style="margin:22px 0;border:none;border-top:1px solid var(--bd);">
+        <div class="s-eye" style="margin-bottom:6px;"><div class="s-eye-l"></div><span>Step 1 — Or Select Manually</span></div>
+        <h3 style="font-family:'Cormorant Garamond',serif;font-size:1.4rem;color:var(--cream);margin-bottom:20px;">Select Soil Type</h3>
+
+        <div class="sg" id="soilGrid">
+          <div class="soil-card sel" data-soil="loam" onclick="selSoil(this)">
+            <img class="sc-img" src="https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=80&q=70" alt="Loam">
+            <div class="sc-name">Loam</div><div class="sc-desc">Best all-round</div>
+          </div>
+          <div class="soil-card" data-soil="clay" onclick="selSoil(this)">
+            <img class="sc-img" src="https://images.unsplash.com/photo-1530836369250-ef72a3f5cda8?w=80&q=70" alt="Clay">
+            <div class="sc-name">Clay</div><div class="sc-desc">Heavy, water-retaining</div>
+          </div>
+          <div class="soil-card" data-soil="sandy" onclick="selSoil(this)">
+            <img class="sc-img" src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=80&q=70" alt="Sandy">
+            <div class="sc-name">Sandy</div><div class="sc-desc">Light, well-draining</div>
+          </div>
+          <div class="soil-card" data-soil="silt" onclick="selSoil(this)">
+            <img class="sc-img" src="https://images.unsplash.com/photo-1586771107445-d3ca888129ff?w=80&q=70" alt="Silt">
+            <div class="sc-name">Silt</div><div class="sc-desc">Fine-grained, fertile</div>
+          </div>
+          <div class="soil-card" data-soil="black" onclick="selSoil(this)">
+            <img class="sc-img" src="https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=80&q=70" alt="Black">
+            <div class="sc-name">Black (Regur)</div><div class="sc-desc">Cotton belt</div>
+          </div>
+          <div class="soil-card" data-soil="red" onclick="selSoil(this)">
+            <img class="sc-img" src="https://images.unsplash.com/photo-1471194402529-8e0f5a675de6?w=80&q=70" alt="Red">
+            <div class="sc-name">Red Laterite</div><div class="sc-desc">South India</div>
+          </div>
+        </div>
+
+        <hr style="margin:26px 0;border:none;border-top:1px solid var(--bd);">
+        <div class="s-eye" style="margin-bottom:6px;"><div class="s-eye-l"></div><span>Step 2</span></div>
+        <h3 style="font-family:'Cormorant Garamond',serif;font-size:1.3rem;color:var(--cream);margin-bottom:18px;">Soil pH Value</h3>
+
+        <div class="form-group">
+          <label class="f-label">pH Level <span class="req">*</span></label>
+          <input type="range" id="phSlider" min="4.0" max="9.0" step="0.1" value="6.8">
+          <span class="range-val" id="phVal">6.8</span>
+          <div class="ph-scale-bar">
+            <div class="ph-seg" style="background:#dc2626;"></div>
+            <div class="ph-seg" style="background:#ea580c;"></div>
+            <div class="ph-seg" style="background:#eab308;"></div>
+            <div class="ph-seg" style="background:#22c55e;"></div>
+            <div class="ph-seg" style="background:#3b82f6;"></div>
+            <div class="ph-seg" style="background:#6366f1;"></div>
+            <div class="ph-seg" style="background:#9333ea;"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:.65rem;color:var(--txm);">
+            <span>4.0 Acidic</span><span>7.0 Neutral</span><span>9.0 Alkaline</span>
+          </div>
+          <div id="phTag" style="margin-top:10px;"></div>
+          <div id="phAutoHint" style="display:none;margin-top:8px;font-size:.76rem;color:var(--gold);background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.2);border-radius:8px;padding:7px 12px;"></div>
+        </div>
+
+        <hr style="margin:22px 0;border:none;border-top:1px solid var(--bd);">
+        <div class="s-eye" style="margin-bottom:6px;"><div class="s-eye-l"></div><span>Step 3 — Optional</span></div>
+        <h3 style="font-family:'Cormorant Garamond',serif;font-size:1.2rem;color:var(--cream);margin-bottom:16px;">Additional Details</h3>
+
+        <div class="f-row">
+          <div class="form-group">
+            <label class="f-label">Irrigation</label>
+            <select class="f-input" id="irrigSel"><option>Canal / Bore well</option><option>Drip / Sprinkler</option><option>Rain-fed only</option></select>
+          </div>
+          <div class="form-group">
+            <label class="f-label">Area (Acres)</label>
+            <input class="f-input" type="number" id="areaIn" placeholder="e.g. 2.5">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="f-label">Season</label>
+          <div class="radio-group">
+            <div class="rpill"><input type="radio" name="season" id="s1" value="Kharif" checked><label for="s1">Kharif (Monsoon)</label></div>
+            <div class="rpill"><input type="radio" name="season" id="s2" value="Rabi"><label for="s2">Rabi (Winter)</label></div>
+            <div class="rpill"><input type="radio" name="season" id="s3" value="Zaid"><label for="s3">Zaid (Summer)</label></div>
+          </div>
+        </div>
+
+        <hr style="margin:22px 0;border:none;border-top:1px solid var(--bd);">
+        <div class="s-eye" style="margin-bottom:6px;"><div class="s-eye-l"></div><span>Step 4 — Optional</span></div>
+        <h3 style="font-family:'Cormorant Garamond',serif;font-size:1.2rem;color:var(--cream);margin-bottom:10px;">Describe Your Problem</h3>
+        <p style="font-size:.8rem;color:var(--txm);margin-bottom:12px;">Tell FarmAI what happened in your field — yellowing, poor yield, pests, waterlogging, symptoms. AI will give targeted solutions.</p>
+        <div class="form-group">
+          <textarea id="farmerProblem" placeholder="e.g. My rice crop leaves are turning yellow from the tips. Yield dropped 30% this season. Noticed white insects under leaves last week..." style="width:100%;background:var(--dk3);border:1.5px solid var(--bd);border-radius:var(--r);padding:14px;color:var(--tx);font-size:.855rem;font-family:Outfit,sans-serif;resize:vertical;min-height:90px;outline:none;line-height:1.6;box-sizing:border-box;" onfocus="this.style.borderColor='var(--g)'" onblur="this.style.borderColor='var(--bd)'"></textarea>
+        </div>
+
+        <button class="btn-p" style="width:100%;justify-content:center;margin-top:8px;padding:15px;" onclick="analyze()">
+          <svg class="bi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          Get Crop Recommendations
+        </button>
+      </div>
+
+      <!-- RESULT -->
+      <div id="rightCol" class="reveal d2" style="position:sticky;top:90px;">
+
+        <!-- Problem Solution Card — shows only when farmer typed a problem -->
+        <div id="problemCard" style="display:none;margin-bottom:16px;background:linear-gradient(135deg,rgba(201,168,76,.12),rgba(61,186,114,.08));border:1.5px solid rgba(201,168,76,.35);border-radius:var(--rl);padding:22px 24px;">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+            <div style="width:36px;height:36px;border-radius:50%;background:rgba(201,168,76,.15);border:1px solid rgba(201,168,76,.3);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;">🎯</div>
+            <div>
+              <div style="font-size:.72rem;font-weight:700;color:var(--gold);letter-spacing:.1em;text-transform:uppercase;">Your Problem — FarmAI Solution</div>
+              <div id="problemCardTitle" style="font-size:1rem;font-weight:600;color:var(--cream);font-family:'Cormorant Garamond',serif;"></div>
+            </div>
+          </div>
+          <div id="problemCardSolution" style="font-size:.875rem;color:var(--tx);line-height:1.8;margin-bottom:14px;"></div>
+
+          <div id="problemCardQuickWins" style="display:none;">
+            <div style="font-size:.72rem;font-weight:700;color:var(--g);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;">⚡ Do This Today</div>
+            <div id="problemCardWinsList"></div>
+          </div>
+
+          <div id="problemCardAvoid" style="display:none;margin-top:12px;">
+            <div style="font-size:.72rem;font-weight:700;color:#f87171;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;">⛔ Do NOT Do This</div>
+            <div id="problemCardAvoidList"></div>
+          </div>
+
+          <div id="problemCardTip" style="margin-top:12px;"></div>
+        </div>
+
+        <div id="resPanel" class="result-panel card card-pl hidden" style="background:var(--dk2);margin-bottom:20px;">
+          <h3><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--g)" stroke-width="2"><path d="M12 2a10 10 0 100 20A10 10 0 0012 2z"/></svg>Recommended Crops</h3>
+          <div id="cropChips" style="margin-bottom:22px;"></div>
+
+          <!-- 🎯 AI Problem Solution — compact card -->
+          <div id="problemSolutionBlock" style="display:none;margin-bottom:18px;">
+            <div style="background:linear-gradient(135deg,rgba(201,168,76,.08),rgba(61,186,114,.05));border:1.5px solid rgba(201,168,76,.28);border-radius:12px;overflow:hidden;">
+              <!-- Header -->
+              <div style="display:flex;align-items:center;gap:9px;padding:11px 16px;border-bottom:1px solid rgba(201,168,76,.15);">
+                <span style="font-size:1rem;">🎯</span>
+                <div style="flex:1;min-width:0;">
+                  <div style="font-size:.65rem;font-weight:700;color:var(--gold);letter-spacing:.1em;text-transform:uppercase;">FarmAI — Your Problem Solved</div>
+                  <div id="psbProblemText" style="font-size:.74rem;color:var(--txm);font-style:italic;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></div>
+                </div>
+              </div>
+              <!-- Diagnosis — compact -->
+              <div style="padding:12px 16px;">
+                <div id="psbSolution" style="font-size:.825rem;color:var(--tx);line-height:1.65;"></div>
+              </div>
+              <!-- Quick wins — compact pills -->
+              <div id="psbWinsWrap" style="padding:0 16px 12px;display:none;">
+                <div style="font-size:.63rem;font-weight:700;color:var(--g);letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px;">⚡ Do This Today</div>
+                <div id="psbWins"></div>
+              </div>
+              <!-- Farmer tip inline -->
+              <div id="psbTipWrap" style="padding:8px 16px 11px;display:none;border-top:1px solid rgba(255,255,255,.05);">
+                <div id="psbTip" style="font-size:.78rem;color:var(--txm);font-style:italic;"></div>
+              </div>
+            </div>
+          </div>
+
+          <h4 style="font-size:.82rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--txm);margin-bottom:12px;">Fertiliser Plan</h4>
+          <div id="fertList" style="margin-bottom:20px;"></div>
+
+          <div id="soilNote" style="margin-bottom:16px;"></div>
+          <div id="seasonTip"></div>
+
+          <!-- AI Problem Solution -->
+          <div id="problemSolution" style="display:none;margin-top:20px;"></div>
+
+          <!-- AI 10-Step Treatment Plan — collapsible -->
+          <div id="aiPlanSection" style="display:none;margin-top:20px;">
+            <button onclick="togglePlan()" style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:11px 16px;background:var(--dk3);border:1px solid var(--bd);border-radius:var(--r);cursor:pointer;margin-bottom:0;" id="planToggleBtn">
+              <span style="font-size:.78rem;font-weight:700;color:var(--g);letter-spacing:.08em;text-transform:uppercase;">🌱 FarmAI 10-Step Treatment Plan</span>
+              <span id="planToggleIcon" style="font-size:.8rem;color:var(--txm);">▼ Show</span>
+            </button>
+            <div id="aiPlanBody" style="display:none;margin-top:10px;">
+              <div id="aiSteps" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;"></div>
+              <div id="quickWins" style="margin-bottom:12px;"></div>
+              <div id="avoidList" style="margin-bottom:12px;"></div>
+              <div id="farmerTip" style="margin-bottom:12px;"></div>
+            </div>
+          </div>
+
+          <h4 style="font-size:.82rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--txm);margin:20px 0 14px;">Estimated Soil Nutrients</h4>
+          <div id="nutriBars" style="display:flex;flex-direction:column;gap:13px;"></div>
+
+          <div style="margin-top:24px;display:flex;gap:10px;flex-wrap:wrap;">
+            <a href="harvest.html" class="btn-p btn-sm"><svg class="bi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Predict Harvest</a>
+            <button class="btn-ghost btn-sm" onclick="resetForm()">Reset</button>
+          </div>
+        </div>
+
+        <!-- Empty state -->
+        <div id="emptyState">
+          <div class="card card-pl" style="background:var(--dk2);text-align:center;padding:40px 32px;">
+            <img src="https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=300&q=60" style="width:100%;height:160px;object-fit:cover;border-radius:var(--r);margin-bottom:22px;filter:brightness(.6) saturate(1.2);" alt="">
+            <h3 style="font-family:'Cormorant Garamond',serif;font-size:1.6rem;color:var(--cream);margin-bottom:10px;">Your Recommendations<br>Appear Here</h3>
+            <p style="color:var(--txm);font-size:.875rem;line-height:1.7;">Select soil type, adjust the pH slider, and click "Get Crop Recommendations" to receive personalised advice.</p>
+          </div>
+          <div style="margin-top:14px;display:flex;flex-direction:column;gap:10px;">
+            <div class="alert alert-g"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg><div>pH 6.0–7.5 is neutral — ideal for most Indian crops.</div></div>
+            <div class="alert alert-gold"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/></svg><div>Loam soil at neutral pH gives the highest crop yields across India.</div></div>
+            <div class="alert alert-b"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><div>Adding compost/FYM improves any soil type. Start with 5 tonnes/hectare.</div></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+</div>
+
+<footer class="footer">
+  <div class="fg"><div><div class="fb-name"><svg width="26" height="26" viewBox="0 0 36 36" fill="none"><path d="M18 6 C13 10 9 16 10 22 C12 26 16 28 18 28 C20 28 24 26 26 22 C27 16 23 10 18 6Z" fill="rgba(61,186,114,.18)" stroke="#3dba72" stroke-width="1.4"/><line x1="18" y1="28" x2="18" y2="34" stroke="#3dba72" stroke-width="1.5" stroke-linecap="round"/></svg>SmartFarm <span>AI</span></div><p class="fb-tag">AI-powered agricultural decision support. Niral Thiruvizha 3.0.</p></div>
+  <div class="fc"><h5>Modules</h5><ul><li><a href="weather.html">Weather</a></li><li><a href="soil.html">Soil Analysis</a></li><li><a href="disease.html">Disease</a></li><li><a href="market.html">Market</a></li><li><a href="harvest.html">Harvest</a></li></ul></div>
+  <div class="fc"><h5>Resources</h5><ul><li><a href="https://soilhealth.dac.gov.in" target="_blank">Soil Health Card</a></li><li><a href="https://pmkisan.gov.in" target="_blank">PM-KISAN</a></li></ul></div>
+  <div class="fc"><h5>Team</h5><ul><li><a href="#">Kalaiselvi M</a></li><li><a href="#">Akalya R</a></li><li><a href="#">Asika M</a></li><li><a href="#">Dhatchineswaran D</a></li></ul></div></div>
+  <div class="fbot"><span>© 2025 SmartFarm AI · Niral Thiruvizha 3.0</span></div>
+</footer>
+
+<script src="js/script.js"></script>
+<script>
+// Default pH per soil type (midpoint of typical range)
+const SOIL_PH = {
+  loam:  6.8,  // 6.0–7.5
+  clay:  7.0,  // 6.5–7.5
+  sandy: 6.2,  // 5.5–7.0
+  silt:  6.5,  // 6.0–7.0
+  black: 7.8,  // 7.5–8.5
+  red:   5.8   // 5.0–6.5
+};
+const SOIL_PH_LABEL = {
+  loam:  'Loam typical pH: 6.0–7.5',
+  clay:  'Clay typical pH: 6.5–7.5',
+  sandy: 'Sandy typical pH: 5.5–7.0',
+  silt:  'Silt typical pH: 6.0–7.0',
+  black: 'Black (Regur) typical pH: 7.5–8.5',
+  red:   'Red Laterite typical pH: 5.0–6.5'
+};
+
+let selSoilKey='loam';
+
+function setPhForSoil(soilKey){
+  const ph = SOIL_PH[soilKey];
+  if(!ph) return;
+  const sl = document.getElementById('phSlider');
+  const pv = document.getElementById('phVal');
+  if(sl){ sl.value = ph; sl.dispatchEvent(new Event('input')); }
+  if(pv) pv.textContent = ph.toFixed(1);
+  // Show hint
+  const hint = document.getElementById('phAutoHint');
+  if(hint){ hint.textContent = '🤖 ' + (SOIL_PH_LABEL[soilKey]||'') + ' — auto-set. Adjust if you know your exact pH.'; hint.style.display='block'; }
+}
+
+function selSoil(el){
+  document.querySelectorAll('.soil-card').forEach(c=>c.classList.remove('sel'));
+  el.classList.add('sel'); selSoilKey=el.dataset.soil;
+  setPhForSoil(selSoilKey);
+}
+
+const slider=document.getElementById('phSlider'),phVal=document.getElementById('phVal'),phTag=document.getElementById('phTag');
+function updatePH(){
+  const v=parseFloat(slider.value);phVal.textContent=v.toFixed(1);
+  if(v<5.5)phTag.innerHTML='<div class="tag tag-r">⚠ Strongly Acidic — Major lime amendment needed</div>';
+  else if(v<6)phTag.innerHTML='<div class="tag tag-gold">⚠ Acidic — Lime application recommended</div>';
+  else if(v<=7.5)phTag.innerHTML='<div class="tag tag-g">✓ Neutral — Ideal pH for most crops</div>';
+  else if(v<=8.5)phTag.innerHTML='<div class="tag tag-gold">⚠ Alkaline — Sulphur amendment needed</div>';
+  else phTag.innerHTML='<div class="tag tag-r">⚠ Strongly Alkaline — Major treatment required</div>';
+}
+slider.addEventListener('input',updatePH);updatePH();
+
+async function analyze(){
+  if(!selSoilKey){toast('Select a soil type first','gold');return;}
+  const ph=parseFloat(slider.value);
+  const season=document.querySelector('input[name="season"]:checked').value;
+  const farmer_problem=document.getElementById('farmerProblem')?.value?.trim()||'';
+  const loadMsg = farmer_problem ? 'Analyzing soil & generating targeted AI solution for your problem…' : 'Analyzing soil & generating AI treatment plan…'; showLoader(loadMsg);
+  try{
+    const res=await fetch('/api/soil/analyze',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({soil_type:selSoilKey,ph,season,
+        irrigation:document.getElementById('irrigSel')?.value,
+        area:document.getElementById('areaIn')?.value,
+        farmer_problem})
+    });
+    const text=await res.text();
+    let json;
+    try{ json=JSON.parse(text); }
+    catch(e){
+      hideLoader();
+      console.error('Non-JSON response:',text);
+      toast('Backend error — using local data','gold');
+      const localRec=SOIL_REC[selSoilKey];
+      if(localRec) renderSoilResult({recommendation:{crops:localRec.crops,fertilizer:localRec.fert,fert:localRec.fert,notes:localRec.notes},ph_category:ph<6?'acidic':ph<=7.5?'neutral':'alkaline',season});
+      return;
+    }
+    hideLoader();
+    if(!json.success){toast(json.message||'Analysis failed','gold');return;}
+    json.data.farmer_problem = farmer_problem; renderSoilResult(json.data);
+    toast('✅ Soil analysis complete!');
+  }catch(err){
+    hideLoader();
+    console.error('Fetch error:',err);
+    const localRec=SOIL_REC[selSoilKey];
+    if(localRec) renderSoilResult({recommendation:{crops:localRec.crops,fertilizer:localRec.fert,fert:localRec.fert,notes:localRec.notes},ph_category:ph<6?'acidic':ph<=7.5?'neutral':'alkaline',season});
+    toast('Using local data — check server','gold');
+  }
+}
+
+function renderSoilResult(data){
+  const rec=data.recommendation||data;
+  const crops=rec.crops||[];
+  const fert=rec.fertilizer||rec.fertiliser||rec.fert||'NPK 14-14-14';
+  const notes=rec.notes||'';
+  const ph=parseFloat(slider.value);
+
+  // Crop chips
+  // Crop color map — each crop gets a unique accent color
+  const CROP_COLORS = {
+    Rice:'#4ade80', Wheat:'#f59e0b', Maize:'#fbbf24', Corn:'#fbbf24',
+    Tomato:'#f87171', Cotton:'#e2e8f0', Groundnut:'#d97706', Peanut:'#d97706',
+    Soybean:'#86efac', Soya:'#86efac', Sugarcane:'#34d399', Onion:'#c084fc',
+    Potato:'#a78bfa', Banana:'#fde68a', Turmeric:'#fcd34d', Chilli:'#ef4444',
+    Pepper:'#ef4444', Garlic:'#f3f4f6', Millet:'#6ee7b7', Ragi:'#6ee7b7',
+    'Finger Millet':'#6ee7b7', Jowar:'#fbbf24', Bajra:'#d1d5db', Sorghum:'#fbbf24',
+    Cowpea:'#86efac', Blackgram:'#94a3b8', Greengram:'#4ade80', Pulses:'#86efac',
+    Lentil:'#fb923c', Chickpea:'#fcd34d', Oilseeds:'#fde047', Sunflower:'#fde047',
+    Sesame:'#e2e8f0', Mustard:'#fde68a', Tapioca:'#c4b5fd', Coconut:'#86efac',
+    Brinjal:'#818cf8', Vegetables:'#4ade80', Cabbage:'#6ee7b7', Spinach:'#4ade80',
+    Okra:'#34d399', Watermelon:'#f87171', Pumpkin:'#fb923c', Cucumber:'#6ee7b7',
+    Cardamom:'#34d399', Ginger:'#fcd34d', Coriander:'#4ade80',
+  };
+
+  function getCropColor(name) {
+    return CROP_COLORS[name] || Object.entries(CROP_COLORS).find(([k])=>
+      name.toLowerCase().includes(k.toLowerCase()) || k.toLowerCase().includes(name.toLowerCase())
+    )?.[1] || '#3dba72';
+  }
+
+  function getCropDisplay(name) {
+    const color = getCropColor(name);
+    const letter = name.trim()[0].toUpperCase();
+    return `<span style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:${color}22;border:1.5px solid ${color}55;font-size:.68rem;font-weight:800;color:${color};flex-shrink:0;font-family:Outfit,sans-serif;">${letter}</span>`;
+  }
+  const cropImgs = {}; // kept for compatibility
+  document.getElementById('cropChips').innerHTML=crops.map(c=>{
+    const col = getCropColor(c);
+    return `<div class="crop-chip" style="border-color:${col}33;color:${col};background:${col}11;">${getCropDisplay(c)} ${c}</div>`;
+  }).join('');
+
+  // Fertilizer rows
+  const colors=['#3dba72','#c9a84c','#5ba4e8','#a78bfa'];
+  document.getElementById('fertList').innerHTML=String(fert).split(' + ').map((f,i)=>`
+    <div class="fert-row"><div class="fert-dot" style="background:${colors[i%4]};"></div><div><div class="fert-name">${f}</div><div class="fert-sub">As per soil test recommendation</div></div></div>`).join('');
+
+  document.getElementById('soilNote').innerHTML=`<div class="alert alert-g"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg><div>${notes}</div></div>`;
+
+  const season=document.querySelector('input[name="season"]:checked').value;
+  const tips={Kharif:'Sow after first monsoon rains. Ensure good drainage to prevent waterlogging.',Rabi:'Sow after monsoon retreat. Irrigate at critical growth stages — flowering and grain fill.',Zaid:'Ensure adequate irrigation. Choose heat-tolerant varieties for summer planting.'};
+  document.getElementById('seasonTip').innerHTML=`<div class="alert alert-b"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg><div><strong>${season} Season:</strong> ${tips[season]}</div></div>`;
+
+  // ── AI Solution Column ───────────────────────────────────────────
+  const plan = data.ai_plan;
+  const aiSecEl = document.getElementById('aiPlanSection');
+  const farmer_problem = data.farmer_problem || document.getElementById('farmerProblem')?.value?.trim() || '';
+  const psBlock = document.getElementById('problemSolutionBlock');
+
+  // Hide legacy boxes
+  ['problemSolution','problemCard'].forEach(id=>{ const e=document.getElementById(id); if(e) e.style.display='none'; });
+
+  // ── Problem Solution Block (below crop chips) ─────────────────
+  if(plan && farmer_problem){
+    psBlock.style.display='block';
+    document.getElementById('psbProblemText').textContent = '"' + farmer_problem.slice(0,90) + (farmer_problem.length>90?'…':'"');
+    // Use problem_solution if available, else synthesise from step 3/4/5
+    const sol = plan.problem_solution || (plan.treatment_steps||[]).filter(s=>s.step>=3&&s.step<=5).map(s=>s.action).join(' ');
+    document.getElementById('psbSolution').innerHTML = sol || 'See the 10-step treatment plan below for detailed solutions.';
+
+    if(plan.quick_wins?.length){
+      document.getElementById('psbWinsWrap').style.display='block';
+      document.getElementById('psbWins').innerHTML = plan.quick_wins.map(w=>
+        `<div style="display:flex;gap:8px;margin-bottom:6px;font-size:.825rem;color:var(--tx);line-height:1.5;"><span style="color:var(--g);font-weight:700;flex-shrink:0;">→</span>${w}</div>`).join('');
+    }
+    // Prevention section removed from compact card — it's in the 10-step plan below
+    // Avoid list shown only in 10-step plan section below
+    if(plan.farmer_tip){
+      document.getElementById('psbTipWrap').style.display='block';
+      document.getElementById('psbTip').innerHTML = `💡 "${plan.farmer_tip}"`;
+    }
+  } else {
+    if(psBlock) psBlock.style.display='none';
+  }
+
+  // ── 10-step plan ──────────────────────────────────────────────
+  if(plan){ aiSecEl.style.display='block';
+    document.getElementById('aiSteps').innerHTML=(plan.treatment_steps||[]).map(s=>`
+      <div style="display:flex;gap:12px;align-items:flex-start;padding:13px 15px;background:var(--dk3);border-radius:var(--r);border-left:3px solid var(--g);">
+        <div style="min-width:30px;height:30px;border-radius:50%;background:var(--g);color:#0a0e0a;font-size:.8rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">${s.step}</div>
+        <div style="flex:1;">
+          <div style="display:flex;align-items:center;gap:7px;margin-bottom:4px;flex-wrap:wrap;">
+            <span style="font-size:1rem;">${s.icon||'🌱'}</span>
+            <strong style="font-size:.87rem;color:var(--cream);">${s.title}</strong>
+            ${s.timing?`<span style="margin-left:auto;font-size:.68rem;color:var(--txm);background:var(--dk4);padding:2px 7px;border-radius:10px;white-space:nowrap;">⏰ ${s.timing}</span>`:''}
+          </div>
+          <div style="font-size:.815rem;color:var(--tx);line-height:1.65;">${s.action}</div>
+        </div>
+      </div>`).join('');
+
+    // Quick wins
+    document.getElementById('quickWins').innerHTML=plan.quick_wins?.length?`
+      <div style="background:rgba(61,186,114,.06);border:1px solid rgba(61,186,114,.2);border-radius:var(--r);padding:13px 16px;">
+        <div style="font-size:.75rem;font-weight:700;color:var(--g);letter-spacing:.08em;text-transform:uppercase;margin-bottom:9px;">⚡ Do This Today</div>
+        ${plan.quick_wins.map(w=>`<div style="display:flex;gap:8px;margin-bottom:6px;font-size:.815rem;color:var(--tx);"><span style="color:var(--g);font-weight:700;flex-shrink:0;">→</span>${w}</div>`).join('')}
+      </div>` : '';
+
+    // Avoid list
+    document.getElementById('avoidList').innerHTML=plan.avoid?.length?`
+      <div style="background:rgba(224,84,84,.06);border:1px solid rgba(224,84,84,.2);border-radius:var(--r);padding:13px 16px;margin-top:10px;">
+        <div style="font-size:.75rem;font-weight:700;color:#f87171;letter-spacing:.08em;text-transform:uppercase;margin-bottom:9px;">⚠ Do NOT Do This</div>
+        ${plan.avoid.map(a=>`<div style="display:flex;gap:8px;margin-bottom:6px;font-size:.815rem;color:var(--tx);"><span style="color:#f87171;font-weight:700;flex-shrink:0;">✕</span>${a}</div>`).join('')}
+      </div>` : '';
+
+    // Farmer tip
+    document.getElementById('farmerTip').innerHTML=plan.farmer_tip?
+      `<div class="alert alert-b" style="margin-top:10px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><div><em>"${plan.farmer_tip}"</em></div></div>` : '';
+  } else {
+    aiSecEl.style.display='none';
+  }
+
+  // Nutrient bars
+  const nuts=[
+    {n:'Nitrogen (N)',pct:ph<6?42:ph<=7.5?78:55,c:'#4ade80'},
+    {n:'Phosphorus (P)',pct:ph<6?32:ph<=7.5?72:42,c:'#c9a84c'},
+    {n:'Potassium (K)',pct:ph<6?58:ph<=7.5?82:65,c:'#5ba4e8'},
+    {n:'Organic Matter',pct:{loam:82,silt:72,black:78,clay:60,sandy:45,red:50}[selSoilKey]||60,c:'#a78bfa'},
+  ];
+  document.getElementById('nutriBars').innerHTML=nuts.map(n=>`
+    <div>
+      <div class="nut-label"><span>${n.n}</span><strong>${n.pct}%</strong></div>
+      <div class="prog-wrap"><div class="prog-fill" style="width:0%;background:${n.c};" data-t="${n.pct}"></div></div>
+    </div>`).join('');
+
+  document.getElementById('resPanel').classList.remove('hidden');
+  document.getElementById('emptyState').style.display='none';
+  document.getElementById('resPanel').scrollIntoView({behavior:'smooth',block:'start'});
+  // Delay bar animation until after panel is visible and painted
+  setTimeout(()=>{
+    document.querySelectorAll('.prog-fill').forEach(b=>{
+      b.style.width='0%'; // reset first to re-trigger transition
+      requestAnimationFrame(()=>requestAnimationFrame(()=>{ b.style.width=b.dataset.t+'%'; }));
+    });
+  }, 150);
+}
+
+function resetForm(){
+  document.getElementById('resPanel').classList.add('hidden');
+  document.getElementById('emptyState').style.display='';
+  const ps = document.getElementById('problemSolutionBlock');
+  if(ps) ps.style.display='none';
+  ['psbWinsWrap','psbTipWrap'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.style.display='none';
+  });
+}
+async function analyzeSoilImage(input){
+  const file = input.files[0];
+  if(!file) return;
+
+  // Show preview with remove button
+  const r = new FileReader();
+  r.onload = e => {
+    document.getElementById('soilUploadContent').innerHTML=`
+      <div style="position:relative;display:inline-block;">
+        <img src="${e.target.result}" style="width:100%;max-height:130px;object-fit:cover;border-radius:var(--r);">
+        <button onclick="removeSoilImage()" style="position:absolute;top:8px;right:8px;width:28px;height:28px;border-radius:50%;background:rgba(0,0,0,.75);border:1.5px solid rgba(255,255,255,.4);color:var(--tx);font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
+      </div>
+      <p style="font-size:.82rem;color:var(--g);font-weight:600;margin-top:8px;">${file.name} ✅</p>`;
+  };
+  r.readAsDataURL(file);
+
+  // Show loading
+  const resultEl = document.getElementById('soilAIResult');
+  resultEl.style.display='block';
+  resultEl.innerHTML=`<div class="alert alert-b"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/></svg><div>FarmAI is analyzing your soil photo...</div></div>`;
+
+  try{
+    const formData = new FormData();
+    formData.append('soil_image', file);
+    const res  = await fetch('/api/soil/identify-image', {method:'POST', body:formData});
+    const json = await res.json();
+
+    if(!json.success){ throw new Error(json.message||'Analysis failed'); }
+
+    const d = json.data;
+    // Auto-select the identified soil type
+    const soilMap = {loam:'loam',clay:'clay',sandy:'sandy',silt:'silt',black:'black',red:'red'};
+    const matched = soilMap[d.soil_type?.toLowerCase()];
+    if(matched){
+      document.querySelectorAll('.soil-card').forEach(c=>c.classList.remove('sel'));
+      const card = document.querySelector(`.soil-card[data-soil="${matched}"]`);
+      if(card){ card.classList.add('sel'); selSoilKey=matched; setPhForSoil(matched); }
+    }
+
+    // Show result
+    const confColor = d.confidence==='high'?'var(--g)':d.confidence==='medium'?'var(--gold)':'#5ba4e8';
+    resultEl.innerHTML=`
+      <div style="background:rgba(61,186,114,.08);border:1.5px solid rgba(61,186,114,.25);border-radius:var(--r);padding:14px 16px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+          <div style="font-size:1.4rem;">🌍</div>
+          <div>
+            <div style="font-size:.75rem;font-weight:700;color:var(--g);letter-spacing:.08em;text-transform:uppercase;">FarmAI Identified</div>
+            <div style="font-size:1.05rem;font-weight:700;color:var(--cream);">${d.soil_name || d.soil_type}</div>
+          </div>
+          <div style="margin-left:auto;font-size:.72rem;font-weight:700;color:${confColor};background:rgba(0,0,0,.3);padding:3px 10px;border-radius:20px;">Confidence: ${d.confidence||'medium'}</div>
+        </div>
+        <div style="font-size:.815rem;color:var(--tx);line-height:1.6;margin-bottom:8px;">${d.description||''}</div>
+        ${d.characteristics?`<div style="font-size:.77rem;color:var(--txm);">📋 ${d.characteristics}</div>`:''}
+        <div style="font-size:.75rem;color:var(--g);margin-top:8px;font-weight:600;">✅ Soil type auto-selected below — you can change it manually if needed</div>
+        ${d.typical_ph ? `<div style="margin-top:8px;padding:8px 12px;background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.25);border-radius:8px;font-size:.78rem;color:var(--gold);">📊 Typical pH for ${d.soil_name}: <strong>${d.typical_ph}</strong> — adjust the slider in Step 2 accordingly</div>` : ''}
+      </div>`;
+    toast('🌱 Soil type identified and selected!');
+
+  }catch(err){
+    resultEl.innerHTML=`<div class="alert alert-gold"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg><div>Could not identify soil — please select manually below. (${err.message})</div></div>`;
+    toast('Could not identify soil — select manually','gold');
+  }
+}
+
+function removeSoilImage(){
+  document.getElementById('soilImgIn').value='';
+  document.getElementById('soilUploadContent').innerHTML=`
+    <div style="width:44px;height:44px;border-radius:50%;background:rgba(61,186,114,.1);border:1px solid rgba(61,186,114,.2);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="var(--g)" stroke-width="1.5" width="22" height="22"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+    </div>
+    <p style="font-weight:600;color:var(--tx);font-size:.88rem;margin-bottom:4px;">Click to upload soil photo</p>
+    <p style="font-size:.73rem;color:var(--txm);">JPG, PNG · Close-up of dry soil works best</p>`;
+  document.getElementById('soilAIResult').style.display='none';
+  document.getElementById('soilAIResult').innerHTML='';
+}
+
+function togglePlan(){
+  const body = document.getElementById('aiPlanBody');
+  const icon = document.getElementById('planToggleIcon');
+  const open = body.style.display === 'none';
+  body.style.display = open ? 'flex' : 'none';
+  if(open) body.style.flexDirection = 'column';
+  icon.textContent = open ? '▲ Hide' : '▼ Show';
+}
+buildTicker('tickerTrack');
+</script>
+<div class="ticker-bar" style="position:fixed;bottom:0;left:0;right:0;z-index:400;"><div class="ticker-track" id="tickerTrack"></div></div>
+<!-- AcqireAI Chatbot -->
+<style>
+.acquireai-fab{position:fixed;bottom:28px;right:28px;z-index:800;width:58px;height:58px;border-radius:50%;background:var(--g);display:flex;align-items:center;justify-content:center;cursor:pointer;border:none;box-shadow:0 6px 28px rgba(61,186,114,.5);transition:transform .25s,box-shadow .25s;animation:fabPulse 3s infinite;}
+.acquireai-fab:hover{transform:scale(1.1);box-shadow:0 10px 40px rgba(61,186,114,.65);}
+@keyframes fabPulse{0%,100%{box-shadow:0 6px 28px rgba(61,186,114,.5);}50%{box-shadow:0 6px 40px rgba(61,186,114,.75),0 0 0 8px rgba(61,186,114,.08);}}
+.acquireai-fab .chat-close{display:none;}.acquireai-fab.open .chat-icon{display:none;}.acquireai-fab.open .chat-close{display:block;}
+.acquireai-window{position:fixed;bottom:100px;right:28px;z-index:800;width:390px;max-height:600px;background:var(--dk2);border:1px solid var(--bd2);border-radius:20px;overflow:hidden;box-shadow:0 24px 72px rgba(0,0,0,.5);display:flex;flex-direction:column;transform:scale(0.9) translateY(20px);opacity:0;pointer-events:none;transition:transform .3s cubic-bezier(.4,0,.2,1),opacity .3s;transform-origin:bottom right;}
+.acquireai-window.open{transform:none;opacity:1;pointer-events:all;}
+.acq-header{padding:14px 18px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--bd);background:var(--dk3);}
+.acq-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--g),var(--g2));display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;font-weight:700;color:var(--tx);font-family:'Cormorant Garamond',serif;}
+.acq-name{font-family:'Cormorant Garamond',serif;font-size:1rem;font-weight:700;color:var(--cream);}
+.acq-status{font-size:.68rem;color:var(--g);display:flex;align-items:center;gap:4px;}
+.acq-status::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--g);animation:acqpulse 1.6s infinite;}
+@keyframes acqpulse{0%,100%{opacity:1;}60%{opacity:.3;}}
+.acq-lang-badge{margin-left:auto;font-size:.65rem;font-weight:700;padding:3px 8px;border-radius:10px;background:rgba(61,186,114,.12);border:1px solid rgba(61,186,114,.2);color:var(--g);cursor:pointer;transition:all .2s;}
+.acq-lang-badge:hover{background:rgba(61,186,114,.22);}
+.acq-messages{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;scrollbar-width:thin;scrollbar-color:var(--bd) transparent;}
+.acq-msg{display:flex;gap:8px;align-items:flex-end;}.acq-msg.user{flex-direction:row-reverse;}
+.acq-avatar-sm{width:26px;height:26px;border-radius:50%;background:var(--dk3);border:1px solid var(--bd2);display:flex;align-items:center;justify-content:center;font-size:.75rem;flex-shrink:0;}
+.acq-msg.user .acq-avatar-sm{background:rgba(61,186,114,.15);}
+.acq-bubble{max-width:80%;padding:10px 13px;border-radius:14px;font-size:.83rem;line-height:1.62;color:var(--tx);}
+.acq-msg.bot .acq-bubble{background:var(--dk3);border:1px solid var(--bd);border-bottom-left-radius:4px;}
+.acq-msg.user .acq-bubble{background:rgba(61,186,114,.15);border:1px solid rgba(61,186,114,.22);border-bottom-right-radius:4px;}
+.acq-typing{display:flex;gap:4px;align-items:center;padding:11px 13px;}
+.acq-typing span{width:6px;height:6px;border-radius:50%;background:var(--txm);animation:acqDot 1.4s infinite ease-in-out;}
+.acq-typing span:nth-child(2){animation-delay:.2s;}.acq-typing span:nth-child(3){animation-delay:.4s;}
+@keyframes acqDot{0%,80%,100%{transform:scale(.6);opacity:.4;}40%{transform:scale(1);opacity:1;}}
+.acq-suggestions{display:flex;flex-wrap:wrap;gap:5px;padding:0 14px 10px;}
+.acq-sugg{padding:5px 11px;border-radius:20px;background:rgba(61,186,114,.08);border:1px solid rgba(61,186,114,.18);color:var(--g);font-size:.72rem;font-weight:600;cursor:pointer;transition:all .2s;white-space:nowrap;}
+.acq-sugg:hover{background:rgba(61,186,114,.18);}
+.acq-input-row{padding:12px 14px;border-top:1px solid var(--bd);display:flex;gap:8px;align-items:center;background:var(--dk3);}
+.acq-input{flex:1;padding:9px 13px;border-radius:22px;border:1px solid var(--bd2);background:var(--dk);color:var(--tx);font-family:'Outfit',sans-serif;font-size:.83rem;outline:none;transition:border-color .25s;}
+.acq-input::placeholder{color:var(--txm);}.acq-input:focus{border-color:var(--g);}
+.acq-mic-btn{width:34px;height:34px;border-radius:50%;border:1px solid var(--bd2);background:var(--dk);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--txm);transition:all .25s;flex-shrink:0;}
+.acq-mic-btn.listening{background:rgba(239,68,68,.15);border-color:#ef4444;color:#ef4444;animation:micPulse 1s infinite;}
+@keyframes micPulse{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,.4);}50%{box-shadow:0 0 0 6px rgba(239,68,68,0);}}
+.acq-send{width:34px;height:34px;border-radius:50%;background:var(--g);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:transform .2s,box-shadow .2s;}
+.acq-send:hover{transform:scale(1.08);box-shadow:0 4px 14px rgba(61,186,114,.4);}
+.acq-send svg{width:15px;height:15px;color:#0a0e0a;}
+@media(max-width:768px){.acquireai-window{width:calc(100vw - 24px);right:12px;bottom:90px;}}
+</style>
+<button class="acquireai-fab" id="acqFab" aria-label="Open AcqireAI">
+  <svg class="chat-icon" viewBox="0 0 24 24" fill="none" stroke="#0a0e0a" stroke-width="2" width="24" height="24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+  <svg class="chat-close" viewBox="0 0 24 24" fill="none" stroke="#0a0e0a" stroke-width="2" width="22" height="22"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+</button>
+<div class="acquireai-window" id="acqWindow">
+  <div class="acq-header">
+    <div class="acq-avatar">A</div>
+    <div style="flex:1;"><div class="acq-name">AcqireAI</div><div class="acq-status">Online · Agricultural Expert</div></div>
+    <span class="acq-lang-badge" id="acqLangBadge" onclick="acqToggleLang()" title="Switch language">EN</span>
+    <button onclick="document.getElementById('acqFab').click()" style="background:none;border:none;cursor:pointer;color:var(--txm);font-size:1rem;padding:4px;margin-left:4px;">✕</button>
+  </div>
+  <div class="acq-messages" id="acqMessages"></div>
+  <div class="acq-suggestions" id="acqSuggestions"></div>
+  <div class="acq-input-row">
+    <input class="acq-input" id="acqInput" placeholder="Ask about crops, diseases, schemes..." onkeydown="if(event.key==='Enter')acqSend()">
+    <button class="acq-mic-btn" id="acqMicBtn" onclick="acqToggleVoice()" title="Voice input">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+    </button>
+    <button class="acq-send" onclick="acqSend()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+    </button>
+  </div>
+</div>
+<script>
+(function(){
+  const SUGG_EN=['Best crops for my soil?','Rice disease treatment','When to sell wheat?','PM-KISAN scheme','Irrigation tips'];
+  const SUGG_TA=['என் மண்ணுக்கு சிறந்த பயிர்கள்?','நெல் நோய் சிகிச்சை','கோதுமை எப்போது விற்கலாம்?','PM-KISAN திட்டம்','நீர்ப்பாசன குறிப்புகள்'];
+  const fab=document.getElementById('acqFab'),win=document.getElementById('acqWindow'),msgs=document.getElementById('acqMessages'),inp=document.getElementById('acqInput');
+  let history=[],inited=false,isListening=false,recognition=null;
+  fab.addEventListener('click',function(){this.classList.toggle('open');win.classList.toggle('open');if(win.classList.contains('open')){inp.focus();if(!inited){inited=true;renderSugg();setTimeout(()=>addMsg(lang()==='ta'?'👋 வணக்கம்! நான் AcqireAI — உங்கள் விவசாய நிபுணர். பயிர்கள், நோய்கள், சந்தை விலைகள் பற்றி கேளுங்கள்!':'👋 Namaste! I\'m AcqireAI — your smart farming assistant. Ask about crop diseases, soil, market prices, government schemes, or anything about farming!','bot'),500);};}});
+  function lang(){return localStorage.getItem('sf_lang')||'en';}
+  window.acqToggleLang=function(){const n=lang()==='en'?'ta':'en';localStorage.setItem('sf_lang',n);window.SF_LANG=n;document.getElementById('acqLangBadge').textContent=n==='ta'?'தமிழ்':'EN';document.querySelectorAll('.lang-toggle-btn').forEach(b=>b.textContent=n==='ta'?'EN':'தமிழ்');inp.placeholder=n==='ta'?'பயிர், நோய், திட்டங்கள் பற்றி கேளுங்கள்...':'Ask about crops, diseases, schemes...';renderSugg();};
+  document.addEventListener('sf:langchange',e=>{document.getElementById('acqLangBadge').textContent=e.detail.lang==='ta'?'தமிழ்':'EN';renderSugg();});
+  function renderSugg(){const s=lang()==='ta'?SUGG_TA:SUGG_EN;document.getElementById('acqSuggestions').innerHTML=s.map(x=>`<span class="acq-sugg" onclick="acqSend('${x.replace(/'/g,"\\'")}')">${x}</span>`).join('');}
+  function addMsg(text,role,typing=false){const el=document.createElement('div');el.className='acq-msg '+role;if(typing){el.id='acqTyping';el.innerHTML=`<div class="acq-avatar-sm">A</div><div class="acq-bubble"><div class="acq-typing"><span></span><span></span><span></span></div></div>`;}else{el.innerHTML=`<div class="acq-avatar-sm">${role==='bot'?'A':'👤'}</div><div class="acq-bubble">${text.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
+            .replace(/\[(\w+\.html)\]/g,'<a href="/$1" style="color:var(--g);font-weight:700;text-decoration:underline;text-underline-offset:2px;" onclick="window.location.href=this.href">→ Open $1</a>')
+            .replace(/\n\n/g,'<br><br>').replace(/\n/g,'<br>')}</div>`;}msgs.appendChild(el);msgs.scrollTop=msgs.scrollHeight;return el;}
+  window.acqSend=async function(preset){const text=preset||inp.value.trim();if(!text)return;inp.value='';addMsg(text,'user');document.getElementById('acqSuggestions').innerHTML='';history.push({role:'user',content:text});const typEl=addMsg('','bot',true);const l=lang();const sys=`You are AcqireAI, an expert agricultural AI for SmartFarm AI — India's AI farming platform. ${l==='ta'?'Respond ENTIRELY in Tamil (தமிழ்). Simple Tamil a farmer understands.':'Respond in English.'} Specialize in: crop diseases (Tamil Nadu pesticide brands+doses), soil analysis, market prices, Indian govt schemes (PM-KISAN,PMFBY,KCC), irrigation. Be practical, warm, concise.`;try{const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,history:history.slice(-6),lang:l})});const d=await r.json();const reply=d.reply||'Sorry, could not get a response.';history.push({role:'assistant',content:reply});typEl.remove();addMsg(reply,'bot');}catch(e){typEl.remove();addMsg(l==='ta'?'⚠️ இணைப்பில் சிக்கல். மீண்டும் முயற்சிக்கவும்.':'⚠️ Connection issue. Please try again.','bot');}renderSugg();};
+  window.acqToggleVoice=function(){if(!('webkitSpeechRecognition' in window)&&!('SpeechRecognition' in window)){alert('Voice input needs Chrome browser.');return;}if(isListening){recognition?.stop();return;}const SR=window.SpeechRecognition||window.webkitSpeechRecognition;recognition=new SR();recognition.lang=lang()==='ta'?'ta-IN':'en-IN';recognition.continuous=false;recognition.interimResults=true;recognition.onstart=()=>{isListening=true;document.getElementById('acqMicBtn').classList.add('listening');inp.placeholder=lang()==='ta'?'🎙️ கேட்கிறேன்...':'🎙️ Listening...';};recognition.onresult=e=>{inp.value=Array.from(e.results).map(r=>r[0].transcript).join('');};recognition.onerror=()=>{isListening=false;document.getElementById('acqMicBtn').classList.remove('listening');inp.placeholder=lang()==='ta'?'பயிர், நோய், திட்டங்கள் பற்றி கேளுங்கள்...':'Ask about crops, diseases, schemes...';};recognition.onend=()=>{isListening=false;document.getElementById('acqMicBtn').classList.remove('listening');inp.placeholder=lang()==='ta'?'பயிர், நோய், திட்டங்கள் பற்றி கேளுங்கள்...':'Ask about crops, diseases, schemes...';if(inp.value.trim())acqSend();};recognition.start();};
+  // Sync lang badge on load
+  document.getElementById('acqLangBadge').textContent=lang()==='ta'?'தமிழ்':'EN';
+})();
+</script>
+
+<!-- Google Translate -->
+<div id="google_translate_element"></div>
+<script type="text/javascript">
+function googleTranslateElementInit() {
+  new google.translate.TranslateElement({
+    pageLanguage: 'en',
+    includedLanguages: 'ta,hi,te,kn,ml,mr,gu,pa,bn,or,as,ur,en',
+    layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+    autoDisplay: false
+  }, 'google_translate_element');
+}
+</script>
+<script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+<script>
+// Custom language switcher UI
+var LANG_OPTIONS = [
+  {code:'en',    name:'English',    native:'English',   flag:'🇬🇧'},
+  {code:'ta',    name:'Tamil',      native:'தமிழ்',      flag:'🇮🇳'},
+  {code:'hi',    name:'Hindi',      native:'हिंदी',       flag:'🇮🇳'},
+  {code:'te',    name:'Telugu',     native:'తెలుగు',     flag:'🇮🇳'},
+  {code:'kn',    name:'Kannada',    native:'ಕನ್ನಡ',      flag:'🇮🇳'},
+  {code:'ml',    name:'Malayalam',  native:'മലയാളം',    flag:'🇮🇳'},
+  {code:'mr',    name:'Marathi',    native:'मराठी',      flag:'🇮🇳'},
+  {code:'gu',    name:'Gujarati',   native:'ગુજરાતી',    flag:'🇮🇳'},
+  {code:'pa',    name:'Punjabi',    native:'ਪੰਜਾਬੀ',     flag:'🇮🇳'},
+  {code:'bn',    name:'Bengali',    native:'বাংলা',      flag:'🇮🇳'},
+];
+
+var currentLang = localStorage.getItem('sf_ui_lang') || 'en';
+
+function buildLangSwitcher(navR) {
+  if (!navR || document.getElementById('sfLangSwitcher')) return;
+
+  var switcher = document.createElement('div');
+  switcher.className = 'lang-switcher';
+  switcher.id = 'sfLangSwitcher';
+
+  var btn = document.createElement('button');
+  btn.className = 'lang-btn nav-ctrl-btn';
+  btn.id = 'langBtnMain';
+  btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 010 20M12 2a15.3 15.3 0 000 20"/></svg>' +
+    '<span id="langBtnLabel">' + getLangLabel(currentLang) + '</span>' +
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="10" height="10"><polyline points="6 9 12 15 18 9"/></svg>';
+
+  var dropdown = document.createElement('div');
+  dropdown.className = 'lang-dropdown';
+  dropdown.id = 'langDropdown';
+
+  LANG_OPTIONS.forEach(function(lang) {
+    var opt = document.createElement('button');
+    opt.className = 'lang-option' + (lang.code === currentLang ? ' active' : '');
+    opt.setAttribute('data-lang', lang.code);
+    opt.innerHTML = '<span class="lang-flag">' + lang.flag + '</span>' +
+      '<span class="lang-name">' + lang.name + '</span>' +
+      '<span class="lang-native">' + lang.native + '</span>';
+    opt.addEventListener('click', function() {
+      selectLanguage(lang.code);
+      dropdown.classList.remove('open');
+    });
+    dropdown.appendChild(opt);
+  });
+
+  switcher.appendChild(btn);
+  switcher.appendChild(dropdown);
+
+  btn.addEventListener('click', function(e) {
+    e.stopPropagation();
+    dropdown.classList.toggle('open');
+  });
+  document.addEventListener('click', function() {
+    dropdown.classList.remove('open');
+  });
+
+  // Insert before hamburger
+  var hburg = navR.querySelector('.hburg');
+  if (hburg) navR.insertBefore(switcher, hburg);
+  else navR.appendChild(switcher);
+}
+
+function getLangLabel(code) {
+  var lang = LANG_OPTIONS.find(function(l) { return l.code === code; });
+  return lang ? lang.flag + ' ' + lang.native : '🌐 EN';
+}
+
+function selectLanguage(langCode) {
+  currentLang = langCode;
+  localStorage.setItem('sf_ui_lang', langCode);
+
+  // Update button label
+  var lbl = document.getElementById('langBtnLabel');
+  if (lbl) lbl.textContent = getLangLabel(langCode);
+
+  // Update active state
+  document.querySelectorAll('.lang-option').forEach(function(opt) {
+    opt.classList.toggle('active', opt.getAttribute('data-lang') === langCode);
+  });
+
+  // Also update AcqireAI chatbot language
+  if (typeof window.SF_LANG !== 'undefined') {
+    window.SF_LANG = langCode === 'ta' ? 'ta' : 'en';
+    localStorage.setItem('sf_lang', window.SF_LANG);
+    var badge = document.getElementById('acqLangBadge');
+    if (badge) badge.textContent = window.SF_LANG === 'ta' ? 'தமிழ்' : 'EN';
+  }
+
+  if (langCode === 'en') {
+    // Restore original English
+    restoreEnglish();
+  } else {
+    // Trigger Google Translate
+    triggerGoogleTranslate(langCode);
+  }
+}
+
+function triggerGoogleTranslate(langCode) {
+  // Wait for Google Translate to be ready
+  var attempts = 0;
+  var interval = setInterval(function() {
+    attempts++;
+    var select = document.querySelector('.goog-te-combo');
+    if (select) {
+      clearInterval(interval);
+      select.value = langCode;
+      select.dispatchEvent(new Event('change'));
+    } else if (attempts > 30) {
+      clearInterval(interval);
+      // Fallback: direct cookie method
+      document.cookie = 'googtrans=/en/' + langCode + '; path=/; domain=' + window.location.hostname;
+      document.cookie = 'googtrans=/en/' + langCode + '; path=/';
+      location.reload();
+    }
+  }, 200);
+}
+
+function restoreEnglish() {
+  // Clear Google Translate
+  document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=' + window.location.hostname;
+  document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/';
+  document.cookie = 'googtrans=/en/en; path=/; domain=' + window.location.hostname;
+  document.cookie = 'googtrans=/en/en; path=/';
+
+  var select = document.querySelector('.goog-te-combo');
+  if (select) {
+    select.value = 'en';
+    select.dispatchEvent(new Event('change'));
+  } else {
+    location.reload();
+  }
+}
+
+// Auto-apply saved language on page load
+document.addEventListener('DOMContentLoaded', function() {
+  // Build the switcher
+  var navR = document.querySelector('.nav-r');
+  if (navR) buildLangSwitcher(navR);
+
+  // Apply saved language after Google Translate loads
+  if (currentLang && currentLang !== 'en') {
+    setTimeout(function() {
+      triggerGoogleTranslate(currentLang);
+    }, 1500);
+  }
+
+  // Apply saved Google Translate cookie
+  var savedLang = localStorage.getItem('sf_ui_lang');
+  if (savedLang && savedLang !== 'en') {
+    var existingCookie = document.cookie.indexOf('googtrans');
+    if (existingCookie === -1) {
+      document.cookie = 'googtrans=/en/' + savedLang + '; path=/';
+    }
+  }
+});
+</script>
+</body>
+</html>

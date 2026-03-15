@@ -1,0 +1,10 @@
+[
+  { "crop_name": "Wheat",     "price": 2180, "prev_price": 2050, "unit": "Rs/Quintal", "state": "Tamil Nadu", "market": "Coimbatore APMC", "recorded_date": "2025-03-01" },
+  { "crop_name": "Rice",      "price": 3450, "prev_price": 3600, "unit": "Rs/Quintal", "state": "Tamil Nadu", "market": "Trichy APMC",     "recorded_date": "2025-03-01" },
+  { "crop_name": "Cotton",    "price": 6800, "prev_price": 6500, "unit": "Rs/Quintal", "state": "Tamil Nadu", "market": "Coimbatore APMC", "recorded_date": "2025-03-01" },
+  { "crop_name": "Maize",     "price": 1890, "prev_price": 1870, "unit": "Rs/Quintal", "state": "Tamil Nadu", "market": "Salem APMC",      "recorded_date": "2025-03-01" },
+  { "crop_name": "Soybean",   "price": 4300, "prev_price": 4100, "unit": "Rs/Quintal", "state": "Tamil Nadu", "market": "Chennai APMC",    "recorded_date": "2025-03-01" },
+  { "crop_name": "Groundnut", "price": 5600, "prev_price": 5700, "unit": "Rs/Quintal", "state": "Tamil Nadu", "market": "Vellore APMC",    "recorded_date": "2025-03-01" },
+  { "crop_name": "Tomato",    "price":  820, "prev_price":  650, "unit": "Rs/Quintal", "state": "Tamil Nadu", "market": "Koyambedu",       "recorded_date": "2025-03-01" },
+  { "crop_name": "Onion",     "price": 1450, "prev_price": 1500, "unit": "Rs/Quintal", "state": "Tamil Nadu", "market": "Koyambedu",       "recorded_date": "2025-03-01" }
+]

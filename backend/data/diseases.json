@@ -1,0 +1,112 @@
+[
+  {
+    "disease_key": "blast",
+    "name": "Rice Blast",
+    "affected_crop": "Rice",
+    "severity": "High",
+    "pathogen": "Magnaporthe oryzae",
+    "symptoms": "Diamond-shaped lesions on leaves, white/gray center with brown border, yellowing around spots, neck rot in severe cases",
+    "treatment": "Tricyclazole 75 WP @ 0.6g/L water. Spray 2-3 times at 10-day intervals.",
+    "prevention": "Use BPT 5204 or resistant varieties. Balanced NPK. Avoid water stress.",
+    "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/34/Rice_blast.jpg/320px-Rice_blast.jpg"
+  },
+  {
+    "disease_key": "blight",
+    "name": "Late Blight",
+    "affected_crop": "Potato / Tomato",
+    "severity": "High",
+    "pathogen": "Phytophthora infestans",
+    "symptoms": "Water-soaked pale green spots on leaves, white cottony growth on underside, brown-black lesions that spread rapidly",
+    "treatment": "Mancozeb 75 WP @ 2.5g/L OR Metalaxyl + Mancozeb @ 2g/L. Spray every 7 days.",
+    "prevention": "Use certified disease-free seed. Avoid planting in waterlogged areas.",
+    "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c6/Potato_blight.jpg/320px-Potato_blight.jpg"
+  },
+  {
+    "disease_key": "rust",
+    "name": "Wheat Rust",
+    "affected_crop": "Wheat",
+    "severity": "Medium",
+    "pathogen": "Puccinia striiformis",
+    "symptoms": "Orange-yellow or brown powdery pustules on leaves, stripe pattern, premature leaf drying",
+    "treatment": "Propiconazole 25 EC @ 1ml/L. Apply at first sign. Repeat after 15 days.",
+    "prevention": "Sow rust-resistant varieties (HD 2967, PBW 343). Early sowing before October.",
+    "image_url": ""
+  },
+  {
+    "disease_key": "wilt",
+    "name": "Fusarium Wilt",
+    "affected_crop": "Cotton / Tomato / Banana",
+    "severity": "High",
+    "pathogen": "Fusarium oxysporum",
+    "symptoms": "Sudden yellowing and wilting of leaves, brown discolouration inside stem, one-sided wilting",
+    "treatment": "Carbendazim 50 WP @ 1g/L as soil drench around plant base.",
+    "prevention": "Crop rotation — do not plant same family for 3 years. Use wilt-tolerant varieties.",
+    "image_url": ""
+  },
+  {
+    "disease_key": "mosaic",
+    "name": "Mosaic Virus",
+    "affected_crop": "Tomato / Chilli / Cucumber",
+    "severity": "Medium",
+    "pathogen": "Tobacco/Cucumber Mosaic Virus",
+    "symptoms": "Alternating yellow-green mosaic pattern on leaves, leaf curling and distortion, stunted growth",
+    "treatment": "No chemical cure. Control aphid vectors: Imidacloprid 17.8 SL @ 0.5ml/L.",
+    "prevention": "Use virus-indexed seed. Control aphids from day 1. Yellow sticky traps.",
+    "image_url": ""
+  },
+  {
+    "disease_key": "downy_mildew",
+    "name": "Downy Mildew",
+    "affected_crop": "Grape / Pearl Millet / Onion",
+    "severity": "Medium",
+    "pathogen": "Plasmopara viticola",
+    "symptoms": "Yellow oily patches on upper leaf surface, whitish-gray downy growth on undersides",
+    "treatment": "Metalaxyl + Mancozeb @ 2.5g/L. Spray early morning at 7-day intervals.",
+    "prevention": "Prune for airflow. Apply preventive copper spray before monsoon.",
+    "image_url": ""
+  },
+  {
+    "disease_key": "yellow_mosaic",
+    "name": "Yellow Mosaic Virus",
+    "affected_crop": "Soybean / Mung Bean",
+    "severity": "High",
+    "pathogen": "Mungbean Yellow Mosaic Virus",
+    "symptoms": "Bright yellow patches on leaves, alternating green-yellow mosaic, small distorted leaves",
+    "treatment": "Thiamethoxam 25 WG @ 0.3g/L to control whitefly vector. Spray every 10 days.",
+    "prevention": "Early sowing before June 15 for Kharif. Use YMV-resistant varieties (JS 335).",
+    "image_url": ""
+  },
+  {
+    "disease_key": "stem_borer",
+    "name": "Stem Borer",
+    "affected_crop": "Maize / Rice / Sugarcane",
+    "severity": "Medium",
+    "pathogen": "Chilo partellus",
+    "symptoms": "Dead heart in young plants, holes in stem with frass, leaf window feeding",
+    "treatment": "Chlorpyrifos 20 EC @ 2.5ml/L foliar spray. Carbofuran 3G @ 20 kg/ha in whorl.",
+    "prevention": "Crop rotation. Early planting before June 15. Light traps for adult moths.",
+    "image_url": ""
+  },
+  {
+    "disease_key": "anthracnose",
+    "name": "Anthracnose",
+    "affected_crop": "Mango / Chilli / Papaya",
+    "severity": "Low",
+    "pathogen": "Colletotrichum gloeosporioides",
+    "symptoms": "Dark sunken lesions on fruits, black spots on leaves with yellow halo, twig dieback",
+    "treatment": "Copper Oxychloride 50 WP @ 3g/L spray during flowering. Mancozeb as alternate.",
+    "prevention": "Prune dead wood. Orchard sanitation. Remove mummified fruits.",
+    "image_url": ""
+  },
+  {
+    "disease_key": "smut",
+    "name": "Covered Smut",
+    "affected_crop": "Wheat / Barley / Sorghum",
+    "severity": "Low",
+    "pathogen": "Tilletia indica",
+    "symptoms": "Grain replaced by black powdery mass, smutted heads appear at flowering, foul odor",
+    "treatment": "Seed treatment: Carboxin 75 WP + Thiram 75 WP @ 2.5g/kg seed.",
+    "prevention": "Seed treatment is the ONLY effective control. Do before every sowing.",
+    "image_url": ""
+  }
+]

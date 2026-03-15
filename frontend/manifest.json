@@ -1,0 +1,40 @@
+{
+  "name": "SmartFarm AI — Intelligent Agriculture Platform",
+  "short_name": "SmartFarm AI",
+  "description": "AI-powered farming assistant for Indian farmers. Weather, soil, disease, market prices and government schemes.",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#0a0e0a",
+  "theme_color": "#3dba72",
+  "orientation": "portrait-primary",
+  "categories": ["agriculture", "productivity", "utilities"],
+  "lang": "en-IN",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='32' fill='%230a0e0a'/%3E%3Ccircle cx='96' cy='96' r='80' stroke='rgba(61,186,114,0.3)' stroke-width='2' fill='none'/%3E%3Cpath d='M96 40 C72 56 56 80 58 108 C64 128 80 140 96 140 C112 140 128 128 134 108 C136 80 120 56 96 40Z' fill='rgba(61,186,114,0.2)' stroke='%233dba72' stroke-width='4'/%3E%3Cline x1='96' y1='140' x2='96' y2='165' stroke='%233dba72' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='80' fill='%230a0e0a'/%3E%3Cpath d='M256 80 C192 120 152 192 158 268 C170 320 208 352 256 352 C304 352 342 320 354 268 C360 192 320 120 256 80Z' fill='rgba(61,186,114,0.2)' stroke='%233dba72' stroke-width='8'/%3E%3Cline x1='256' y1='352' x2='256' y2='430' stroke='%233dba72' stroke-width='12' stroke-linecap='round'/%3E%3C/svg%3E",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=640&q=80",
+      "sizes": "640x480",
+      "type": "image/jpeg",
+      "label": "SmartFarm AI Dashboard"
+    }
+  ],
+  "shortcuts": [
+    { "name": "Weather", "url": "/weather.html", "description": "Check live weather" },
+    { "name": "Soil Analysis", "url": "/soil.html", "description": "Analyze your soil" },
+    { "name": "Disease Check", "url": "/disease.html", "description": "Detect crop diseases" },
+    { "name": "Market Prices", "url": "/market.html", "description": "Live mandi prices" }
+  ]
+}

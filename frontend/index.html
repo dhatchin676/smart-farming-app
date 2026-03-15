@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SmartFarm AI – Intelligent Agriculture Platform</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<style>
+/* ── CSS Variables — Dark mode defaults ── */
+:root,[data-theme="dark"]{
+  --g:#3dba72;--g2:#2a8a52;--gg:rgba(61,186,114,0.16);
+  --gold:#c9a84c;--cream:#f0ead8;
+  --dk:#0a0e0a;--dk2:#111612;--dk3:#161d16;--dk4:#1c251c;
+  --tx:#e8ede5;--txm:#7a8c7a;--txd:rgba(232,237,229,0.55);
+  --bd:rgba(232,237,229,0.08);--bd2:rgba(232,237,229,0.14);
+  --r:16px;--rl:24px;--ease:cubic-bezier(.4,0,.2,1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Outfit',sans-serif;background:var(--dk);color:var(--tx);overflow-x:hidden;cursor:none}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:var(--dk)}::-webkit-scrollbar-thumb{background:#3dba72;border-radius:2px}
+
+
+/* CURSOR */
+.cursor{position:fixed;z-index:10000;pointer-events:none;width:10px;height:10px;border-radius:50%;background:var(--g);transform:translate(-50%,-50%);mix-blend-mode:exclusion;transition:width .3s,height .3s;}
+.cursor-ring{position:fixed;z-index:9999;pointer-events:none;width:34px;height:34px;border-radius:50%;border:1.5px solid rgba(61,186,114,0.45);transform:translate(-50%,-50%);transition:width .3s,height .3s;}
+
+/* NOISE */
+body::after{content:'';position:fixed;inset:0;z-index:1;pointer-events:none;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");opacity:.5;}
+
+/* NAVBAR */
+.nav{position:fixed;top:0;left:0;right:0;z-index:500;display:flex;align-items:center;padding:0 5%;height:72px;transition:background .4s,border-color .4s;border-bottom:1px solid transparent;}
+.nav.scrolled{background:rgba(10,14,10,0.85);backdrop-filter:blur(20px);border-color:var(--bd);}
+.nav-logo{display:flex;align-items:center;gap:12px;text-decoration:none;flex-shrink:0;}
+.nlm{width:36px;height:36px;}
+.nlt{font-family:'Cormorant Garamond',serif;font-size:1.3rem;font-weight:600;color:var(--tx);letter-spacing:.04em;}
+.nlt span{color:var(--g);}
+.nav-links{display:flex;list-style:none;gap:2px;margin:0 auto;}
+.nav-links a{display:flex;align-items:center;gap:7px;padding:8px 15px;border-radius:30px;font-size:.82rem;font-weight:500;color:var(--txd);text-decoration:none;transition:color .25s,background .25s;}
+.nav-links a:hover,.nav-links a.active{color:var(--tx);background:rgba(61,186,114,0.1);}
+.nav-links a svg{width:16px;height:16px;flex-shrink:0;opacity:.65;}
+.nav-r{display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.npill{display:inline-flex;align-items:center;gap:7px;padding:9px 20px;border-radius:30px;font-size:.82rem;font-weight:600;text-decoration:none;border:none;cursor:pointer;transition:transform .2s,box-shadow .2s;}
+.npill:hover{transform:translateY(-2px);}
+.npo{background:transparent;color:var(--tx);border:1px solid rgba(232,237,229,0.2);}
+.npo:hover{border-color:var(--g);color:var(--g);}
+.nps{background:var(--g);color:#0a0e0a;box-shadow:0 4px 20px rgba(61,186,114,.35);}
+.nps:hover{box-shadow:0 8px 32px rgba(61,186,114,.5);}
+.hburg{display:none;flex-direction:column;gap:5px;cursor:pointer;padding:4px;}
+.hburg span{display:block;width:22px;height:1.5px;background:var(--tx);border-radius:2px;transition:.3s;}
+
+/* HERO */
+.hero{position:relative;height:100vh;min-height:700px;display:flex;align-items:flex-end;overflow:hidden;}
+.h-bg{position:absolute;inset:0;background:url('https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=1920&q=85') center/cover no-repeat;transform:scale(1.05);animation:hZoom 25s ease-in-out infinite alternate;filter:brightness(.52) saturate(1.15);}
+@keyframes hZoom{from{transform:scale(1.05);}to{transform:scale(1.12);}}
+.h-grad{position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,14,10,.2) 0%,rgba(10,14,10,.0) 30%,rgba(10,14,10,.65) 65%,rgba(10,14,10,.98) 100%);}
+.h-grad2{position:absolute;inset:0;background:linear-gradient(90deg,rgba(10,14,10,.72) 0%,transparent 60%);}
+
+.h-live{position:absolute;top:88px;right:5%;z-index:3;display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);backdrop-filter:blur(12px);padding:10px 18px;border-radius:30px;animation:fdDown .8s .4s ease both;}
+@keyframes fdDown{from{opacity:0;transform:translateY(-14px);}to{opacity:1;transform:none;}}
+.ldot{width:7px;height:7px;border-radius:50%;background:#4ade80;animation:lpulse 1.6s infinite;}
+@keyframes lpulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(74,222,128,0.4);}60%{opacity:.5;box-shadow:0 0 0 7px transparent;}}
+.hlbt{font-size:.7rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.7);}
+
+.h-content{position:relative;z-index:3;padding:0 5.5% 80px;width:100%;display:flex;align-items:flex-end;justify-content:space-between;gap:40px;}
+.h-left{max-width:700px;animation:fdUp .9s .1s ease both;}
+@keyframes fdUp{from{opacity:0;transform:translateY(40px);}to{opacity:1;transform:none;}}
+.h-eye{display:flex;align-items:center;gap:10px;margin-bottom:22px;}
+.h-eye-line{width:32px;height:1px;background:var(--g);}
+.h-eye span{font-size:.68rem;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--g);}
+.h-h1{font-family:'Cormorant Garamond',serif;font-size:clamp(3.4rem,7.5vw,6.2rem);font-weight:700;line-height:1.02;color:var(--cream);letter-spacing:-.02em;margin-bottom:22px;}
+.h-h1 em{font-style:italic;color:var(--g);display:block;}
+.h-desc{font-size:clamp(.88rem,1.4vw,1.03rem);color:var(--txm);line-height:1.82;max-width:450px;font-weight:300;margin-bottom:36px;}
+.h-acts{display:flex;gap:14px;flex-wrap:wrap;align-items:center;}
+
+/* Buttons */
+.btn-p{display:inline-flex;align-items:center;gap:10px;padding:15px 30px;border-radius:50px;background:var(--g);color:#0a0e0a;font-family:'Outfit',sans-serif;font-size:.9rem;font-weight:700;text-decoration:none;border:none;cursor:pointer;box-shadow:0 6px 28px rgba(61,186,114,.4);transition:transform .25s,box-shadow .25s;position:relative;overflow:hidden;}
+.btn-p::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.15),transparent);transform:translateX(-100%);transition:transform .6s;}
+.btn-p:hover{transform:translateY(-3px);box-shadow:0 12px 40px rgba(61,186,114,.5);}
+.btn-p:hover::before{transform:translateX(100%);}
+.btn-s{display:inline-flex;align-items:center;gap:10px;padding:14px 28px;border-radius:50px;background:rgba(255,255,255,.08);color:var(--tx);border:1px solid rgba(255,255,255,.18);backdrop-filter:blur(8px);font-family:'Outfit',sans-serif;font-size:.9rem;font-weight:600;text-decoration:none;cursor:pointer;transition:all .25s;}
+.btn-s:hover{background:rgba(255,255,255,.15);}
+.bi{width:19px;height:19px;flex-shrink:0;}
+
+/* Hero stats */
+.h-stats{display:flex;flex-direction:column;gap:12px;flex-shrink:0;animation:fdUp .9s .3s ease both;}
+.hsc{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);backdrop-filter:blur(14px);border-radius:var(--r);padding:18px 24px;min-width:158px;text-align:center;transition:transform .25s,background .25s;}
+.hsc:hover{transform:translateX(-5px);background:rgba(61,186,114,.1);}
+.hscv{font-family:'Cormorant Garamond',serif;font-size:2.1rem;font-weight:700;color:var(--g);line-height:1;}
+.hscl{font-size:.67rem;color:var(--txd);letter-spacing:.08em;text-transform:uppercase;margin-top:4px;}
+
+/* TICKER */
+.ticker-bar{background:var(--dk3);border-top:1px solid var(--bd);border-bottom:1px solid var(--bd);padding:14px 0;overflow:hidden;position:relative;z-index:2;}
+.ticker-track{display:flex;gap:0;width:max-content;animation:marquee 32s linear infinite;}
+@keyframes marquee{from{transform:translateX(0);}to{transform:translateX(-50%);}}
+.ti{display:flex;align-items:center;gap:9px;padding:0 28px;border-right:1px solid var(--bd);white-space:nowrap;}
+.tid{width:5px;height:5px;border-radius:50%;flex-shrink:0;}
+.tic{font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--txm);}
+.tip{font-size:.85rem;font-weight:600;color:var(--tx);}
+.tiu{color:#4ade80;font-size:.74rem;font-weight:700;}
+.tidn{color:#f87171;font-size:.74rem;font-weight:700;}
+
+/* SECTIONS */
+section{padding:100px 5.5%;}
+.se{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+.sel{width:26px;height:1px;background:var(--g);}
+.se span{font-size:.67rem;font-weight:600;letter-spacing:.17em;text-transform:uppercase;color:var(--g);}
+.st{font-family:'Cormorant Garamond',serif;font-size:clamp(1.9rem,3.8vw,3.2rem);font-weight:700;color:var(--cream);line-height:1.15;margin-bottom:16px;letter-spacing:-.01em;}
+.st em{font-style:italic;color:var(--g);}
+.ss{font-size:.95rem;color:var(--txm);max-width:480px;line-height:1.8;font-weight:300;}
+
+/* MODULES */
+.mod-sec{background:var(--dk);}
+.mod-hdr{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:48px;flex-wrap:wrap;gap:20px;}
+.mod-wrap{overflow:hidden;position:relative;}
+.mod-wrap::after{content:'';position:absolute;right:0;top:0;bottom:0;width:100px;background:linear-gradient(90deg,transparent,var(--dk));pointer-events:none;z-index:2;}
+.mod-track{display:flex;gap:18px;transition:transform .6s cubic-bezier(.4,0,.2,1);}
+
+.mcard{flex-shrink:0;width:272px;border-radius:var(--rl);overflow:hidden;position:relative;cursor:pointer;transition:transform .4s cubic-bezier(.4,0,.2,1);border:1px solid var(--bd);text-decoration:none;display:block;background:var(--dk2);}
+.mcard:hover{transform:translateY(-12px);}
+.mcard-img{width:100%;height:300px;object-fit:cover;display:block;transition:transform .7s cubic-bezier(.4,0,.2,1),filter .4s;filter:brightness(.72) saturate(1.1);}
+.mcard:hover .mcard-img{transform:scale(1.07);filter:brightness(.85) saturate(1.2);}
+.mcard-ov{position:absolute;inset:0;background:linear-gradient(180deg,transparent 38%,rgba(10,14,10,.98) 100%);}
+.mcard-ov2{position:absolute;inset:0;background:linear-gradient(180deg,rgba(61,186,114,.0) 0%,rgba(61,186,114,.13) 100%);opacity:0;transition:opacity .4s;}
+.mcard:hover .mcard-ov2{opacity:1;}
+.mcard-body{position:absolute;bottom:0;left:0;right:0;padding:22px 20px;}
+.mcard-tag{display:inline-flex;align-items:center;gap:5px;background:rgba(61,186,114,.14);border:1px solid rgba(61,186,114,.22);color:var(--g);font-size:.63rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:4px 10px;border-radius:20px;margin-bottom:9px;}
+.mcard-tag svg{width:9px;height:9px;}
+.mcard-title{font-family:'Cormorant Garamond',serif;font-size:1.32rem;font-weight:700;color:var(--tx);line-height:1.25;margin-bottom:6px;}
+.mcard-desc{font-size:.76rem;color:var(--txd);line-height:1.6;max-height:0;overflow:hidden;transition:max-height .4s;}
+.mcard:hover .mcard-desc{max-height:60px;}
+.mcard-arr{position:absolute;top:18px;right:18px;width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);display:flex;align-items:center;justify-content:center;opacity:0;transform:scale(.75);transition:opacity .3s,transform .3s;}
+.mcard:hover .mcard-arr{opacity:1;transform:scale(1);}
+.mcard-arr svg{width:15px;height:15px;color:var(--tx);}
+
+.cnav{display:flex;gap:10px;}
+.cbtn{width:42px;height:42px;border-radius:50%;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:var(--tx);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .25s;}
+.cbtn:hover{background:var(--g);border-color:var(--g);color:#0a0e0a;}
+.cbtn svg{width:17px;height:17px;}
+
+/* WHY */
+.why-sec{background:var(--dk2);}
+.why-grid{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center;}
+.why-img-w{position:relative;height:560px;}
+.wim{position:absolute;left:0;top:0;right:60px;bottom:60px;border-radius:var(--rl);overflow:hidden;}
+.wim img{width:100%;height:100%;object-fit:cover;filter:brightness(.82) saturate(1.1);transition:transform .6s;}
+.why-img-w:hover .wim img{transform:scale(1.04);}
+.wis{position:absolute;right:0;bottom:0;width:52%;border-radius:var(--r);overflow:hidden;box-shadow:0 20px 56px rgba(0,0,0,.5);border:3px solid var(--dk2);}
+.wis img{width:100%;height:170px;object-fit:cover;filter:brightness(.78);}
+.wib{position:absolute;left:22px;bottom:22px;background:var(--dk);border:1px solid rgba(61,186,114,.22);backdrop-filter:blur(12px);border-radius:14px;padding:15px 18px;display:flex;align-items:center;gap:13px;}
+.wib-ic{width:40px;height:40px;border-radius:9px;background:rgba(61,186,114,.14);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.wib-ic svg{width:20px;height:20px;color:var(--g);}
+.wib-v{font-family:'Cormorant Garamond',serif;font-size:1.45rem;font-weight:700;color:var(--g);line-height:1;}
+.wib-l{font-size:.7rem;color:var(--txm);}
+.why-pts{display:flex;flex-direction:column;gap:18px;margin-top:36px;}
+.wpt{display:flex;gap:18px;align-items:flex-start;padding:18px 20px;border-radius:var(--r);border:1px solid var(--bd);background:rgba(255,255,255,.02);transition:all .3s;cursor:default;}
+.wpt:hover{border-color:rgba(61,186,114,.28);transform:translateX(7px);background:rgba(61,186,114,.04);}
+.wpn{font-family:'Cormorant Garamond',serif;font-size:1.9rem;font-weight:700;color:var(--g);opacity:.28;line-height:1;flex-shrink:0;width:30px;text-align:center;transition:opacity .3s;}
+.wpt:hover .wpn{opacity:.75;}
+.wpt-t{font-size:.93rem;font-weight:600;color:var(--tx);margin-bottom:4px;}
+.wpt-d{font-size:.8rem;color:var(--txm);line-height:1.65;}
+
+/* STATS BAND */
+.stats-band{background:var(--dk3);border-top:1px solid var(--bd);border-bottom:1px solid var(--bd);padding:60px 5.5%;}
+.stats-inner{display:grid;grid-template-columns:repeat(4,1fr);gap:0;}
+.si{text-align:center;padding:22px;border-right:1px solid var(--bd);position:relative;overflow:hidden;}
+.si:last-child{border-right:none;}
+.si::before{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:80px;height:80px;border-radius:50%;background:var(--gg);opacity:0;transition:opacity .4s;}
+.si:hover::before{opacity:1;}
+.si-n{font-family:'Cormorant Garamond',serif;font-size:3.4rem;font-weight:700;color:var(--g);line-height:1;position:relative;}
+.si-l{font-size:.7rem;color:var(--txm);letter-spacing:.1em;text-transform:uppercase;margin-top:8px;}
+
+/* QUOTE */
+.qt-sec{background:linear-gradient(135deg,#0d2b18,#0a1a10);position:relative;overflow:hidden;padding:100px 5.5%;border-top:1px solid var(--bd);}
+.qt-bg{position:absolute;font-family:'Cormorant Garamond',serif;font-size:22vw;font-weight:700;color:rgba(61,186,114,.035);top:50%;left:50%;transform:translate(-50%,-50%);white-space:nowrap;pointer-events:none;user-select:none;}
+.qt-inner{position:relative;z-index:2;display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center;}
+.qt-marks{font-family:'Cormorant Garamond',serif;font-size:7rem;color:var(--g);opacity:.22;line-height:.7;margin-bottom:-18px;display:block;}
+.qt-text{font-family:'Cormorant Garamond',serif;font-size:clamp(1.45rem,2.6vw,2.1rem);font-weight:400;font-style:italic;color:var(--cream);line-height:1.58;}
+.qt-auth{display:flex;align-items:center;gap:14px;margin-top:26px;}
+.qt-av{width:46px;height:46px;border-radius:50%;object-fit:cover;border:2px solid rgba(61,186,114,.3);}
+.qt-n{font-size:.87rem;font-weight:600;color:var(--tx);}
+.qt-r{font-size:.74rem;color:var(--txm);}
+.qt-img{border-radius:var(--rl);overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.5);}
+.qt-img img{width:100%;height:420px;object-fit:cover;filter:saturate(1.1);}
+
+/* CTA */
+.cta-sec{position:relative;overflow:hidden;padding:120px 5.5%;text-align:center;}
+.cta-bg{position:absolute;inset:0;background:url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1600&q=80') center/cover;filter:brightness(.22) saturate(1.3);}
+.cta-gr{position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 0%,rgba(10,14,10,.75) 100%);}
+.cta-c{position:relative;z-index:2;max-width:680px;margin:0 auto;}
+.cta-c .st{margin:0 auto 18px;}
+.cta-c p{font-size:1rem;color:var(--txm);margin:0 auto 40px;max-width:500px;line-height:1.75;}
+.cta-bts{display:flex;justify-content:center;gap:14px;flex-wrap:wrap;}
+
+/* FOOTER */
+footer{background:var(--dk2);border-top:1px solid var(--bd);padding:76px 5.5% 34px;}
+.fg{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:56px;margin-bottom:56px;}
+.fb-name{font-family:'Cormorant Garamond',serif;font-size:1.35rem;font-weight:600;color:var(--tx);display:flex;align-items:center;gap:12px;margin-bottom:16px;}
+.fb-name span{color:var(--g);}
+.fb-tag{font-size:.855rem;color:var(--txm);line-height:1.75;max-width:280px;}
+.fc h5{font-size:.63rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--txm);margin-bottom:16px;}
+.fc ul{list-style:none;display:flex;flex-direction:column;gap:10px;}
+.fc a{font-size:.855rem;color:var(--txm);text-decoration:none;transition:color .25s,padding-left .25s;display:flex;align-items:center;gap:8px;}
+.fc a:hover{color:var(--g);padding-left:4px;}
+.fc a svg{width:13px;height:13px;opacity:.45;flex-shrink:0;}
+.fbot{border-top:1px solid var(--bd);padding-top:26px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;font-size:.77rem;color:var(--txm);}
+.fbot a{color:var(--g);text-decoration:none;}
+
+/* REVEAL */
+.reveal{opacity:0;transform:translateY(26px);transition:opacity .7s ease,transform .7s ease;}
+.reveal.visible{opacity:1;transform:none;}
+.d1{transition-delay:.1s;}.d2{transition-delay:.2s;}.d3{transition-delay:.3s;}.d4{transition-delay:.4s;}
+
+/* RESPONSIVE */
+@media(max-width:1100px){
+  .nav-links{display:none;}.hburg{display:flex;}
+  .h-stats{display:none;}
+  .why-grid{grid-template-columns:1fr;}.why-img-w{height:350px;}
+  .qt-inner{grid-template-columns:1fr;}.qt-img{display:none;}
+  .fg{grid-template-columns:1fr 1fr;}
+  .stats-inner{grid-template-columns:repeat(2,1fr);}
+  .si:nth-child(2){border-right:none;}.si:nth-child(3){border-top:1px solid var(--bd);}.si:nth-child(4){border-top:1px solid var(--bd);border-right:none;}
+}
+@media(max-width:680px){
+  .h-h1{font-size:3rem;}section{padding:68px 5%;}
+  .fg{grid-template-columns:1fr;}.mcard{width:240px;}.mcard-img{height:260px;}
+  .h-acts{flex-direction:column;align-items:flex-start;}
+  .stats-inner{grid-template-columns:1fr 1fr;}
+}
+@media(max-width:1100px){
+  #navLinks.mo{display:flex;flex-direction:column;position:fixed;inset:72px 0 0 0;background:var(--dk);backdrop-filter:blur(20px);padding:28px 5%;gap:5px;z-index:499;border-top:1px solid var(--bd);}
+  #navLinks.mo a{font-size:.97rem;padding:14px 16px;border-radius:12px;}
+}
+</style>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#3dba72">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="SmartFarm AI">
+<script>if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js').then(()=>console.log('[PWA] SW registered')).catch(e=>console.warn('[PWA] SW failed:',e));}</script>
+<script src="/js/smartfarm.js"></script>
+<script>
+// AcqireAI config — set GROQ key if available
+// In production, inject via server-side template or env
+window.GROQ_API_KEY = window.GROQ_API_KEY || '';
+</script>
+
+<style>
+/* ── Language Switcher ── */
+.lang-switcher {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+.lang-btn {
+  display: inline-flex;align-items:center;gap:6px;
+  padding:6px 12px;border-radius:20px;
+  border:1px solid rgba(232,237,229,0.2);
+  background:transparent;cursor:pointer;
+  font-size:.72rem;font-weight:700;
+  color:var(--tx);transition:all .25s;
+  font-family:Outfit,sans-serif;
+  white-space:nowrap;
+}
+.lang-btn:hover{border-color:var(--g);color:var(--g);}
+.lang-btn svg{width:13px;height:13px;opacity:.7;}
+.lang-dropdown {
+  display:none;position:absolute;top:calc(100% + 8px);right:0;
+  background:var(--dk2);border:1px solid var(--bd2);
+  border-radius:12px;overflow:hidden;
+  box-shadow:0 12px 40px rgba(0,0,0,.4);
+  z-index:1000;min-width:160px;
+  animation:ddFade .2s ease;
+}
+@keyframes ddFade{from{opacity:0;transform:translateY(-6px);}to{opacity:1;transform:none;}}
+.lang-dropdown.open{display:block;}
+.lang-option {
+  display:flex;align-items:center;gap:10px;
+  padding:10px 16px;cursor:pointer;
+  font-size:.82rem;font-weight:500;color:var(--tx);
+  transition:background .2s;border:none;background:none;
+  width:100%;text-align:left;font-family:Outfit,sans-serif;
+}
+.lang-option:hover{background:rgba(61,186,114,.1);color:var(--g);}
+.lang-option.active{color:var(--g);font-weight:700;}
+.lang-option .lang-flag{font-size:1rem;}
+.lang-option .lang-name{flex:1;}
+.lang-option .lang-native{font-size:.72rem;color:var(--txm);}
+/* Hide Google's default widget bar */
+.goog-te-banner-frame{display:none!important;}
+.goog-te-menu-value span{color:var(--g)!important;}
+body{top:0!important;}
+.skiptranslate{display:none!important;}
+#google_translate_element{display:none!important;}
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cur"></div>
+<div class="cursor-ring" id="curRing"></div>
+
+<!-- NAV -->
+<nav class="nav" id="nav">
+  <a href="index.html" class="nav-logo">
+    <svg class="nlm" viewBox="0 0 36 36" fill="none">
+      <circle cx="18" cy="18" r="17" stroke="rgba(61,186,114,0.25)" stroke-width="1"/>
+      <path d="M18 7 C13 11 9 17 10 23 C12 27 16 29 18 29 C20 29 24 27 26 23 C27 17 23 11 18 7Z" fill="rgba(61,186,114,0.12)" stroke="#3dba72" stroke-width="1.2"/>
+      <line x1="18" y1="29" x2="18" y2="34" stroke="#3dba72" stroke-width="1.5" stroke-linecap="round"/>
+      <line x1="14" y1="19" x2="10" y2="16" stroke="#3dba72" stroke-width="1.2" stroke-linecap="round"/>
+      <line x1="22" y1="18" x2="26" y2="15" stroke="#3dba72" stroke-width="1.2" stroke-linecap="round"/>
+    </svg>
+    <span class="nlt">SmartFarm <span>AI</span></span>
+  </a>
+
+  <ul class="nav-links" id="navLinks">
+    <li><a href="index.html" class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>Home</a></li>
+    <li><a href="weather.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 10h-1.26A8 8 0 109 20h9a5 5 0 000-10z"/></svg>Weather</a></li>
+    <li><a href="soil.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/></svg>Soil</a></li>
+    <li><a href="disease.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Disease</a></li>
+    <li><a href="market.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Market</a></li>
+    <li><a href="harvest.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Harvest</a></li>
+  </ul>
+
+  <div class="nav-r">
+    <a href="weather.html" class="npill npo">Dashboard</a>
+    <a href="soil.html" class="npill nps">Get Started</a>
+    <div class="hburg" id="hburg" onclick="document.getElementById('navLinks').classList.toggle('mo')"><span></span><span></span><span></span></div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="h-bg"></div><div class="h-grad"></div><div class="h-grad2"></div>
+  <div class="h-live"><span class="ldot"></span><span class="hlbt">Live Farm Intelligence Active</span></div>
+  <div class="h-content">
+    <div class="h-left">
+      <div class="h-eye"><div class="h-eye-line"></div><span>AI-Powered Agriculture Platform</span></div>
+      <h2 class="h-h1">Smarter Farming<br>Starts With<br><em>Better Data.</em></h2>
+      <p class="h-desc">Climate insights, soil analysis, crop disease detection and market forecasting — one platform built for the modern Indian farmer.</p>
+      <div class="h-acts">
+        <a href="weather.html" class="btn-p">
+          <svg class="bi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 10h-1.26A8 8 0 109 20h9a5 5 0 000-10z"/></svg>
+          Explore Platform
+        </a>
+        <a href="soil.html" class="btn-s">
+          <svg class="bi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+          Analyze My Soil
+        </a>
+      </div>
+    </div>
+    <div class="h-stats">
+      <div class="hsc"><div class="hscv" id="heroTemp">—°C</div><div class="hscl">Live Temp · Coimbatore</div></div>
+      <div class="hsc"><div class="hscv">12+</div><div class="hscl">Crops Supported</div></div>
+      <div class="hsc"><div class="hscv">+37%</div><div class="hscl">Avg Yield Gain</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- TICKER -->
+<div class="ticker-bar"><div class="ticker-track" id="tickerTrack"></div></div>
+
+<!-- MODULES -->
+<section class="mod-sec">
+  <div class="mod-hdr reveal">
+    <div>
+      <div class="se"><div class="sel"></div><span>Intelligence Modules</span></div>
+      <h2 class="st" style="margin-bottom:0;">Five tools.<br><em>One platform.</em></h2>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:14px;">
+      <p class="ss" style="text-align:right;">Every module works together to give complete, real-time farm intelligence at your fingertips.</p>
+      <div class="cnav">
+        <button class="cbtn" onclick="slideCarousel(-1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg></button>
+        <button class="cbtn" onclick="slideCarousel(1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></button>
+      </div>
+    </div>
+  </div>
+
+  <div class="mod-wrap reveal d1">
+    <div class="mod-track" id="modTrack">
+
+      <a href="weather.html" class="mcard">
+        <img class="mcard-img" src="https://images.unsplash.com/photo-1561470508-fd4df1ed90b2?q=80&w=876&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="Weather monitoring">
+        <div class="mcard-ov"></div><div class="mcard-ov2"></div>
+        <div class="mcard-body">
+          <div class="mcard-tag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 10h-1.26A8 8 0 109 20h9a5 5 0 000-10z"/></svg>Weather</div>
+          <div class="mcard-title">Climate &amp; Weather Monitoring</div>
+          <div class="mcard-desc">Real-time updates, 7-day forecast, and smart irrigation scheduling based on live data.</div>
+        </div>
+        <div class="mcard-arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></div>
+      </a>
+
+      <a href="soil.html" class="mcard">
+        <img class="mcard-img" src="https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=600&q=80" alt="Soil analysis">
+        <div class="mcard-ov"></div><div class="mcard-ov2"></div>
+        <div class="mcard-body">
+          <div class="mcard-tag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/></svg>Soil</div>
+          <div class="mcard-title">Soil Analysis &amp; Crop Recommendation</div>
+          <div class="mcard-desc">Enter soil type and pH. Get personalised crop choices and fertiliser schedules.</div>
+        </div>
+        <div class="mcard-arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></div>
+      </a>
+
+      <a href="disease.html" class="mcard">
+        <img class="mcard-img" src="https://images.unsplash.com/photo-1560493676-04071c5f467b?w=600&q=80" alt="Disease detection">
+        <div class="mcard-ov"></div><div class="mcard-ov2"></div>
+        <div class="mcard-body">
+          <div class="mcard-tag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Disease</div>
+          <div class="mcard-title">Crop Disease Detection</div>
+          <div class="mcard-desc">Identify diseases from symptoms or photos and get targeted treatment plans.</div>
+        </div>
+        <div class="mcard-arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></div>
+      </a>
+
+      <a href="market.html" class="mcard">
+        <img class="mcard-img" src="https://images.unsplash.com/photo-1542838132-92c53300491e?w=600&q=80" alt="Market prices">
+        <div class="mcard-ov"></div><div class="mcard-ov2"></div>
+        <div class="mcard-body">
+          <div class="mcard-tag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Market</div>
+          <div class="mcard-title">Market Price Trends</div>
+          <div class="mcard-desc">Live commodity prices, trend charts, and AI-powered selling window advice.</div>
+        </div>
+        <div class="mcard-arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></div>
+      </a>
+
+      <a href="harvest.html" class="mcard">
+        <img class="mcard-img" src="https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=600&q=80" alt="Harvest prediction">
+        <div class="mcard-ov"></div><div class="mcard-ov2"></div>
+        <div class="mcard-body">
+          <div class="mcard-tag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Harvest</div>
+          <div class="mcard-title">Harvest Prediction</div>
+          <div class="mcard-desc">Predict harvest date, track growth stages, and get 7-day advance alerts.</div>
+        </div>
+        <div class="mcard-arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></div>
+      </a>
+
+      <a href="#" onclick="document.getElementById('acqFab').click();return false;" class="mcard">
+        <img class="mcard-img" src="https://plus.unsplash.com/premium_photo-1677094310956-7f88ae5f5c6b?q=80&w=580&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="AcqireAI Voice Assistant">
+        <div class="mcard-ov"></div><div class="mcard-ov2"></div>
+        <div class="mcard-body">
+          <div class="mcard-tag">
+            <span class="ldot" style="width:6px;height:6px;margin-right:2px;"></span>Live Now
+          </div>
+          <div class="mcard-title">AcqireAI Assistant</div>
+          <div class="mcard-desc">Ask anything in Tamil or English — pest control, harvest dates, market prices, government schemes. Voice-powered.</div>
+        </div>
+        <div class="mcard-arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="stats-band">
+  <div class="stats-inner">
+    <div class="si reveal"><div class="si-n" id="s1">0<span style="font-size:1.8rem;">+</span></div><div class="si-l">Crop Varieties Supported</div></div>
+    <div class="si reveal d1"><div class="si-n" id="s2">0<span style="font-size:1.8rem;">+</span></div><div class="si-l">Government Schemes Covered</div></div>
+    <div class="si reveal d2"><div class="si-n" id="s3">0<span style="font-size:1.8rem;">%</span></div><div class="si-l">Average Yield Improvement</div></div>
+    <div class="si reveal d3"><div class="si-n" id="s4">0<span style="font-size:1.8rem;"> States</span></div><div class="si-l">Across India Covered</div></div>
+  </div>
+</div>
+
+<!-- WHY -->
+<section class="why-sec">
+  <div class="why-grid">
+    <div class="why-img-w reveal">
+      <div class="wim"><img src="https://images.unsplash.com/photo-1586771107445-d3ca888129ff?w=900&q=80" alt="Smart farming technology"></div>
+      <div class="wis"><img src="https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=500&q=80" alt="Farmland"></div>
+      <div class="wib">
+        <div class="wib-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+        <div><div class="wib-v">+37%</div><div class="wib-l">Average yield increase</div></div>
+      </div>
+    </div>
+    <div class="reveal d2">
+      <div class="se"><div class="sel"></div><span>Why Smart Farming</span></div>
+      <h2 class="st">Technology that<br>works as hard<br><em>as you do.</em></h2>
+      <p class="ss">Modern agriculture demands modern tools. We bridge traditional farming wisdom with cutting-edge AI.</p>
+      <div class="why-pts">
+        <div class="wpt"><div class="wpn">01</div><div><div class="wpt-t">Climate Intelligence</div><div class="wpt-d">Hyperlocal weather and long-range forecasts help you plan every growth stage with precision and confidence.</div></div></div>
+        <div class="wpt"><div class="wpn">02</div><div><div class="wpt-t">Data-Driven Decisions</div><div class="wpt-d">Every recommendation is backed by satellite imagery, soil sensors and ML models trained on Indian farm data.</div></div></div>
+        <div class="wpt"><div class="wpn">03</div><div><div class="wpt-t">Sustainable Agriculture</div><div class="wpt-d">Reduce water, fertiliser and pesticide use by up to 30% with precision guidance that protects soil health long-term.</div></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- QUOTE -->
+<section class="qt-sec">
+  <div class="qt-bg">FARM</div>
+  <div class="qt-inner">
+    <div class="reveal">
+      <span class="qt-marks">"</span>
+      <p class="qt-text">Before SmartFarm AI, I was guessing when to irrigate and what to plant. Now my yield has gone up by over 40%. This platform changed everything for our family farm.</p>
+      <div class="qt-auth">
+        <img class="qt-av" src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&q=80" alt="Farmer">
+        <div><div class="qt-n">Rajan Murugesan</div><div class="qt-r">Cotton Farmer, Coimbatore District</div></div>
+      </div>
+    </div>
+    <div class="reveal d2 qt-img"><img src="https://images.unsplash.com/photo-1530836369250-ef72a3f5cda8?w=900&q=80" alt="Farm at golden hour"></div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-sec">
+  <div class="cta-bg"></div><div class="cta-gr"></div>
+  <div class="cta-c reveal">
+    <div class="se" style="justify-content:center;"><div class="sel"></div><span>Start Today — Free</span><div class="sel"></div></div>
+    <h2 class="st">Ready to farm<br><em>smarter?</em></h2>
+    <p>Join thousands of farmers across India using AI to boost yield, cut costs, and farm sustainably.</p>
+    <div class="cta-bts">
+      <a href="weather.html" class="btn-p"><svg class="bi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 10h-1.26A8 8 0 109 20h9a5 5 0 000-10z"/></svg>Check Weather Now</a>
+      <a href="soil.html" class="btn-s"><svg class="bi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>Analyze My Soil</a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="fg">
+    <div>
+      <div class="fb-name">
+        <svg width="26" height="26" viewBox="0 0 36 36" fill="none"><path d="M18 6 C13 10 9 16 10 22 C12 26 16 28 18 28 C20 28 24 26 26 22 C27 16 23 10 18 6Z" fill="rgba(61,186,114,0.18)" stroke="#3dba72" stroke-width="1.4"/><line x1="18" y1="28" x2="18" y2="34" stroke="#3dba72" stroke-width="1.5" stroke-linecap="round"/></svg>
+        SmartFarm <span>AI</span>
+      </div>
+      <p class="fb-tag">Empowering Indian farmers with AI, satellite data, and climate science. A Niral Thiruvizha 3.0 project — Anjalai Ammal Mahalingam Engineering College.</p>
+      <div style="margin-top:18px;font-size:.73rem;color:var(--txm);">Guide: Mr. R. Rama Rajesh, Asst. Prof. IT · College Code: 8204</div>
+    </div>
+    <div class="fc">
+      <h5>Modules</h5>
+      <ul>
+        <li><a href="weather.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 10h-1.26A8 8 0 109 20h9a5 5 0 000-10z"/></svg>Weather Monitor</a></li>
+        <li><a href="soil.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>Soil Analysis</a></li>
+        <li><a href="disease.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Disease Detection</a></li>
+        <li><a href="market.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Market Prices</a></li>
+        <li><a href="harvest.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Harvest Prediction</a></li>
+      </ul>
+    </div>
+    <div class="fc">
+      <h5>Govt. Support</h5>
+      <ul>
+        <li><a href="https://pmkisan.gov.in" target="_blank">PM-KISAN</a></li>
+        <li><a href="https://pmfby.gov.in" target="_blank">PM Fasal Bima</a></li>
+        <li><a href="https://soilhealth.dac.gov.in" target="_blank">Soil Health Card</a></li>
+        <li><a href="https://www.enam.gov.in" target="_blank">e-NAM Market</a></li>
+        <li><a href="https://pmksy.gov.in" target="_blank">PMKSY Irrigation</a></li>
+        <li><a href="https://agmarknet.gov.in" target="_blank">Agmarknet</a></li>
+      </ul>
+    </div>
+    <div class="fc">
+      <h5>Team</h5>
+      <ul>
+        <li><a href="#">Kalaiselvi M</a></li>
+        <li><a href="#">Akalya R</a></li>
+        <li><a href="#">Asika M</a></li>
+        <li><a href="#">Dhatchineswaran D</a></li>
+      </ul>
+      <br>
+      <h5>Contact</h5>
+      <ul>
+        <li><a href="mailto:smartfarmaidev@gmail.com">smartfarmaidev@gmail.com</a></li>
+        <li><a href="mailto:smartfarmaidev@gmail.com">Guide: smartfarmaidev@gmail.com</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="fbot">
+    <span>© 2025 SmartFarm AI · Niral Thiruvizha 3.0 · College Code: 8204</span>
+    <span>Built with precision for Indian farmers · <a href="mailto:smartfarmaidev@gmail.com">Contact Team</a></span>
+  </div>
+</footer>
+
+<script>
+// Cursor
+const cur=document.getElementById('cur'),ring=document.getElementById('curRing');
+let rx=0,ry=0,cx=window.innerWidth/2,cy=window.innerHeight/2;
+document.addEventListener('mousemove',e=>{cx=e.clientX;cy=e.clientY;cur.style.left=cx+'px';cur.style.top=cy+'px';});
+(function lerp(){rx+=(cx-rx)*.1;ry+=(cy-ry)*.1;ring.style.left=rx+'px';ring.style.top=ry+'px';requestAnimationFrame(lerp);})();
+document.querySelectorAll('a,button,.mcard,.wpt').forEach(el=>{
+  el.addEventListener('mouseenter',()=>{cur.style.width='18px';cur.style.height='18px';ring.style.width='50px';ring.style.height='50px';});
+  el.addEventListener('mouseleave',()=>{cur.style.width='10px';cur.style.height='10px';ring.style.width='34px';ring.style.height='34px';});
+});
+
+// Navbar
+window.addEventListener('scroll',()=>document.getElementById('nav').classList.toggle('scrolled',window.scrollY>30));
+
+// Scroll reveal
+const obs=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');obs.unobserve(e.target);}});},{threshold:.1});
+document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+
+// Ticker — fetch real prices from market API
+async function loadTicker() {
+  const track = document.getElementById('tickerTrack');
+  try {
+    const res = await fetch('/api/market/prices?state=Tamil%20Nadu');
+    const json = await res.json();
+    const crops = (json.data || []).filter(c => c.price > 0);
+    if (!crops.length) throw new Error('no data');
+    const items = [...crops, ...crops].map(c => {
+      const up = c.price >= (c.prev_price || c.price);
+      const pct = c.prev_price ? (Math.abs((c.price - c.prev_price) / c.prev_price) * 100).toFixed(1) : '0.0';
+      return `<div class="ti"><div class="tid" style="background:${up ? '#4ade80' : '#f87171'};"></div><span class="tic">${c.crop_name}</span><span class="tip">₹${Number(c.price).toLocaleString('en-IN')}/Qtl</span><span class="${up ? 'tiu' : 'tidn'}">${up ? '▲' : '▼'} ${pct}%</span></div>`;
+    }).join('');
+    track.innerHTML = items;
+  } catch (e) {
+    // Fallback static prices if API unavailable
+    const fallback = [
+      {n:'Wheat',p:2311,prev:2280},{n:'Rice',p:3331,prev:3400},{n:'Cotton',p:7637,prev:7500},
+      {n:'Maize',p:1603,prev:1580},{n:'Groundnut',p:8290,prev:8200},{n:'Tomato',p:1500,prev:1300},
+      {n:'Onion',p:2200,prev:2400},{n:'Soybean',p:4200,prev:4100},
+    ];
+    const items = [...fallback,...fallback].map(c => {
+      const up = c.p >= c.prev;
+      const pct = (Math.abs((c.p-c.prev)/c.prev)*100).toFixed(1);
+      return `<div class="ti"><div class="tid" style="background:${up?'#4ade80':'#f87171'};"></div><span class="tic">${c.n}</span><span class="tip">₹${c.p.toLocaleString('en-IN')}/Qtl</span><span class="${up?'tiu':'tidn'}">${up?'▲':'▼'} ${pct}%</span></div>`;
+    }).join('');
+    track.innerHTML = items;
+  }
+}
+loadTicker();
+
+// Fetch live weather for hero stat
+(async function loadHeroWeather() {
+  try {
+    const res = await fetch('/api/weather?city=Coimbatore');
+    const json = await res.json();
+    const temp = json.data?.temp;
+    if (temp !== undefined) {
+      document.getElementById('heroTemp').textContent = temp + '°C';
+    }
+  } catch(e) { /* keep placeholder */ }
+})();
+
+// Carousel
+let cPos=0;
+const track=document.getElementById('modTrack');
+function slideCarousel(d){
+  const cards=track.querySelectorAll('.mcard');
+  const cW=cards[0].offsetWidth+18;
+  const max=-((cards.length-3)*cW);
+  cPos=Math.max(max,Math.min(0,cPos-d*cW));
+  track.style.transform=`translateX(${cPos}px)`;
+}
+
+// Counter animation — real values matching stats band
+function animCount(el,target,suf,dur=1600){
+  let v=0;const step=target/(dur/16);
+  const t=setInterval(()=>{v=Math.min(v+step,target);el.innerHTML=Math.floor(v)+'<span style="font-size:1.8rem;">'+suf+'</span>';if(v>=target)clearInterval(t);},16);
+}
+const cObs=new IntersectionObserver(es=>{
+  es.forEach(e=>{
+    if(e.isIntersecting){
+      const id=e.target.querySelector('.si-n')?.id;
+      if(id==='s1') animCount(e.target.querySelector('.si-n'),12,'+');      // 12+ crops
+      if(id==='s2') animCount(e.target.querySelector('.si-n'),20,'+');      // 20+ schemes
+      if(id==='s3') animCount(e.target.querySelector('.si-n'),37,'%');      // 37% yield improvement
+      if(id==='s4') animCount(e.target.querySelector('.si-n'),20,' States');// 20 states
+      cObs.unobserve(e.target);
+    }
+  });
+},{threshold:.5});
+document.querySelectorAll('.si').forEach(el=>cObs.observe(el));
+</script>
+
+<!-- AcqireAI Chatbot -->
+<style>
+.acquireai-fab{position:fixed;bottom:28px;right:28px;z-index:800;width:58px;height:58px;border-radius:50%;background:var(--g);display:flex;align-items:center;justify-content:center;cursor:pointer;border:none;box-shadow:0 6px 28px rgba(61,186,114,.5);transition:transform .25s,box-shadow .25s;animation:fabPulse 3s infinite;}
+.acquireai-fab:hover{transform:scale(1.1);box-shadow:0 10px 40px rgba(61,186,114,.65);}
+@keyframes fabPulse{0%,100%{box-shadow:0 6px 28px rgba(61,186,114,.5);}50%{box-shadow:0 6px 40px rgba(61,186,114,.75),0 0 0 8px rgba(61,186,114,.08);}}
+.acquireai-fab .chat-close{display:none;}.acquireai-fab.open .chat-icon{display:none;}.acquireai-fab.open .chat-close{display:block;}
+.acquireai-window{position:fixed;bottom:100px;right:28px;z-index:800;width:390px;max-height:600px;background:var(--dk2);border:1px solid var(--bd2);border-radius:20px;overflow:hidden;box-shadow:0 24px 72px rgba(0,0,0,.5);display:flex;flex-direction:column;transform:scale(0.9) translateY(20px);opacity:0;pointer-events:none;transition:transform .3s cubic-bezier(.4,0,.2,1),opacity .3s;transform-origin:bottom right;}
+.acquireai-window.open{transform:none;opacity:1;pointer-events:all;}
+.acq-header{padding:14px 18px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--bd);background:var(--dk3);}
+.acq-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--g),var(--g2));display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;font-weight:700;color:var(--tx);font-family:'Cormorant Garamond',serif;}
+.acq-name{font-family:'Cormorant Garamond',serif;font-size:1rem;font-weight:700;color:var(--cream);}
+.acq-status{font-size:.68rem;color:var(--g);display:flex;align-items:center;gap:4px;}
+.acq-status::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--g);animation:acqpulse 1.6s infinite;}
+@keyframes acqpulse{0%,100%{opacity:1;}60%{opacity:.3;}}
+.acq-lang-badge{margin-left:auto;font-size:.65rem;font-weight:700;padding:3px 8px;border-radius:10px;background:rgba(61,186,114,.12);border:1px solid rgba(61,186,114,.2);color:var(--g);cursor:pointer;transition:all .2s;}
+.acq-lang-badge:hover{background:rgba(61,186,114,.22);}
+.acq-messages{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;scrollbar-width:thin;scrollbar-color:var(--bd) transparent;}
+.acq-msg{display:flex;gap:8px;align-items:flex-end;}.acq-msg.user{flex-direction:row-reverse;}
+.acq-avatar-sm{width:26px;height:26px;border-radius:50%;background:var(--dk3);border:1px solid var(--bd2);display:flex;align-items:center;justify-content:center;font-size:.75rem;flex-shrink:0;}
+.acq-msg.user .acq-avatar-sm{background:rgba(61,186,114,.15);}
+.acq-bubble{max-width:80%;padding:10px 13px;border-radius:14px;font-size:.83rem;line-height:1.62;color:var(--tx);}
+.acq-msg.bot .acq-bubble{background:var(--dk3);border:1px solid var(--bd);border-bottom-left-radius:4px;}
+.acq-msg.user .acq-bubble{background:rgba(61,186,114,.15);border:1px solid rgba(61,186,114,.22);border-bottom-right-radius:4px;}
+.acq-typing{display:flex;gap:4px;align-items:center;padding:11px 13px;}
+.acq-typing span{width:6px;height:6px;border-radius:50%;background:var(--txm);animation:acqDot 1.4s infinite ease-in-out;}
+.acq-typing span:nth-child(2){animation-delay:.2s;}.acq-typing span:nth-child(3){animation-delay:.4s;}
+@keyframes acqDot{0%,80%,100%{transform:scale(.6);opacity:.4;}40%{transform:scale(1);opacity:1;}}
+.acq-suggestions{display:flex;flex-wrap:wrap;gap:5px;padding:0 14px 10px;}
+.acq-sugg{padding:5px 11px;border-radius:20px;background:rgba(61,186,114,.08);border:1px solid rgba(61,186,114,.18);color:var(--g);font-size:.72rem;font-weight:600;cursor:pointer;transition:all .2s;white-space:nowrap;}
+.acq-sugg:hover{background:rgba(61,186,114,.18);}
+.acq-input-row{padding:12px 14px;border-top:1px solid var(--bd);display:flex;gap:8px;align-items:center;background:var(--dk3);}
+.acq-input{flex:1;padding:9px 13px;border-radius:22px;border:1px solid var(--bd2);background:var(--dk);color:var(--tx);font-family:'Outfit',sans-serif;font-size:.83rem;outline:none;transition:border-color .25s;}
+.acq-input::placeholder{color:var(--txm);}.acq-input:focus{border-color:var(--g);}
+.acq-mic-btn{width:34px;height:34px;border-radius:50%;border:1px solid var(--bd2);background:var(--dk);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--txm);transition:all .25s;flex-shrink:0;}
+.acq-mic-btn.listening{background:rgba(239,68,68,.15);border-color:#ef4444;color:#ef4444;animation:micPulse 1s infinite;}
+@keyframes micPulse{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,.4);}50%{box-shadow:0 0 0 6px rgba(239,68,68,0);}}
+.acq-send{width:34px;height:34px;border-radius:50%;background:var(--g);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:transform .2s,box-shadow .2s;}
+.acq-send:hover{transform:scale(1.08);box-shadow:0 4px 14px rgba(61,186,114,.4);}
+.acq-send svg{width:15px;height:15px;color:#0a0e0a;}
+@media(max-width:768px){.acquireai-window{width:calc(100vw - 24px);right:12px;bottom:90px;}}
+</style>
+<button class="acquireai-fab" id="acqFab" aria-label="Open AcqireAI">
+  <svg class="chat-icon" viewBox="0 0 24 24" fill="none" stroke="#0a0e0a" stroke-width="2" width="24" height="24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+  <svg class="chat-close" viewBox="0 0 24 24" fill="none" stroke="#0a0e0a" stroke-width="2" width="22" height="22"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+</button>
+<div class="acquireai-window" id="acqWindow">
+  <div class="acq-header">
+    <div class="acq-avatar">A</div>
+    <div style="flex:1;"><div class="acq-name">AcqireAI</div><div class="acq-status">Online · Agricultural Expert</div></div>
+    <span class="acq-lang-badge" id="acqLangBadge" onclick="acqToggleLang()" title="Switch language">EN</span>
+    <button onclick="document.getElementById('acqFab').click()" style="background:none;border:none;cursor:pointer;color:var(--txm);font-size:1rem;padding:4px;margin-left:4px;">✕</button>
+  </div>
+  <div class="acq-messages" id="acqMessages"></div>
+  <div class="acq-suggestions" id="acqSuggestions"></div>
+  <div class="acq-input-row">
+    <input class="acq-input" id="acqInput" placeholder="Ask about crops, diseases, schemes..." onkeydown="if(event.key==='Enter')acqSend()">
+    <button class="acq-mic-btn" id="acqMicBtn" onclick="acqToggleVoice()" title="Voice input">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+    </button>
+    <button class="acq-send" onclick="acqSend()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+    </button>
+  </div>
+</div>
+<script>
+(function(){
+  const SUGG_EN=['Best crops for my soil?','Rice disease treatment','When to sell wheat?','PM-KISAN scheme','Irrigation tips'];
+  const SUGG_TA=['என் மண்ணுக்கு சிறந்த பயிர்கள்?','நெல் நோய் சிகிச்சை','கோதுமை எப்போது விற்கலாம்?','PM-KISAN திட்டம்','நீர்ப்பாசன குறிப்புகள்'];
+  const fab=document.getElementById('acqFab'),win=document.getElementById('acqWindow'),msgs=document.getElementById('acqMessages'),inp=document.getElementById('acqInput');
+  let history=[],inited=false,isListening=false,recognition=null;
+  fab.addEventListener('click',function(){this.classList.toggle('open');win.classList.toggle('open');if(win.classList.contains('open')){inp.focus();if(!inited){inited=true;renderSugg();setTimeout(()=>addMsg(lang()==='ta'?'👋 வணக்கம்! நான் AcqireAI — உங்கள் விவசாய நிபுணர். பயிர்கள், நோய்கள், சந்தை விலைகள் பற்றி கேளுங்கள்!':'👋 Namaste! I\'m AcqireAI — your smart farming assistant. Ask about crop diseases, soil, market prices, government schemes, or anything about farming!','bot'),500);};}});
+  function lang(){return localStorage.getItem('sf_lang')||'en';}
+  window.acqToggleLang=function(){const n=lang()==='en'?'ta':'en';localStorage.setItem('sf_lang',n);window.SF_LANG=n;document.getElementById('acqLangBadge').textContent=n==='ta'?'தமிழ்':'EN';document.querySelectorAll('.lang-toggle-btn').forEach(b=>b.textContent=n==='ta'?'EN':'தமிழ்');inp.placeholder=n==='ta'?'பயிர், நோய், திட்டங்கள் பற்றி கேளுங்கள்...':'Ask about crops, diseases, schemes...';renderSugg();};
+  document.addEventListener('sf:langchange',e=>{document.getElementById('acqLangBadge').textContent=e.detail.lang==='ta'?'தமிழ்':'EN';renderSugg();});
+  function renderSugg(){const s=lang()==='ta'?SUGG_TA:SUGG_EN;document.getElementById('acqSuggestions').innerHTML=s.map(x=>`<span class="acq-sugg" onclick="acqSend('${x.replace(/'/g,"\\'")}')">${x}</span>`).join('');}
+  function addMsg(text,role,typing=false){const el=document.createElement('div');el.className='acq-msg '+role;if(typing){el.id='acqTyping';el.innerHTML=`<div class="acq-avatar-sm">A</div><div class="acq-bubble"><div class="acq-typing"><span></span><span></span><span></span></div></div>`;}else{el.innerHTML=`<div class="acq-avatar-sm">${role==='bot'?'A':'👤'}</div><div class="acq-bubble">${text.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
+            .replace(/\[(\w+\.html)\]/g,'<a href="/$1" style="color:var(--g);font-weight:700;text-decoration:underline;text-underline-offset:2px;" onclick="window.location.href=this.href">→ Open $1</a>')
+            .replace(/\n\n/g,'<br><br>').replace(/\n/g,'<br>')}</div>`;}msgs.appendChild(el);msgs.scrollTop=msgs.scrollHeight;return el;}
+  window.acqSend=async function(preset){const text=preset||inp.value.trim();if(!text)return;inp.value='';addMsg(text,'user');document.getElementById('acqSuggestions').innerHTML='';history.push({role:'user',content:text});const typEl=addMsg('','bot',true);const l=lang();const sys=`You are AcqireAI, an expert agricultural AI for SmartFarm AI — India's AI farming platform. ${l==='ta'?'Respond ENTIRELY in Tamil (தமிழ்). Simple Tamil a farmer understands.':'Respond in English.'} Specialize in: crop diseases (Tamil Nadu pesticide brands+doses), soil analysis, market prices, Indian govt schemes (PM-KISAN,PMFBY,KCC), irrigation. Be practical, warm, concise.`;try{const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,history:history.slice(-6),lang:l})});const d=await r.json();const reply=d.reply||'Sorry, could not get a response.';history.push({role:'assistant',content:reply});typEl.remove();addMsg(reply,'bot');}catch(e){typEl.remove();addMsg(l==='ta'?'⚠️ இணைப்பில் சிக்கல். மீண்டும் முயற்சிக்கவும்.':'⚠️ Connection issue. Please try again.','bot');}renderSugg();};
+  window.acqToggleVoice=function(){if(!('webkitSpeechRecognition' in window)&&!('SpeechRecognition' in window)){alert('Voice input needs Chrome browser.');return;}if(isListening){recognition?.stop();return;}const SR=window.SpeechRecognition||window.webkitSpeechRecognition;recognition=new SR();recognition.lang=lang()==='ta'?'ta-IN':'en-IN';recognition.continuous=false;recognition.interimResults=true;recognition.onstart=()=>{isListening=true;document.getElementById('acqMicBtn').classList.add('listening');inp.placeholder=lang()==='ta'?'🎙️ கேட்கிறேன்...':'🎙️ Listening...';};recognition.onresult=e=>{inp.value=Array.from(e.results).map(r=>r[0].transcript).join('');};recognition.onerror=()=>{isListening=false;document.getElementById('acqMicBtn').classList.remove('listening');inp.placeholder=lang()==='ta'?'பயிர், நோய், திட்டங்கள் பற்றி கேளுங்கள்...':'Ask about crops, diseases, schemes...';};recognition.onend=()=>{isListening=false;document.getElementById('acqMicBtn').classList.remove('listening');inp.placeholder=lang()==='ta'?'பயிர், நோய், திட்டங்கள் பற்றி கேளுங்கள்...':'Ask about crops, diseases, schemes...';if(inp.value.trim())acqSend();};recognition.start();};
+  // Sync lang badge on load
+  document.getElementById('acqLangBadge').textContent=lang()==='ta'?'தமிழ்':'EN';
+})();
+</script>
+
+<!-- Google Translate -->
+<div id="google_translate_element"></div>
+<script type="text/javascript">
+function googleTranslateElementInit() {
+  new google.translate.TranslateElement({
+    pageLanguage: 'en',
+    includedLanguages: 'ta,hi,te,kn,ml,mr,gu,pa,bn,or,as,ur,en',
+    layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+    autoDisplay: false
+  }, 'google_translate_element');
+}
+</script>
+<script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+<script>
+// Custom language switcher UI
+var LANG_OPTIONS = [
+  {code:'en',    name:'English',    native:'English',   flag:'🇬🇧'},
+  {code:'ta',    name:'Tamil',      native:'தமிழ்',      flag:'🇮🇳'},
+  {code:'hi',    name:'Hindi',      native:'हिंदी',       flag:'🇮🇳'},
+  {code:'te',    name:'Telugu',     native:'తెలుగు',     flag:'🇮🇳'},
+  {code:'kn',    name:'Kannada',    native:'ಕನ್ನಡ',      flag:'🇮🇳'},
+  {code:'ml',    name:'Malayalam',  native:'മലയാളം',    flag:'🇮🇳'},
+  {code:'mr',    name:'Marathi',    native:'मराठी',      flag:'🇮🇳'},
+  {code:'gu',    name:'Gujarati',   native:'ગુજરાતી',    flag:'🇮🇳'},
+  {code:'pa',    name:'Punjabi',    native:'ਪੰਜਾਬੀ',     flag:'🇮🇳'},
+  {code:'bn',    name:'Bengali',    native:'বাংলা',      flag:'🇮🇳'},
+];
+
+var currentLang = localStorage.getItem('sf_ui_lang') || 'en';
+
+function buildLangSwitcher(navR) {
+  if (!navR || document.getElementById('sfLangSwitcher')) return;
+
+  var switcher = document.createElement('div');
+  switcher.className = 'lang-switcher';
+  switcher.id = 'sfLangSwitcher';
+
+  var btn = document.createElement('button');
+  btn.className = 'lang-btn nav-ctrl-btn';
+  btn.id = 'langBtnMain';
+  btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 010 20M12 2a15.3 15.3 0 000 20"/></svg>' +
+    '<span id="langBtnLabel">' + getLangLabel(currentLang) + '</span>' +
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="10" height="10"><polyline points="6 9 12 15 18 9"/></svg>';
+
+  var dropdown = document.createElement('div');
+  dropdown.className = 'lang-dropdown';
+  dropdown.id = 'langDropdown';
+
+  LANG_OPTIONS.forEach(function(lang) {
+    var opt = document.createElement('button');
+    opt.className = 'lang-option' + (lang.code === currentLang ? ' active' : '');
+    opt.setAttribute('data-lang', lang.code);
+    opt.innerHTML = '<span class="lang-flag">' + lang.flag + '</span>' +
+      '<span class="lang-name">' + lang.name + '</span>' +
+      '<span class="lang-native">' + lang.native + '</span>';
+    opt.addEventListener('click', function() {
+      selectLanguage(lang.code);
+      dropdown.classList.remove('open');
+    });
+    dropdown.appendChild(opt);
+  });
+
+  switcher.appendChild(btn);
+  switcher.appendChild(dropdown);
+
+  btn.addEventListener('click', function(e) {
+    e.stopPropagation();
+    dropdown.classList.toggle('open');
+  });
+  document.addEventListener('click', function() {
+    dropdown.classList.remove('open');
+  });
+
+  // Insert before hamburger
+  var hburg = navR.querySelector('.hburg');
+  if (hburg) navR.insertBefore(switcher, hburg);
+  else navR.appendChild(switcher);
+}
+
+function getLangLabel(code) {
+  var lang = LANG_OPTIONS.find(function(l) { return l.code === code; });
+  return lang ? lang.flag + ' ' + lang.native : '🌐 EN';
+}
+
+function selectLanguage(langCode) {
+  currentLang = langCode;
+  localStorage.setItem('sf_ui_lang', langCode);
+
+  // Update button label
+  var lbl = document.getElementById('langBtnLabel');
+  if (lbl) lbl.textContent = getLangLabel(langCode);
+
+  // Update active state
+  document.querySelectorAll('.lang-option').forEach(function(opt) {
+    opt.classList.toggle('active', opt.getAttribute('data-lang') === langCode);
+  });
+
+  // Also update AcqireAI chatbot language
+  if (typeof window.SF_LANG !== 'undefined') {
+    window.SF_LANG = langCode === 'ta' ? 'ta' : 'en';
+    localStorage.setItem('sf_lang', window.SF_LANG);
+    var badge = document.getElementById('acqLangBadge');
+    if (badge) badge.textContent = window.SF_LANG === 'ta' ? 'தமிழ்' : 'EN';
+  }
+
+  if (langCode === 'en') {
+    // Restore original English
+    restoreEnglish();
+  } else {
+    // Trigger Google Translate
+    triggerGoogleTranslate(langCode);
+  }
+}
+
+function triggerGoogleTranslate(langCode) {
+  // Wait for Google Translate to be ready
+  var attempts = 0;
+  var interval = setInterval(function() {
+    attempts++;
+    var select = document.querySelector('.goog-te-combo');
+    if (select) {
+      clearInterval(interval);
+      select.value = langCode;
+      select.dispatchEvent(new Event('change'));
+    } else if (attempts > 30) {
+      clearInterval(interval);
+      // Fallback: direct cookie method
+      document.cookie = 'googtrans=/en/' + langCode + '; path=/; domain=' + window.location.hostname;
+      document.cookie = 'googtrans=/en/' + langCode + '; path=/';
+      location.reload();
+    }
+  }, 200);
+}
+
+function restoreEnglish() {
+  // Clear Google Translate
+  document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=' + window.location.hostname;
+  document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/';
+  document.cookie = 'googtrans=/en/en; path=/; domain=' + window.location.hostname;
+  document.cookie = 'googtrans=/en/en; path=/';
+
+  var select = document.querySelector('.goog-te-combo');
+  if (select) {
+    select.value = 'en';
+    select.dispatchEvent(new Event('change'));
+  } else {
+    location.reload();
+  }
+}
+
+// Auto-apply saved language on page load
+document.addEventListener('DOMContentLoaded', function() {
+  // Build the switcher
+  var navR = document.querySelector('.nav-r');
+  if (navR) buildLangSwitcher(navR);
+
+  // Apply saved language after Google Translate loads
+  if (currentLang && currentLang !== 'en') {
+    setTimeout(function() {
+      triggerGoogleTranslate(currentLang);
+    }, 1500);
+  }
+
+  // Apply saved Google Translate cookie
+  var savedLang = localStorage.getItem('sf_ui_lang');
+  if (savedLang && savedLang !== 'en') {
+    var existingCookie = document.cookie.indexOf('googtrans');
+    if (existingCookie === -1) {
+      document.cookie = 'googtrans=/en/' + savedLang + '; path=/';
+    }
+  }
+});
+</script>
+</body>
+</html>
