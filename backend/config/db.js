@@ -1,13 +1,7 @@
-// backend/config/db.js
-// MySQL is NOT used in production — SmartFarm AI uses MongoDB + Gemini AI
-// This file is kept as a no-op stub so routes that import it don't crash
-
+// config/db.js — MySQL stub (not used, MongoDB only)
 const pool = {
-  query:         async () => [[], []],
-  execute:       async () => [[], []],
-  getConnection: async () => { throw new Error('MySQL not configured'); },
+  query:   async () => [[], []],
+  execute: async () => [[], []],
 };
-
-console.log('ℹ️  db.js: MySQL stub loaded — using MongoDB + AI fallbacks');
-
+console.log('db.js: MySQL stub - using MongoDB');
 module.exports = pool;
