@@ -368,7 +368,7 @@ body{top:0!important;}
   <div class="mod-hdr reveal">
     <div>
       <div class="se"><div class="sel"></div><span>Intelligence Modules</span></div>
-      <h2 class="st" style="margin-bottom:0;">Five tools.<br><em>One platform.</em></h2>
+      <h2 class="st" style="margin-bottom:0;">Seven tools.<br><em>One platform.</em></h2>
     </div>
     <div style="display:flex;flex-direction:column;align-items:flex-end;gap:14px;">
       <p class="ss" style="text-align:right;">Every module works together to give complete, real-time farm intelligence at your fingertips.</p>
@@ -448,6 +448,17 @@ body{top:0!important;}
           <div class="mcard-desc">Ask anything in Tamil or English — pest control, harvest dates, market prices, government schemes. Voice-powered.</div>
         </div>
         <div class="mcard-arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></div>
+
+      <a href="community.html" class="mcard">
+        <img class="mcard-img" src="https://images.unsplash.com/photo-1625246333195-f6fc0cdcd85b?w=600&q=80" alt="Farmer Community">
+        <div class="mcard-ov"></div><div class="mcard-ov2"></div>
+        <div class="mcard-body">
+          <div class="mcard-tag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>Community</div>
+          <div class="mcard-title">Farmer Community</div>
+          <div class="mcard-desc">Connect with farmers across India. Share problems, get AI-powered answers, discuss market prices and crop tips.</div>
+        </div>
+        <div class="mcard-arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></div>
+      </a>
       </a>
     </div>
   </div>
@@ -755,12 +766,7 @@ document.querySelectorAll('.si').forEach(el=>cObs.observe(el));
   document.addEventListener('sf:langchange',e=>{document.getElementById('acqLangBadge').textContent=e.detail.lang==='ta'?'தமிழ்':'EN';renderSugg();});
   function renderSugg(){const s=lang()==='ta'?SUGG_TA:SUGG_EN;document.getElementById('acqSuggestions').innerHTML=s.map(x=>`<span class="acq-sugg" onclick="acqSend('${x.replace(/'/g,"\\'")}')">${x}</span>`).join('');}
   function addMsg(text,role,typing=false){const el=document.createElement('div');el.className='acq-msg '+role;if(typing){el.id='acqTyping';el.innerHTML=`<div class="acq-avatar-sm">A</div><div class="acq-bubble"><div class="acq-typing"><span></span><span></span><span></span></div></div>`;}else{el.innerHTML=`<div class="acq-avatar-sm">${role==='bot'?'A':'👤'}</div><div class="acq-bubble">${text.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
-            .replace(/\[weather\.html\]/g,'<a href="weather.html" style="color:var(--g);font-weight:700;text-decoration:underline;text-underline-offset:2px;">→ Weather Module</a>')
-            .replace(/\[soil\.html\]/g,'<a href="soil.html" style="color:var(--g);font-weight:700;text-decoration:underline;text-underline-offset:2px;">→ Soil Analysis</a>')
-            .replace(/\[disease\.html\]/g,'<a href="disease.html" style="color:var(--g);font-weight:700;text-decoration:underline;text-underline-offset:2px;">→ Disease Detection</a>')
-            .replace(/\[market\.html\]/g,'<a href="market.html" style="color:var(--g);font-weight:700;text-decoration:underline;text-underline-offset:2px;">→ Market Prices</a>')
-            .replace(/\[harvest\.html\]/g,'<a href="harvest.html" style="color:var(--g);font-weight:700;text-decoration:underline;text-underline-offset:2px;">→ Harvest Predictor</a>')
-            .replace(/\[community\.html\]/g,'<a href="community.html" style="color:var(--g);font-weight:700;text-decoration:underline;text-underline-offset:2px;">→ Community</a>')
+            .replace(/\[(\w+\.html)\]/g,'<a href="/$1" style="color:var(--g);font-weight:700;text-decoration:underline;text-underline-offset:2px;" onclick="window.location.href=this.href">→ Open $1</a>')
             .replace(/\n\n/g,'<br><br>').replace(/\n/g,'<br>')}</div>`;}msgs.appendChild(el);msgs.scrollTop=msgs.scrollHeight;return el;}
   window.acqSend=async function(preset){const text=preset||inp.value.trim();if(!text)return;inp.value='';addMsg(text,'user');document.getElementById('acqSuggestions').innerHTML='';history.push({role:'user',content:text});const typEl=addMsg('','bot',true);const l=lang();const userCtx=window._SF_USER_CONTEXT||'';const sys=`${userCtx?userCtx+'\n\n':''}You are AcqireAI, an expert agricultural AI for SmartFarm AI — India's AI farming platform. ${l==='ta'?'Respond ENTIRELY in Tamil (தமிழ்). Simple Tamil a farmer understands.':'Respond in English.'} Specialize in: crop diseases (Tamil Nadu pesticide brands+doses), soil analysis, market prices, Indian govt schemes (PM-KISAN,PMFBY,KCC), irrigation. Be practical, warm, concise.`;try{const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,history:history.slice(-6),lang:l,farmerName:window.SF_FARMER_NAME||null})});const d=await r.json();const reply=d.reply||'Sorry, could not get a response.';history.push({role:'assistant',content:reply});typEl.remove();addMsg(reply,'bot');}catch(e){typEl.remove();addMsg(l==='ta'?'⚠️ இணைப்பில் சிக்கல். மீண்டும் முயற்சிக்கவும்.':'⚠️ Connection issue. Please try again.','bot');}renderSugg();};
   window.acqToggleVoice=function(){if(!('webkitSpeechRecognition' in window)&&!('SpeechRecognition' in window)){alert('Voice input needs Chrome browser.');return;}if(isListening){recognition?.stop();return;}const SR=window.SpeechRecognition||window.webkitSpeechRecognition;recognition=new SR();recognition.lang=lang()==='ta'?'ta-IN':'en-IN';recognition.continuous=false;recognition.interimResults=true;recognition.onstart=()=>{isListening=true;document.getElementById('acqMicBtn').classList.add('listening');inp.placeholder=lang()==='ta'?'🎙️ கேட்கிறேன்...':'🎙️ Listening...';};recognition.onresult=e=>{inp.value=Array.from(e.results).map(r=>r[0].transcript).join('');};recognition.onerror=()=>{isListening=false;document.getElementById('acqMicBtn').classList.remove('listening');inp.placeholder=lang()==='ta'?'பயிர், நோய், திட்டங்கள் பற்றி கேளுங்கள்...':'Ask about crops, diseases, schemes...';};recognition.onend=()=>{isListening=false;document.getElementById('acqMicBtn').classList.remove('listening');inp.placeholder=lang()==='ta'?'பயிர், நோய், திட்டங்கள் பற்றி கேளுங்கள்...':'Ask about crops, diseases, schemes...';if(inp.value.trim())acqSend();};recognition.start();};
