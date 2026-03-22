@@ -589,7 +589,7 @@ async function searchCommodity(){
       <div style="color:var(--txm);font-size:.875rem;">Searching Agmarknet live data…</div>
     </div>`;
     try {
-      const sr = await fetch('http://localhost:5000/api/market/search?q='+encodeURIComponent(q)+'&state=Tamil+Nadu');
+      const sr = await fetch('/api/market/search?q='+encodeURIComponent(q)+'&state=Tamil+Nadu');
       const sj = await sr.json();
       if(sj.success && sj.found && sj.data){
         const c   = sj.data;
@@ -769,7 +769,7 @@ async function refreshPrices(){
   showLoader('Fetching latest prices…');
   try{
     // GET /api/market/prices?state=Tamil Nadu
-    const res=await fetch('http://localhost:5000/api/market/prices?state='+encodeURIComponent(state));
+    const res=await fetch('/api/market/prices?state='+encodeURIComponent(state));
     const json=await res.json();
     hideLoader();
     if(!json.success){toast(json.message||'Market fetch failed','gold');return;}
@@ -898,7 +898,7 @@ async function loadTrend(cropName){
 
   try{
     const apiName = encodeURIComponent(baseName);
-    const res = await fetch('http://localhost:5000/api/market/trend/'+apiName);
+    const res = await fetch('/api/market/trend/'+apiName);
     const json = await res.json();
     if(json.success && json.trend && json.trend.length){
       // Replace last point with live price if we have it (most accurate)
@@ -1241,4 +1241,5 @@ document.addEventListener('DOMContentLoaded',function(){buildAuthNav();});
 </script>
 </body>
 </html>
+
 
