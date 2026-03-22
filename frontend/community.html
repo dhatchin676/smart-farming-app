@@ -1,0 +1,1533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>SmartFarm AI — Farmer Community</title>
+<link rel="manifest" href="/manifest.json">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<script src="js/smartfarm.js"></script>
+<style>
+:root{
+  --g:#3dba72;--g2:#2a8a52;--gd:rgba(61,186,114,.12);
+  --dk:#0a0e0a;--dk2:#111612;--dk3:#161d16;--dk4:#1c241c;
+  --tx:#e8ede5;--txm:#7a8c7a;--txd:#4a5c4a;
+  --bd:rgba(232,237,229,.08);--bd2:rgba(232,237,229,.14);
+  --cream:#f0ead8;--r:12px;--rl:18px;
+  --red:#f87171;--blue:#60a5fa;--gold:#c9a84c;--purple:#a78bfa;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--dk);color:var(--tx);font-family:'Outfit',sans-serif;min-height:100vh;}
+a{text-decoration:none;color:inherit;}
+input,textarea,select,button{font-family:'Outfit',sans-serif;}
+
+/* ── LAYOUT ──────────────────────────────────────────── */
+.comm-wrap{max-width:1260px;margin:0 auto;padding:78px 20px 100px;display:grid;grid-template-columns:240px 1fr 300px;gap:22px;}
+@media(max-width:1100px){.comm-wrap{grid-template-columns:0px 1fr 280px;}.comm-left-nav{display:none!important;}}
+@media(max-width:820px){.comm-wrap{grid-template-columns:1fr;}.comm-right{display:none!important;}}
+
+/* ── LEFT NAV ─────────────────────────────────────────── */
+.comm-left-nav{position:sticky;top:78px;height:fit-content;}
+.ln-section{margin-bottom:6px;}
+.ln-lbl{font-size:.63rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--txd);padding:6px 12px;margin-bottom:2px;}
+.ln-item{display:flex;align-items:center;gap:10px;padding:9px 13px;border-radius:10px;font-size:.83rem;font-weight:500;color:var(--txm);cursor:pointer;transition:all .18s;border:none;background:none;width:100%;text-align:left;}
+.ln-item:hover{background:var(--dk3);color:var(--tx);}
+.ln-item.active{background:var(--gd);color:var(--g);font-weight:600;}
+.ln-item svg{width:17px;height:17px;flex-shrink:0;}
+.ln-item .badge{margin-left:auto;background:var(--g);color:#0a0e0a;font-size:.6rem;font-weight:800;padding:2px 7px;border-radius:10px;}
+.ln-divider{height:1px;background:var(--bd);margin:10px 0;}
+.ln-create-btn{width:100%;padding:9px 14px;background:var(--g);color:#0a0e0a;border:none;border-radius:10px;font-weight:700;font-size:.82rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .2s;margin-bottom:12px;}
+.ln-create-btn:hover{background:var(--g2);transform:translateY(-1px);}
+
+/* ── FEED HEADER ──────────────────────────────────────── */
+.feed-title-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.feed-title{font-family:'Cormorant Garamond',serif;font-size:1.75rem;font-weight:700;color:var(--cream);}
+.online-pill{display:flex;align-items:center;gap:6px;background:var(--dk2);border:1px solid var(--bd);border-radius:20px;padding:5px 12px;font-size:.74rem;color:var(--txm);}
+.online-dot{width:7px;height:7px;border-radius:50%;background:var(--g);animation:pulse 1.6s infinite;}
+@keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(61,186,114,.4);}60%{opacity:.4;box-shadow:0 0 0 6px transparent;}}
+
+/* ── SORT / FILTER ────────────────────────────────────── */
+.feed-controls{display:flex;align-items:center;gap:8px;margin-bottom:16px;overflow-x:auto;scrollbar-width:none;}
+.feed-controls::-webkit-scrollbar{display:none;}
+.sort-btn{display:flex;align-items:center;gap:5px;padding:7px 14px;border-radius:20px;border:1px solid var(--bd);background:transparent;color:var(--txm);font-size:.77rem;font-weight:600;cursor:pointer;white-space:nowrap;transition:all .18s;}
+.sort-btn:hover{border-color:var(--g);color:var(--g);}
+.sort-btn.active{background:var(--gd);border-color:var(--g);color:var(--g);}
+.feed-sep{width:1px;height:22px;background:var(--bd);flex-shrink:0;}
+
+/* ── AI PULSE BANNER ──────────────────────────────────── */
+.ai-pulse-banner{background:linear-gradient(135deg,rgba(61,186,114,.1),rgba(61,186,114,.04));border:1px solid rgba(61,186,114,.2);border-radius:var(--r);padding:13px 18px;margin-bottom:16px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:all .2s;}
+.ai-pulse-banner:hover{border-color:rgba(61,186,114,.4);background:rgba(61,186,114,.12);}
+.ai-pulse-dot{width:10px;height:10px;border-radius:50%;background:var(--g);animation:pulse 1.4s infinite;flex-shrink:0;}
+.ai-pulse-text{flex:1;}
+.ai-pulse-title{font-size:.82rem;font-weight:700;color:var(--g);margin-bottom:2px;display:flex;align-items:center;gap:6px;}
+.ai-pulse-sub{font-size:.73rem;color:var(--txm);}
+.ai-pulse-badge{font-size:.66rem;font-weight:700;padding:3px 9px;border-radius:20px;background:rgba(61,186,114,.15);border:1px solid rgba(61,186,114,.3);color:var(--g);white-space:nowrap;}
+
+/* ── COMPOSER ──────────────────────────────────────────── */
+.composer{background:var(--dk2);border:1.5px solid var(--bd2);border-radius:var(--rl);padding:16px;margin-bottom:16px;transition:border-color .25s;}
+.composer:focus-within{border-color:rgba(61,186,114,.3);}
+.comp-row{display:flex;align-items:flex-start;gap:11px;}
+.uav{width:38px;height:38px;border-radius:50%;background:var(--g);color:#0a0e0a;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.8rem;flex-shrink:0;overflow:hidden;cursor:pointer;border:2px solid rgba(61,186,114,.3);transition:border-color .2s;}
+.uav:hover{border-color:var(--g);}
+.uav img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+.comp-body{flex:1;}
+.comp-ta{width:100%;background:transparent;border:none;color:var(--tx);font-family:'Outfit',sans-serif;font-size:.9rem;resize:none;outline:none;min-height:64px;line-height:1.65;padding:4px 0;}
+.comp-ta::placeholder{color:var(--txd);}
+.comp-attachments{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;}
+.comp-img-thumb{position:relative;width:72px;height:72px;border-radius:8px;overflow:hidden;border:1px solid var(--bd2);}
+.comp-img-thumb img{width:100%;height:100%;object-fit:cover;}
+.comp-img-rm{position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:50%;background:rgba(0,0,0,.7);border:none;color:#fff;font-size:.7rem;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+/* Hashtag chips in composer */
+.comp-hashtags{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px;}
+.htag-chip{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;background:rgba(61,186,114,.1);border:1px solid rgba(61,186,114,.2);color:var(--g);font-size:.74rem;font-weight:600;}
+.htag-chip button{background:none;border:none;cursor:pointer;color:var(--g);font-size:.7rem;line-height:1;padding:0;margin-left:2px;}
+.comp-divider{height:1px;background:var(--bd);margin:11px 0;}
+.comp-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;}
+.comp-tools{display:flex;gap:5px;align-items:center;}
+.tool-btn{display:flex;align-items:center;gap:4px;padding:6px 11px;border-radius:8px;border:1px solid transparent;background:transparent;color:var(--txm);font-size:.75rem;cursor:pointer;transition:all .18s;}
+.tool-btn:hover{background:var(--dk3);color:var(--tx);border-color:var(--bd);}
+.tool-btn svg{width:14px;height:14px;}
+.cat-sel{padding:6px 10px;border-radius:8px;border:1px solid var(--bd);background:var(--dk3);color:var(--txm);font-size:.76rem;outline:none;cursor:pointer;}
+.cat-sel option{background:#111612;color:var(--tx);}
+.post-btn{padding:9px 22px;background:var(--g);color:#0a0e0a;border:none;border-radius:10px;font-size:.85rem;font-weight:700;cursor:pointer;transition:all .2s;}
+.post-btn:hover{background:var(--g2);transform:translateY(-1px);}
+.post-btn:disabled{opacity:.45;cursor:not-allowed;transform:none;}
+.login-prompt{background:var(--dk2);border:1.5px dashed rgba(61,186,114,.2);border-radius:var(--rl);padding:28px;text-align:center;margin-bottom:16px;}
+.login-prompt h3{font-family:'Cormorant Garamond',serif;font-size:1.35rem;color:var(--cream);margin-bottom:7px;}
+.login-prompt p{font-size:.83rem;color:var(--txm);margin-bottom:17px;}
+.lp-g{display:inline-flex;align-items:center;padding:10px 22px;background:var(--g);color:#0a0e0a;border-radius:11px;font-weight:700;font-size:.85rem;margin-right:8px;transition:all .2s;}
+.lp-g:hover{background:var(--g2);}
+.lp-o{display:inline-flex;align-items:center;padding:10px 22px;background:transparent;border:1px solid rgba(61,186,114,.3);color:var(--g);border-radius:11px;font-size:.85rem;transition:all .2s;}
+.lp-o:hover{background:var(--gd);}
+
+/* ── POST CARD ─────────────────────────────────────────── */
+.post-card{background:var(--dk2);border:1px solid var(--bd);border-radius:var(--rl);margin-bottom:12px;overflow:hidden;transition:border-color .2s;}
+.post-card:hover{border-color:rgba(61,186,114,.18);}
+.post-inner{display:flex;}
+.vote-strip{display:flex;flex-direction:column;align-items:center;gap:3px;padding:14px 10px;background:rgba(0,0,0,.15);min-width:48px;border-right:1px solid var(--bd);}
+.vbtn{width:26px;height:26px;border-radius:6px;border:none;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--txm);transition:all .18s;}
+.vbtn:hover{background:var(--gd);color:var(--g);}
+.vbtn.up{background:var(--gd);color:var(--g);}
+.vbtn.dn{color:var(--red);}
+.vcnt{font-size:.8rem;font-weight:700;color:var(--tx);}
+.post-body{flex:1;padding:14px 17px 11px;min-width:0;}
+.post-hd{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;}
+.pav{width:30px;height:30px;border-radius:50%;background:var(--g);color:#0a0e0a;display:flex;align-items:center;justify-content:center;font-size:.68rem;font-weight:700;flex-shrink:0;overflow:hidden;cursor:pointer;}
+.pav:hover{box-shadow:0 0 0 2px var(--g);}
+.pav img{width:100%;height:100%;object-fit:cover;}
+.pauthor-btn{background:none;border:none;cursor:pointer;display:flex;flex-direction:column;gap:1px;text-align:left;}
+.pauthor{font-size:.83rem;font-weight:600;color:var(--tx);transition:color .18s;}
+.pauthor-btn:hover .pauthor{color:var(--g);}
+.ploc{font-size:.67rem;color:var(--txm);}
+.ptime{font-size:.67rem;color:var(--txd);margin-left:auto;}
+.pcat-tag{padding:3px 10px;border-radius:20px;font-size:.62rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;}
+.pcat-general{background:rgba(91,164,232,.1);color:var(--blue);}
+.pcat-disease{background:rgba(248,113,113,.1);color:var(--red);}
+.pcat-soil{background:rgba(201,168,76,.1);color:var(--gold);}
+.pcat-market{background:var(--gd);color:var(--g);}
+.pcat-harvest{background:rgba(167,139,250,.1);color:var(--purple);}
+.pcat-weather{background:rgba(96,165,250,.1);color:var(--blue);}
+.pcat-scheme{background:rgba(52,211,153,.1);color:#34d399;}
+.post-txt{font-size:.86rem;color:var(--tx);line-height:1.72;margin-bottom:10px;white-space:pre-line;}
+/* Hashtags in post text */
+.htag{color:var(--g);font-weight:600;cursor:pointer;}
+.htag:hover{text-decoration:underline;}
+.mention{color:var(--g);font-weight:600;cursor:pointer;}
+.post-img-wrap{margin-bottom:10px;border-radius:10px;overflow:hidden;cursor:pointer;position:relative;}
+.post-img{width:100%;max-height:380px;object-fit:cover;display:block;transition:transform .3s;}
+.post-img-wrap:hover .post-img{transform:scale(1.01);}
+.ai-ans-box{background:linear-gradient(135deg,rgba(61,186,114,.07),rgba(61,186,114,.03));border:1px solid rgba(61,186,114,.18);border-radius:10px;padding:12px 15px;margin-bottom:10px;}
+.ai-ans-lbl{font-size:.62rem;font-weight:700;color:var(--g);letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px;display:flex;align-items:center;gap:5px;}
+.ai-ans-txt{font-size:.82rem;color:var(--tx);line-height:1.65;}
+.ai-ans-txt a{color:var(--g);font-weight:700;}
+
+/* Post actions */
+.post-actions{display:flex;align-items:center;gap:2px;padding-top:9px;border-top:1px solid var(--bd);}
+.pact{display:flex;align-items:center;gap:5px;background:none;border:none;cursor:pointer;color:var(--txm);font-size:.76rem;padding:6px 9px;border-radius:8px;transition:all .18s;}
+.pact:hover{color:var(--g);background:var(--gd);}
+.pact.liked{color:var(--red);}
+.pact svg{width:13px;height:13px;}
+.pact-cnt{font-weight:600;}
+.pact-sep{width:1px;height:16px;background:var(--bd);margin:0 2px;}
+.del-btn{background:none;border:none;cursor:pointer;color:var(--txd);display:flex;align-items:center;padding:2px;transition:color .18s;margin-left:auto;}
+.del-btn:hover{color:var(--red);}
+.trending-tag{background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.2);color:var(--red);font-size:.62rem;font-weight:700;padding:2px 8px;border-radius:20px;}
+
+/* ── COMMENTS ──────────────────────────────────────────── */
+.comments-wrap{margin-top:11px;padding-top:11px;border-top:1px solid var(--bd);display:none;}
+.cmt{display:flex;gap:9px;margin-bottom:9px;}
+.cbody{flex:1;background:var(--dk3);border-radius:10px;padding:9px 12px;}
+.cmt-hd{display:flex;align-items:center;gap:7px;margin-bottom:4px;}
+.cauthor-btn{background:none;border:none;cursor:pointer;font-size:.75rem;font-weight:600;color:var(--g);transition:opacity .18s;}
+.cauthor-btn:hover{opacity:.75;}
+.ctime{font-size:.65rem;color:var(--txd);margin-left:auto;}
+.ctxt{font-size:.83rem;color:var(--tx);line-height:1.6;}
+.cmt-actions{display:flex;align-items:center;gap:8px;margin-top:5px;}
+.cact{background:none;border:none;cursor:pointer;font-size:.7rem;color:var(--txm);display:flex;align-items:center;gap:3px;transition:color .18s;padding:0;}
+.cact:hover{color:var(--g);}
+.cmt-input-wrap{margin-top:9px;}
+.cmt-inp-row{display:flex;gap:8px;align-items:flex-start;}
+.cinp{flex:1;padding:9px 13px;background:var(--dk3);border:1.5px solid var(--bd);border-radius:10px;color:var(--tx);font-size:.83rem;outline:none;transition:border-color .22s;resize:none;min-height:40px;line-height:1.5;}
+.cinp:focus{border-color:var(--g);}
+.cinp::placeholder{color:var(--txd);}
+.csend{padding:9px 16px;background:var(--g);color:#0a0e0a;border:none;border-radius:10px;font-weight:700;cursor:pointer;font-size:.8rem;flex-shrink:0;transition:all .2s;}
+.csend:hover{background:var(--g2);}
+.mention-hint{font-size:.69rem;color:var(--txm);margin-top:4px;padding-left:2px;}
+.mention-hint span{color:var(--g);font-weight:600;}
+.at-acqire-hint{display:inline-flex;align-items:center;gap:5px;background:var(--gd);border-radius:6px;padding:2px 8px;font-size:.7rem;color:var(--g);font-weight:600;}
+
+/* ── PROFILE MODAL ─────────────────────────────────────── */
+.overlay{position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,.8);backdrop-filter:blur(8px);opacity:0;pointer-events:none;transition:opacity .3s;display:flex;align-items:center;justify-content:center;}
+.overlay.open{opacity:1;pointer-events:all;}
+.modal-box{background:var(--dk2);border:1px solid rgba(61,186,114,.2);border-radius:22px;width:520px;max-width:95vw;max-height:92vh;overflow-y:auto;box-shadow:0 40px 100px rgba(0,0,0,.7);transform:translateY(18px) scale(.97);transition:transform .3s;position:relative;}
+.overlay.open .modal-box{transform:none;}
+.modal-close{position:absolute;top:13px;right:14px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:8px;width:28px;height:28px;cursor:pointer;color:rgba(255,255,255,.7);font-size:.9rem;display:flex;align-items:center;justify-content:center;z-index:10;transition:all .18s;}
+.modal-close:hover{color:#fff;background:rgba(255,255,255,.16);}
+
+/* ── BANNER: Profile background + avatar ──────────────── */
+.profile-banner{height:140px;border-radius:22px 22px 0 0;position:relative;overflow:hidden;background:linear-gradient(135deg,#0d2b18 0%,#1a3d20 50%,#0a2015 100%);}
+.profile-banner-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.55;}
+.banner-edit-btn{position:absolute;top:10px;left:10px;display:flex;align-items:center;gap:5px;padding:5px 10px;background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.2);border-radius:8px;color:rgba(255,255,255,.8);font-size:.7rem;cursor:pointer;transition:all .2s;backdrop-filter:blur(4px);}
+.banner-edit-btn:hover{background:rgba(0,0,0,.7);color:#fff;}
+.profile-av-wrap{position:absolute;bottom:-44px;left:22px;width:88px;height:88px;border-radius:50%;border:4px solid var(--dk2);background:var(--g);color:#0a0e0a;display:flex;align-items:center;justify-content:center;font-size:1.9rem;font-weight:700;overflow:hidden;cursor:pointer;transition:box-shadow .2s;}
+.profile-av-wrap:hover{box-shadow:0 0 0 3px var(--g);}
+.profile-av-wrap img{width:100%;height:100%;object-fit:cover;}
+.pav-hint{position:absolute;inset:0;background:rgba(0,0,0,.55);border-radius:50%;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .2s;}
+.profile-av-wrap:hover .pav-hint{opacity:1;}
+.profile-content{padding:56px 24px 24px;}
+.pname-row{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:4px;}
+.pname{font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-weight:700;color:var(--cream);}
+.edit-profile-btn{display:flex;align-items:center;gap:5px;padding:7px 14px;border:1px solid var(--bd2);border-radius:9px;background:transparent;color:var(--txm);font-size:.77rem;cursor:pointer;transition:all .18s;}
+.edit-profile-btn:hover{border-color:var(--g);color:var(--g);}
+.ploc2{font-size:.79rem;color:var(--txm);margin-bottom:12px;display:flex;align-items:center;gap:5px;}
+.pbio-txt{font-size:.84rem;color:var(--txm);line-height:1.65;margin-bottom:14px;font-style:italic;}
+.profile-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:16px;}
+.pstat{background:var(--dk3);border-radius:11px;padding:12px;text-align:center;border:1px solid var(--bd);}
+.pstat-n{font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:700;color:var(--g);}
+.pstat-l{font-size:.6rem;color:var(--txm);text-transform:uppercase;letter-spacing:.07em;margin-top:2px;}
+.profile-section-lbl{font-size:.68rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--txd);margin-bottom:7px;}
+.crop-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;}
+.crop-chip{padding:4px 11px;border-radius:20px;background:var(--gd);border:1px solid rgba(61,186,114,.2);color:var(--g);font-size:.76rem;font-weight:600;display:flex;align-items:center;gap:4px;}
+.social-links{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;}
+.slink{display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;background:var(--dk3);border:1px solid var(--bd);font-size:.78rem;color:var(--txm);transition:all .18s;}
+.slink:hover{border-color:var(--bd2);color:var(--tx);}
+
+/* Edit form */
+.edit-form{display:none;}
+.edit-form.visible{display:block;}
+.ef-label{font-size:.72rem;font-weight:600;color:var(--txm);margin-bottom:5px;display:block;}
+.ef-input{width:100%;padding:9px 12px;background:var(--dk3);border:1.5px solid var(--bd);border-radius:10px;color:var(--tx);font-size:.86rem;outline:none;transition:border-color .22s;margin-bottom:12px;}
+.ef-input:focus{border-color:var(--g);}
+.ef-input::placeholder{color:var(--txd);}
+.ef-ta{width:100%;padding:9px 12px;background:var(--dk3);border:1.5px solid var(--bd);border-radius:10px;color:var(--tx);font-size:.86rem;outline:none;resize:vertical;min-height:70px;line-height:1.55;transition:border-color .22s;margin-bottom:12px;}
+.ef-ta:focus{border-color:var(--g);}
+.ef-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.save-btn{width:100%;padding:12px;background:var(--g);color:#0a0e0a;border:none;border-radius:12px;font-weight:700;font-size:.88rem;cursor:pointer;transition:opacity .2s;margin-top:4px;}
+.save-btn:hover{opacity:.88;}
+.cancel-edit-btn{width:100%;padding:11px;background:transparent;border:1px solid var(--bd);color:var(--txm);border-radius:12px;font-size:.88rem;cursor:pointer;margin-top:6px;transition:all .18s;}
+.cancel-edit-btn:hover{border-color:var(--bd2);color:var(--tx);}
+
+/* ── RIGHT SIDEBAR ─────────────────────────────────────── */
+.comm-right{position:sticky;top:78px;height:fit-content;display:flex;flex-direction:column;gap:14px;}
+.sc{background:var(--dk2);border:1px solid var(--bd);border-radius:var(--rl);overflow:hidden;}
+.sc-hd{padding:12px 17px;background:linear-gradient(135deg,#0d2b18,#1a3d20);font-size:.7rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--g);display:flex;align-items:center;gap:6px;}
+.sc-bd{padding:14px 17px;}
+.sc-stat{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--bd);font-size:.81rem;}
+.sc-stat:last-child{border:none;}
+.sc-stat span{color:var(--txm);}
+.sc-stat strong{color:var(--g);}
+.mlink{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:9px;background:var(--dk3);border:1px solid var(--bd);font-size:.8rem;font-weight:500;margin-bottom:7px;transition:all .2s;color:var(--tx);}
+.mlink:hover{border-color:var(--g);color:var(--g);transform:translateX(3px);}
+.mlink svg{width:14px;height:14px;color:var(--g);flex-shrink:0;}
+.mlink:last-child{margin-bottom:0;}
+
+/* Top farmers */
+.tf-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--bd);}
+.tf-item:last-child{border:none;}
+.tf-rank{font-size:.7rem;font-weight:700;color:var(--txd);width:18px;text-align:center;}
+.tf-av{width:30px;height:30px;border-radius:50%;background:var(--g);color:#0a0e0a;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;overflow:hidden;cursor:pointer;flex-shrink:0;}
+.tf-av img{width:100%;height:100%;object-fit:cover;}
+.tf-name{font-size:.8rem;font-weight:600;color:var(--tx);cursor:pointer;transition:color .18s;}
+.tf-name:hover{color:var(--g);}
+.tf-pts{font-size:.7rem;color:var(--g);font-weight:700;margin-left:auto;}
+
+/* AI community pulse */
+.ai-comm-pulse{background:linear-gradient(135deg,rgba(61,186,114,.08),rgba(61,186,114,.03));border:1px solid rgba(61,186,114,.18);border-radius:var(--rl);padding:15px 17px;}
+.acp-title{font-size:.7rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--g);margin-bottom:10px;display:flex;align-items:center;gap:7px;}
+.acp-item{display:flex;align-items:flex-start;gap:8px;padding:7px 0;border-bottom:1px solid rgba(61,186,114,.08);}
+.acp-item:last-child{border:none;}
+.acp-icon{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.95rem;flex-shrink:0;color:var(--g);}
+.acp-txt{font-size:.76rem;color:var(--tx);line-height:1.5;}
+.acp-sub{font-size:.67rem;color:var(--txm);margin-top:2px;}
+
+/* ── DM ────────────────────────────────────────────────── */
+.dm-overlay{position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,.8);backdrop-filter:blur(8px);opacity:0;pointer-events:none;transition:opacity .3s;display:flex;align-items:flex-end;justify-content:flex-end;padding:20px;}
+.dm-overlay.open{opacity:1;pointer-events:all;}
+.dm-box{background:var(--dk2);border:1px solid var(--bd2);border-radius:20px;width:360px;height:520px;display:flex;flex-direction:column;box-shadow:0 32px 80px rgba(0,0,0,.6);transform:translateY(20px);transition:transform .3s;}
+.dm-overlay.open .dm-box{transform:none;}
+.dm-hdr{padding:14px 18px;border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.dm-av{width:36px;height:36px;border-radius:50%;background:var(--g);color:#0a0e0a;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.78rem;overflow:hidden;flex-shrink:0;}
+.dm-av img{width:100%;height:100%;object-fit:cover;}
+.dm-name{font-weight:600;font-size:.88rem;color:var(--tx);}
+.dm-online{font-size:.68rem;color:var(--g);display:flex;align-items:center;gap:4px;}
+.dm-online::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--g);}
+.dm-msgs{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:8px;scrollbar-width:thin;}
+.dm-msg{display:flex;gap:7px;align-items:flex-end;}
+.dm-msg.mine{flex-direction:row-reverse;}
+.dm-bub{max-width:75%;padding:9px 12px;border-radius:14px;font-size:.82rem;line-height:1.55;color:var(--tx);}
+.dm-msg.other .dm-bub{background:var(--dk3);border:1px solid var(--bd);border-bottom-left-radius:4px;}
+.dm-msg.mine .dm-bub{background:var(--gd);border:1px solid rgba(61,186,114,.22);border-bottom-right-radius:4px;}
+.dm-ts{font-size:.6rem;color:var(--txd);margin-top:2px;}
+.dm-inp-row{padding:12px 14px;border-top:1px solid var(--bd);display:flex;gap:7px;align-items:center;flex-shrink:0;}
+.dm-inp{flex:1;padding:8px 12px;background:var(--dk3);border:1.5px solid var(--bd);border-radius:20px;color:var(--tx);font-size:.83rem;outline:none;transition:border-color .22s;}
+.dm-inp:focus{border-color:var(--g);}
+.dm-inp::placeholder{color:var(--txd);}
+.dm-send{width:34px;height:34px;border-radius:50%;background:var(--g);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s;}
+.dm-send:hover{background:var(--g2);}
+
+/* ── IMAGE MODAL ───────────────────────────────────────── */
+.img-modal{position:fixed;inset:0;z-index:5000;background:rgba(0,0,0,.92);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s;cursor:pointer;}
+.img-modal.open{opacity:1;pointer-events:all;}
+.img-modal img{max-width:92vw;max-height:90vh;border-radius:12px;object-fit:contain;}
+
+/* ── TOAST ─────────────────────────────────────────────── */
+.sf-toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);z-index:9999;background:var(--dk2);border:1px solid rgba(61,186,114,.3);border-radius:12px;padding:10px 20px;font-size:.83rem;color:var(--tx);box-shadow:0 8px 24px rgba(0,0,0,.4);transition:opacity .3s,transform .3s;pointer-events:none;white-space:nowrap;display:flex;align-items:center;gap:8px;}
+.sf-toast.hidden{opacity:0;transform:translateX(-50%) translateY(10px);}
+.sf-toast.err{border-color:rgba(248,113,113,.4);}
+
+/* ── MISC ──────────────────────────────────────────────── */
+.empty{text-align:center;padding:55px 20px;color:var(--txm);}
+.empty-icon{font-size:2.5rem;margin-bottom:10px;}
+.spinner{width:28px;height:28px;border-radius:50%;border:2.5px solid var(--bd);border-top-color:var(--g);animation:spin .7s linear infinite;margin:0 auto;}
+@keyframes spin{to{transform:rotate(360deg);}}
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:3px;}
+.verified-badge{color:var(--blue);font-size:.8rem;margin-left:2px;}
+.share-wrap{position:relative;display:inline-flex;}
+.share-menu{position:absolute;bottom:calc(100%+6px);left:0;background:var(--dk2);border:1px solid var(--bd2);border-radius:12px;padding:6px;min-width:140px;z-index:100;display:none;box-shadow:0 12px 32px rgba(0,0,0,.4);}
+.share-menu.open{display:block;}
+.share-opt{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:8px;font-size:.78rem;color:var(--txm);cursor:pointer;transition:all .15s;}
+.share-opt:hover{background:var(--dk3);color:var(--tx);}
+@media(max-width:600px){.comm-wrap{padding:70px 12px 80px;}.post-body{padding:11px 12px 10px;}.vote-strip{min-width:38px;padding:12px 6px;}}
+</style>
+</head>
+<body>
+<div class="cursor" id="cur"></div>
+<div class="cursor-ring" id="curRing"></div>
+
+<!-- NAV -->
+<nav class="nav scrolled" id="nav">
+  <a href="index.html" class="nav-logo">
+    <svg viewBox="0 0 36 36" fill="none" width="32" height="32"><circle cx="18" cy="18" r="17" stroke="rgba(61,186,114,0.22)" stroke-width="1"/><path d="M18 7C13 11 9 17 10 23C12 27 16 29 18 29C20 29 24 27 26 23C27 17 23 11 18 7Z" fill="rgba(61,186,114,0.12)" stroke="#3dba72" stroke-width="1.2"/><line x1="18" y1="29" x2="18" y2="34" stroke="#3dba72" stroke-width="1.5" stroke-linecap="round"/></svg>
+    <span class="nav-logo-t">SmartFarm <span>AI</span></span>
+  </a>
+  <ul class="nav-links" id="navLinks">
+    <li><a href="index.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>Home</a></li>
+    <li><a href="weather.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 10h-1.26A8 8 0 109 20h9a5 5 0 000-10z"/></svg>Weather</a></li>
+    <li><a href="soil.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>Soil</a></li>
+    <li><a href="disease.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Disease</a></li>
+    <li><a href="market.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Market</a></li>
+    <li><a href="harvest.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Harvest</a></li>
+    <li><a href="community.html" class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>Community</a></li>
+  </ul>
+  <div class="nav-r">
+    <div class="hburg" id="hburg" onclick="document.getElementById('navLinks').classList.toggle('mob-open')"><span></span><span></span><span></span></div>
+  </div>
+</nav>
+
+<!-- ── MY PROFILE MODAL ──────────────────────────────────── -->
+<div class="overlay" id="profileModal" onclick="if(event.target===this)closeProfile()">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeProfile()">✕</button>
+
+    <!-- Banner with background image support -->
+    <div class="profile-banner" id="profileBanner">
+      <img class="profile-banner-img" id="profileBannerImg" src="" alt="" style="display:none;">
+      <!-- Banner edit button -->
+      <button class="banner-edit-btn" onclick="document.getElementById('bannerFile').click()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="11" height="11"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        Change Banner
+      </button>
+      <input type="file" id="bannerFile" accept="image/*" style="display:none" onchange="uploadBanner(this)">
+
+      <!-- Avatar -->
+      <div class="profile-av-wrap" id="profileAv" onclick="document.getElementById('avFile').click()">
+        <span id="profileAvText">?</span>
+        <div class="pav-hint">
+          <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" width="18" height="18"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        </div>
+      </div>
+      <input type="file" id="avFile" accept="image/*" style="display:none" onchange="uploadAvatar(this)">
+    </div>
+
+    <div class="profile-content">
+      <div class="pname-row">
+        <div class="pname" id="pName">—</div>
+        <button class="edit-profile-btn" id="editToggleBtn" onclick="toggleEditMode()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          Edit Profile
+        </button>
+      </div>
+      <div class="ploc2" id="pLoc2">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        <span id="pLocText">—</span>
+      </div>
+      <div class="pbio-txt" id="pBioView">No bio yet.</div>
+      <div class="profile-stats">
+        <div class="pstat"><div class="pstat-n" id="pPostCount">0</div><div class="pstat-l">Posts</div></div>
+        <div class="pstat"><div class="pstat-n" id="pLikeCount">0</div><div class="pstat-l">Likes</div></div>
+        <div class="pstat"><div class="pstat-n" id="pCropCount">0</div><div class="pstat-l">Crops</div></div>
+      </div>
+      <div class="profile-section-lbl">Crops Growing</div>
+      <div class="crop-chips" id="pCropChips"></div>
+      <div class="profile-section-lbl">Social Links</div>
+      <div class="social-links" id="pSocialLinks"></div>
+
+      <!-- Edit Form -->
+      <div class="edit-form" id="editForm">
+        <div class="profile-section-lbl" style="margin-top:4px;">Edit Your Profile</div>
+        <label class="ef-label">Display Name</label>
+        <input class="ef-input" id="efName" placeholder="Your full name">
+        <label class="ef-label">Bio</label>
+        <textarea class="ef-ta" id="efBio" placeholder="Tell other farmers about yourself and your farm…"></textarea>
+        <div class="ef-row">
+          <div><label class="ef-label">Village / Town</label><input class="ef-input" id="efVillage" placeholder="e.g. Erode"></div>
+          <div><label class="ef-label">State</label><input class="ef-input" id="efState" placeholder="e.g. Tamil Nadu"></div>
+        </div>
+        <label class="ef-label">Instagram Username</label>
+        <input class="ef-input" id="efInsta" placeholder="@yourhandle">
+        <label class="ef-label">WhatsApp / Phone</label>
+        <input class="ef-input" id="efWa" placeholder="+91 9876543210">
+        <label class="ef-label">Website / YouTube</label>
+        <input class="ef-input" id="efLink" placeholder="https://…">
+        <button class="save-btn" onclick="saveProfile()">Save Changes</button>
+        <button class="cancel-edit-btn" onclick="toggleEditMode()">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── OTHER USER PROFILE ──────────────────────────────── -->
+<div class="overlay" id="userProfileModal" onclick="if(event.target===this)closeUserProfile()">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeUserProfile()">✕</button>
+    <div class="profile-banner">
+      <img class="profile-banner-img" id="uvBannerImg" src="" alt="" style="display:none;">
+      <div class="profile-av-wrap" id="uvAv" style="cursor:default;"></div>
+    </div>
+    <div class="profile-content">
+      <div class="pname-row">
+        <div class="pname" id="uvName">—</div>
+        <button class="edit-profile-btn" id="uvDmBtn" onclick="openDMFromProfile()" style="gap:5px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+          Message
+        </button>
+      </div>
+      <div class="ploc2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg><span id="uvLoc">—</span></div>
+      <div class="pbio-txt" id="uvBio">No bio yet.</div>
+      <div class="profile-stats">
+        <div class="pstat"><div class="pstat-n" id="uvPosts">—</div><div class="pstat-l">Posts</div></div>
+        <div class="pstat"><div class="pstat-n" id="uvLikes">—</div><div class="pstat-l">Likes</div></div>
+        <div class="pstat"><div class="pstat-n" id="uvCrops">—</div><div class="pstat-l">Crops</div></div>
+      </div>
+      <div class="profile-section-lbl">Crops</div>
+      <div class="crop-chips" id="uvCrops2"></div>
+      <div class="social-links" id="uvSocialLinks"></div>
+      <div style="margin-top:14px;"><div class="profile-section-lbl">Recent Posts</div><div id="uvPosts2" style="margin-top:4px;"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── DM PANEL ────────────────────────────────────────── -->
+<div class="dm-overlay" id="dmOverlay" onclick="if(event.target===this)closeDM()">
+  <div class="dm-box">
+    <div class="dm-hdr">
+      <div class="dm-av" id="dmAv">?</div>
+      <div><div class="dm-name" id="dmName">Farmer</div><div class="dm-online">Online</div></div>
+      <button onclick="closeDM()" style="background:none;border:none;cursor:pointer;color:var(--txm);font-size:1rem;margin-left:auto;padding:4px;">✕</button>
+    </div>
+    <div class="dm-msgs" id="dmMsgs"></div>
+    <div class="dm-inp-row">
+      <input class="dm-inp" id="dmInp" placeholder="Type a message…" onkeydown="if(event.key==='Enter')sendDM()">
+      <button class="dm-send" onclick="sendDM()"><svg viewBox="0 0 24 24" fill="none" stroke="#0a0e0a" stroke-width="2.5" width="14" height="14"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
+    </div>
+  </div>
+</div>
+
+<!-- IMAGE EXPAND -->
+<div class="img-modal" id="imgModal" onclick="this.classList.remove('open')"><img id="imgModalSrc" src="" alt=""></div>
+
+<!-- TOAST -->
+<div class="sf-toast hidden" id="sfToast"></div>
+
+<!-- AI INSIGHT MODAL -->
+<div class="overlay" id="aiInsightModal" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="modal-box" style="max-width:580px;">
+    <button class="modal-close" onclick="document.getElementById('aiInsightModal').classList.remove('open')">✕</button>
+    <div style="padding:24px;">
+      <div style="font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--g);margin-bottom:6px;">AcqireAI · Community Intelligence</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-weight:700;color:var(--cream);margin-bottom:16px;">What Farmers Are Saying Today</div>
+      <div id="aiInsightContent" style="font-size:.88rem;color:var(--tx);line-height:1.75;"><div class="spinner"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── MAIN LAYOUT ─────────────────────────────────────── -->
+<div class="comm-wrap">
+
+  <!-- LEFT NAV -->
+  <div class="comm-left-nav">
+    <button class="ln-create-btn" onclick="focusComposer()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Create Post
+    </button>
+    <div class="ln-section">
+      <div class="ln-lbl">Feed</div>
+      <button class="ln-item active" id="lnAll" onclick="filterFeed('all',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>Home Feed <span class="badge" id="lnBadge">New</span></button>
+      <button class="ln-item" onclick="filterFeed('hot',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2c0 0-4.5 5-4.5 9.5a4.5 4.5 0 009 0C16.5 7 12 2 12 2z"/></svg>Trending</button>
+      <button class="ln-item" onclick="filterFeed('market',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Market Talk</button>
+      <button class="ln-item" onclick="filterFeed('disease',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Disease Help</button>
+    </div>
+    <div class="ln-divider"></div>
+    <div class="ln-section">
+      <div class="ln-lbl">Categories</div>
+      <button class="ln-item" onclick="filterFeed('soil',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><circle cx="12" cy="12" r="10"/></svg>Soil</button>
+      <button class="ln-item" onclick="filterFeed('harvest',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Harvest</button>
+      <button class="ln-item" onclick="filterFeed('weather',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M18 10h-1.26A8 8 0 109 20h9a5 5 0 000-10z"/></svg>Weather</button>
+      <button class="ln-item" onclick="filterFeed('scheme',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Schemes</button>
+      <button class="ln-item" onclick="filterFeed('general',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>General</button>
+    </div>
+    <div class="ln-divider"></div>
+    <div class="ln-section">
+      <div class="ln-lbl">You</div>
+      <button class="ln-item" onclick="openProfile()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>My Profile</button>
+      <button class="ln-item" onclick="openDM(null)" id="inboxBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>Messages <span class="badge" id="msgBadge" style="display:none">!</span></button>
+    </div>
+  </div>
+
+  <!-- MAIN FEED -->
+  <div class="comm-feed">
+    <div class="feed-header">
+      <div class="feed-title-row">
+        <div class="feed-title">Farmer Community</div>
+        <div class="online-pill"><span class="online-dot"></span><span id="onlineCount">—</span> online</div>
+      </div>
+      <div class="ai-pulse-banner" onclick="showAICommInsight()">
+        <div class="ai-pulse-dot"></div>
+        <div class="ai-pulse-text">
+          <div class="ai-pulse-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/></svg> AcqireAI Community Pulse</div>
+          <div class="ai-pulse-sub" id="aiPulseSub">Analysing what farmers are talking about today…</div>
+        </div>
+        <div class="ai-pulse-badge">Ask AI</div>
+      </div>
+    </div>
+
+    <div class="feed-controls">
+      <button class="sort-btn active" id="sortHot" onclick="setSortMode('hot',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M12 2c0 0-4.5 5-4.5 9.5a4.5 4.5 0 009 0C16.5 7 12 2 12 2z"/></svg>Hot</button>
+      <button class="sort-btn" id="sortNew" onclick="setSortMode('new',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>New</button>
+      <button class="sort-btn" id="sortTop" onclick="setSortMode('top',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><polyline points="18 15 12 9 6 15"/></svg>Top</button>
+      <div class="feed-sep"></div>
+      <button class="sort-btn" onclick="filterFeed('market',null)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg> Market</button>
+      <button class="sort-btn" onclick="filterFeed('disease',null)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Disease</button>
+      <button class="sort-btn" onclick="filterFeed('soil',null)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><circle cx="12" cy="12" r="10"/></svg> Soil</button>
+      <button class="sort-btn" onclick="filterFeed('harvest',null)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg> Harvest</button>
+      <button class="sort-btn" onclick="filterFeed('scheme',null)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> Schemes</button>
+    </div>
+
+    <div id="composerBox"></div>
+    <div id="feedBox"><div class="empty"><div class="spinner"></div><p style="margin-top:12px;">Loading posts…</p></div></div>
+  </div>
+
+  <!-- RIGHT SIDEBAR -->
+  <div class="comm-right">
+    <div class="ai-comm-pulse">
+      <div class="acp-title"><span style="width:8px;height:8px;border-radius:50%;background:var(--g);display:inline-block;animation:pulse 1.6s infinite;"></span>AI Community Analysis</div>
+      <div id="aiPulseItems"><div class="acp-item"><div class="acp-icon" style="background:var(--gd);"><svg viewBox="0 0 24 24" fill="none" stroke="#3dba72" stroke-width="2" width="15" height="15"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div><div><div class="acp-txt">Loading insights…</div></div></div></div>
+    </div>
+    <div class="sc">
+      <div class="sc-hd"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg> Community</div>
+      <div class="sc-bd">
+        <div class="sc-stat"><span>Members</span><strong id="memberCount">Loading…</strong></div>
+        <div class="sc-stat"><span>Online Now</span><strong id="onlineNow">—</strong></div>
+        <div class="sc-stat"><span>Posts Today</span><strong id="postsToday">—</strong></div>
+        <div class="sc-stat"><span>Questions Solved</span><strong id="questionsSolved">Loading…</strong></div>
+        <div class="sc-stat"><span>States Covered</span><strong id="statesCovered">Loading…</strong></div>
+      </div>
+    </div>
+    <div class="sc">
+      <div class="sc-hd"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="8 7l-2 5h12l-2-5"/><path d="M6 12H3s0 4 5 5M18 12h3s0 4-5 5M12 17v3M9 20h6"/><path d="M4 4h16v4H4z"/></svg> Top Community Member</div>
+      <div class="sc-bd" id="topFarmers"><div class="empty" style="padding:20px;"><div class="spinner" style="width:20px;height:20px;"></div></div></div>
+    </div>
+    <div class="sc">
+      <div class="sc-hd"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg> Farm Tools</div>
+      <div class="sc-bd" style="padding-bottom:10px;">
+        <a href="weather.html" class="mlink"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 10h-1.26A8 8 0 109 20h9a5 5 0 000-10z"/></svg>Weather Monitor</a>
+        <a href="soil.html" class="mlink"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>Soil Analysis</a>
+        <a href="disease.html" class="mlink"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Disease Detection</a>
+        <a href="market.html" class="mlink"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Market Prices</a>
+        <a href="harvest.html" class="mlink"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Harvest Predictor</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="js/script.js"></script>
+<script>
+// ── STATE ──────────────────────────────────────────────────────────
+const token = localStorage.getItem('sf_token');
+const user  = (()=>{ try{ return JSON.parse(localStorage.getItem('sf_user')||'null'); }catch(e){ return null; } })();
+let curCat  = 'all';
+let sortMode = 'hot';
+let selImg  = null;
+let selVid  = null;
+let dmTarget = null;
+let _viewingUser = null;
+const BASE = '';
+let _liveOnline = 0;
+let _liveMembers = 0;
+
+// ── CURSOR ─────────────────────────────────────────────────────────
+(function(){
+  var cur=document.getElementById('cur'), ring=document.getElementById('curRing');
+  var rx=0,ry=0,cx=innerWidth/2,cy=innerHeight/2;
+  document.addEventListener('mousemove',function(e){cx=e.clientX;cy=e.clientY;cur.style.left=cx+'px';cur.style.top=cy+'px';});
+  (function lerp(){rx+=(cx-rx)*.1;ry+=(cy-ry)*.1;ring.style.left=rx+'px';ring.style.top=ry+'px';requestAnimationFrame(lerp);})();
+  window.addEventListener('scroll',()=>document.getElementById('nav').classList.toggle('scrolled',scrollY>30));
+})();
+
+// ── TOAST ──────────────────────────────────────────────────────────
+function toast(msg, type) {
+  var el = document.getElementById('sfToast');
+  el.textContent = msg;
+  el.className = 'sf-toast' + (type==='err' ? ' err' : '');
+  clearTimeout(el._t);
+  el._t = setTimeout(()=>el.classList.add('hidden'), 3200);
+}
+
+// ── TIME AGO ───────────────────────────────────────────────────────
+function timeAgo(d) {
+  var s = (Date.now()-new Date(d))/1000;
+  if(s<60) return 'just now';
+  if(s<3600) return Math.floor(s/60)+'m';
+  if(s<86400) return Math.floor(s/3600)+'h';
+  if(s<604800) return Math.floor(s/86400)+'d';
+  return new Date(d).toLocaleDateString('en-IN',{day:'numeric',month:'short'});
+}
+
+// ── FORMAT POST TEXT — hashtags, mentions, bold ────────────────────
+function fmtPost(text) {
+  return text
+    .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
+    .replace(/#(\w+)/g,'<span class="htag" onclick="filterFeed(\'$1\',null)">#$1</span>')
+    .replace(/@AcqireAI/g,'<span class="at-acqire-hint"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="11" height="11" style="display:inline;vertical-align:middle;margin-right:3px;"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/></svg>@AcqireAI</span>')
+    .replace(/@(\w+)/g,'<span class="mention" onclick="viewUserByName(\'$1\')">@$1</span>')
+    .replace(/\n/g,'<br>');
+}
+
+function fmtAI(text) {
+  return text
+    .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
+    .replace(/\[weather\.html\]/g,'<a href="weather.html" style="color:var(--g);font-weight:700;">→ Weather</a>')
+    .replace(/\[soil\.html\]/g,'<a href="soil.html" style="color:var(--g);font-weight:700;">→ Soil</a>')
+    .replace(/\[disease\.html\]/g,'<a href="disease.html" style="color:var(--g);font-weight:700;">→ Disease</a>')
+    .replace(/\[market\.html\]/g,'<a href="market.html" style="color:var(--g);font-weight:700;">→ Market</a>')
+    .replace(/\[harvest\.html\]/g,'<a href="harvest.html" style="color:var(--g);font-weight:700;">→ Harvest</a>')
+    .replace(/#(\w+)/g,'<span class="htag">#$1</span>')
+    .replace(/@AcqireAI/g,'<span class="at-acqire-hint">@AcqireAI</span>')
+    .replace(/@(\w+)/g,'<span class="mention" onclick="viewUserByName(\'$1\')">@$1</span>')
+    .replace(/\n\n/g,'<br><br>').replace(/\n/g,'<br>');
+}
+
+// ── EXTRACT HASHTAGS FROM TEXT ─────────────────────────────────────
+function extractHashtags(text) {
+  var matches = text.match(/#(\w+)/g) || [];
+  return [...new Set(matches.map(h=>h.toLowerCase()))];
+}
+
+// ── CATEGORY HELPERS ───────────────────────────────────────────────
+function catClass(cat){
+  return {general:'pcat-general',disease:'pcat-disease',soil:'pcat-soil',market:'pcat-market',harvest:'pcat-harvest',weather:'pcat-weather',scheme:'pcat-scheme'}[cat]||'pcat-general';
+}
+function catEmoji(cat){
+  var m={general:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="11" height="11"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>',disease:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="11" height="11"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',soil:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="11" height="11"><circle cx="12" cy="12" r="10"/></svg>',market:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="11" height="11"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>',harvest:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="11" height="11"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>',weather:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="11" height="11"><path d="M18 10h-1.26A8 8 0 109 20h9a5 5 0 000-10z"/></svg>',scheme:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="11" height="11"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>'};
+  return m[cat]||m['general'];
+}
+
+// ── BUILD COMPOSER ─────────────────────────────────────────────────
+function buildComposer() {
+  var box = document.getElementById('composerBox');
+  if(!user||!token) {
+    box.innerHTML = `<div class="login-prompt"><h3>Join the Community</h3><p>Login to share your farming experiences, ask questions and help other farmers across India.</p><a href="login.html" class="lp-g">Login to Post</a><a href="signup.html" class="lp-o">Sign Up Free</a></div>`;
+    return;
+  }
+  var init = user.name ? user.name.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase() : '?';
+  var avC = user.avatar ? `<img src="${user.avatar}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">` : init;
+  box.innerHTML = `<div class="composer" id="mainComposer">
+    <div class="comp-row">
+      <button class="uav" onclick="openProfile()" title="My Profile">${avC}</button>
+      <div class="comp-body">
+        <textarea class="comp-ta" id="postText"
+          placeholder="Share a farming tip, ask a question… Use #hashtags like #rice #disease, @AcqireAI for AI advice, @username to mention farmers!"
+          rows="3"
+          oninput="autoGrow(this);liveHashtagPreview(this)"></textarea>
+        <div class="comp-hashtags" id="compHashtags"></div>
+        <div class="comp-attachments" id="compAttachments"></div>
+      </div>
+    </div>
+    <div class="comp-divider"></div>
+    <div class="comp-foot">
+      <div class="comp-tools">
+        <button class="tool-btn" onclick="document.getElementById('imgFile').click()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg> Photo
+        </button>
+        <button class="tool-btn" onclick="document.getElementById('vidFile').click()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg> Video
+        </button>
+        <button class="tool-btn" onclick="insertHashtag()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/></svg> Tag
+        </button>
+        <select class="cat-sel" id="postCat">
+          <option value="general">General</option>
+          <option value="disease">🔬 Disease</option>
+          <option value="soil">🌱 Soil</option>
+          <option value="market">📊 Market</option>
+          <option value="harvest">🌾 Harvest</option>
+          <option value="weather">🌤 Weather</option>
+          <option value="scheme">📋 Scheme</option>
+        </select>
+        <input type="file" id="imgFile" accept="image/*" style="display:none" onchange="previewImg(this)">
+        <input type="file" id="vidFile" accept="video/mp4,video/webm,video/ogg,video/*" style="display:none" onchange="previewVideo(this)">
+      </div>
+      <button class="post-btn" id="postBtn" onclick="submitPost()">Post</button>
+    </div>
+  </div>`;
+}
+
+function autoGrow(el){el.style.height='auto';el.style.height=el.scrollHeight+'px';}
+
+// Live preview of hashtags as user types
+function liveHashtagPreview(ta) {
+  var tags = extractHashtags(ta.value);
+  var wrap = document.getElementById('compHashtags');
+  if(!wrap) return;
+  wrap.innerHTML = tags.map(t=>`<span class="htag-chip">${t}<button onclick="removeTag('${t}')">✕</button></span>`).join('');
+}
+
+function removeTag(tag) {
+  var ta = document.getElementById('postText');
+  if(ta) {
+    ta.value = ta.value.replace(new RegExp('#'+tag+'\\b','gi'),'').trim();
+    liveHashtagPreview(ta);
+  }
+}
+
+function insertHashtag() {
+  var ta = document.getElementById('postText');
+  if(!ta) return;
+  ta.focus();
+  var pos = ta.selectionStart;
+  var before = ta.value.slice(0,pos);
+  var after  = ta.value.slice(pos);
+  ta.value = before + '#' + after;
+  ta.selectionStart = ta.selectionEnd = pos + 1;
+  liveHashtagPreview(ta);
+}
+
+function focusComposer(){
+  var ta=document.getElementById('postText');
+  if(ta){ta.focus();ta.scrollIntoView({behavior:'smooth',block:'center'});}
+  else if(!user){window.location.href='login.html';}
+}
+
+function previewImg(input) {
+  var file=input.files[0];if(!file)return;selImg=file;
+  var r=new FileReader();
+  r.onload=e=>{
+    var wrap=document.getElementById('compAttachments');
+    wrap.innerHTML=`<div class="comp-img-thumb"><img src="${e.target.result}" alt=""><button class="comp-img-rm" onclick="removePreviewImg()">✕</button></div>`;
+  };
+  r.readAsDataURL(file);
+}
+function removePreviewImg(){selImg=null;selVid=null;document.getElementById('compAttachments').innerHTML='';}
+function previewVideo(input){
+  var file=input.files[0];if(!file)return;
+  if(file.size>50*1024*1024){toast('Video too large — max 50MB','err');input.value='';return;}
+  selVid=file;selImg=null;
+  var url=URL.createObjectURL(file);
+  var wrap=document.getElementById('compAttachments');
+  wrap.innerHTML='<div style="position:relative;display:inline-block;border-radius:10px;overflow:hidden;border:1px solid var(--bd2);">'
+    +'<video src="'+url+'" style="display:block;max-width:220px;max-height:130px;object-fit:cover;border-radius:10px;" muted playsinline></video>'
+    +'<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.3);pointer-events:none;">'
+    +'<svg viewBox="0 0 24 24" fill="white" width="28" height="28"><polygon points="5 3 19 12 5 21 5 3"/></svg></div>'
+    +'<span style="position:absolute;bottom:4px;left:6px;font-size:.6rem;background:rgba(0,0,0,.65);color:#fff;padding:2px 6px;border-radius:4px;font-weight:700;">VIDEO</span>'
+    +'<button class="comp-img-rm" style="top:4px;right:4px;" onclick="removePreviewImg()">✕</button>'
+    +'</div>';
+}
+
+// ── SUBMIT POST ────────────────────────────────────────────────────
+async function submitPost() {
+  var text=(document.getElementById('postText')||{}).value?.trim();
+  if(!text){toast('Write something first!','err');return;}
+  var btn=document.getElementById('postBtn');
+  btn.disabled=true;btn.textContent='Posting…';
+  var fd=new FormData();
+  fd.append('text',text);
+  fd.append('category',document.getElementById('postCat').value);
+  fd.append('state',user.state||'Tamil Nadu');
+  fd.append('village',user.village||'');
+  fd.append('avatar',user.avatar||'');
+  if(selImg) fd.append('image',selImg);
+  if(selVid) fd.append('video',selVid);
+  try{
+    var res=await fetch('/api/community/post',{method:'POST',headers:{'Authorization':'Bearer '+token},body:fd});
+    var d=await res.json();
+    if(d.success){
+      document.getElementById('postText').value='';
+      document.getElementById('compAttachments').innerHTML='';
+      document.getElementById('compHashtags').innerHTML='';
+      selImg=null;selVid=null;
+      toast('Post shared!');
+      loadFeed(curCat);
+    } else toast(d.message||'Post failed','err');
+  }catch(e){toast('Connection error — is the server running?','err');}
+  btn.disabled=false;btn.textContent='Post';
+}
+
+// ── RENDER POST ────────────────────────────────────────────────────
+function renderPost(p) {
+  var isLiked = user && p.likes && p.likes.includes(user.id);
+  var isOwn   = user && p.authorId === user.id;
+  var votes   = p.likes ? p.likes.length : 0;
+  var pInit   = p.author ? p.author.split(' ').map(function(n){return n[0];}).join('').slice(0,2).toUpperCase() : '?';
+  var pAv     = p.avatar ? '<img src="'+p.avatar+'" style="width:100%;height:100%;object-fit:cover;">' : pInit;
+  var isHot   = votes > 5 || (p.comments && p.comments.length > 3);
+
+  var aiHtml = '';
+  if (p.aiAnswer) {
+    aiHtml = '<div class="ai-ans-box"><div class="ai-ans-lbl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="11" height="11"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/></svg> AcqireAI Answer</div><div class="ai-ans-txt">'+fmtAI(p.aiAnswer)+'</div></div>';
+  }
+
+  var cmtsHtml = (p.comments || []).map(function(cm) {
+    var cInit = cm.author ? cm.author.split(' ').map(function(n){return n[0];}).join('').slice(0,2).toUpperCase() : '?';
+    var cAv   = cm.avatar ? '<img src="'+cm.avatar+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">' : cInit;
+    var isBot = cm.isAI || cm.author === 'AcqireAI';
+    var safeAuthorId = (cm.authorId||'').replace(/'/g,'');
+    var safeAuthor   = (cm.author||'').replace(/'/g,'');
+    var delBtn = (user && cm.author === user.name)
+      ? '<button class="cact" onclick="deleteComment(\''+p._id+'\',\''+(cm._id||'')+'\')">Delete</button>'
+      : '';
+    return '<div class="cmt">'
+      + '<div class="pav" style="width:26px;height:26px;font-size:.62rem;" onclick="viewUser(\''+safeAuthorId+'\',\''+safeAuthor+'\')">'+cAv+'</div>'
+      + '<div class="cbody">'
+      + '<div class="cmt-hd">'
+      + '<button class="cauthor-btn" onclick="viewUser(\''+safeAuthorId+'\',\''+safeAuthor+'\')">'+(cm.author||'Farmer')+(isBot ? ' <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="10" height="10" style="display:inline;vertical-align:middle;"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/></svg>' : '')+'</button>'
+      + '<span class="ctime">'+timeAgo(cm.createdAt)+'</span>'
+      + '</div>'
+      + '<div class="ctxt">'+fmtAI(cm.text)+'</div>'
+      + '<div class="cmt-actions">'
+      + '<button class="cact" onclick="replyToUser(\''+p._id+'\',\''+safeAuthor+'\')">Reply</button>'
+      + delBtn
+      + '</div>'
+      + '</div>'
+      + '</div>';
+  }).join('');
+
+  var cmtInput = user
+    ? '<div class="cmt-input-wrap">'
+      + '<div class="cmt-inp-row">'
+      + '<div style="width:26px;height:26px;border-radius:50%;background:var(--g);color:#0a0e0a;display:flex;align-items:center;justify-content:center;font-size:.62rem;font-weight:700;flex-shrink:0;overflow:hidden;">'
+      + (user.avatar ? '<img src="'+user.avatar+'" style="width:100%;height:100%;object-fit:cover;">' : (user.name||'?').split(' ').map(function(n){return n[0];}).join('').slice(0,2).toUpperCase())
+      + '</div>'
+      + '<div style="flex:1;position:relative;">'
+      + '<textarea class="cinp" id="cinp-'+p._id+'" placeholder="Comment… #hashtag, @AcqireAI for AI, @username to mention" rows="1"'
+      + ' oninput="autoGrow(this)"'
+      + ' onkeydown="if(event.key===\'Enter\'&&!event.shiftKey){event.preventDefault();addComment(\''+p._id+'\')}"></textarea>'
+      + '<div class="mention-hint">Enter to send · <span>@AcqireAI</span> for AI · <span>#hashtag</span> to tag</div>'
+      + '</div>'
+      + '<button class="csend" onclick="addComment(\''+p._id+'\')">Send</button>'
+      + '</div></div>'
+    : '<p style="font-size:.77rem;color:var(--txm);margin-top:6px;"><a href="login.html" style="color:var(--g);">Login</a> to comment</p>';
+
+  var delBtn = isOwn
+    ? '<button class="del-btn" onclick="deletePost(\''+p._id+'\')" title="Delete post"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg></button>'
+    : '';
+
+  var safeId  = (p.authorId||'').replace(/'/g,'');
+  var safeName = (p.author||'Farmer').replace(/'/g,'');
+  var safeAvatar = (p.avatar||'').replace(/'/g,'');
+
+  var likeIcon    = isLiked ? 'currentColor' : 'none';
+  var likedClass  = isLiked ? 'liked' : '';
+  var likedLabel  = isLiked ? 'Liked' : 'Like';
+  var hotBadge    = isHot ? '<span class="trending-tag">🔥 Hot</span>' : '';
+
+  var imgHtml = p.image
+    ? '<div class="post-img-wrap" onclick="expandImg(\''+p.image+'\')"><img class="post-img" src="'+p.image+'" alt="" loading="lazy"></div>'
+    : '';
+  var vidHtml = p.video
+    ? '<div class="post-img-wrap"><video src="'+p.video+'" controls preload="metadata" style="width:100%;max-height:360px;border-radius:10px;display:block;background:#000;"></video></div>'
+    : '';
+
+  var dmBtn = (user && p.authorId !== user.id)
+    ? '<button class="pact" onclick="openDM({id:\''+safeId+'\',name:\''+safeName+'\',avatar:\''+safeAvatar+'\'})">'
+      + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg> DM</button>'
+    : '';
+
+  return '<div class="post-card" id="pc-'+p._id+'">'
+    + '<div class="post-inner">'
+    + '<div class="vote-strip">'
+    + '<button class="vbtn '+(isLiked?'up':'')+'" onclick="likePost(\''+p._id+'\')" title="Upvote">'
+    + '<svg viewBox="0 0 24 24" fill="'+(isLiked?'currentColor':'none')+'" stroke="currentColor" stroke-width="2" width="15" height="15"><polyline points="18 15 12 9 6 15"/></svg>'
+    + '</button>'
+    + '<span class="vcnt" id="vc-'+p._id+'">'+votes+'</span>'
+    + '<button class="vbtn" onclick="downvotePost(\''+p._id+'\')" title="Downvote">'
+    + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><polyline points="6 9 12 15 18 9"/></svg>'
+    + '</button>'
+    + '</div>'
+    + '<div class="post-body">'
+    + '<div class="post-hd">'
+    + '<div class="pav" onclick="viewUser(\''+safeId+'\',\''+safeName+'\')" >'+pAv+'</div>'
+    + '<button class="pauthor-btn" onclick="viewUser(\''+safeId+'\',\''+safeName+'\')">'
+    + '<span class="pauthor">'+(p.author||'Farmer')+'</span>'
+    + '<span class="ploc">'+(p.village ? p.village+', ' : '')+(p.state||'India')+'</span>'
+    + '</button>'
+    + '<span class="pcat-tag '+catClass(p.category)+'">'+catEmoji(p.category)+' '+p.category+'</span>'
+    + hotBadge
+    + '<span class="ptime">'+timeAgo(p.createdAt)+'</span>'
+    + delBtn
+    + '</div>'
+    + '<div class="post-txt">'+fmtPost(p.text)+'</div>'
+    + imgHtml
+    + vidHtml
+    + aiHtml
+    + '<div class="post-actions">'
+    + '<button class="pact" onclick="toggleCmt(\''+p._id+'\')">'
+    + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>'
+    + '<span class="pact-cnt">'+(p.comments||[]).length+'</span></button>'
+    + '<button class="pact '+likedClass+'" onclick="likePost(\''+p._id+'\')">'
+    + '<svg viewBox="0 0 24 24" fill="'+likeIcon+'" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>'
+    + '<span class="pact-cnt">'+votes+'</span> '+likedLabel+'</button>'
+    + '<button class="pact" onclick="sharePost(\''+p._id+'\',\''+safeName+'\')">'
+    + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg> Share</button>'
+    + '<button class="pact" onclick="bookmarkPost(\''+p._id+'\')">'
+    + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg></button>'
+    + dmBtn
+    + '</div>'
+    + '<div class="comments-wrap" id="cmt-'+p._id+'">'+cmtsHtml+cmtInput+'</div>'
+    + '</div>'
+    + '</div>'
+    + '</div>';
+}
+
+// ── LOAD FEED ──────────────────────────────────────────────────────
+async function loadFeed(cat, tabEl) {
+  curCat=cat||'all';
+  document.getElementById('feedBox').innerHTML='<div class="empty"><div class="spinner"></div><p style="margin-top:12px;">Loading posts…</p></div>';
+  try{
+    var url=`/api/community/feed?category=${cat==='all'||cat==='hot'?'':cat}&limit=40&sort=${sortMode}`;
+    var headers=token?{'Authorization':'Bearer '+token}:{};
+    var res=await fetch(url,{headers});
+    var d=await res.json();
+    if(!d.posts||!d.posts.length){
+      document.getElementById('feedBox').innerHTML='<div class="empty"><div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="var(--g)" stroke-width="1.5" width="48" height="48"><path d="M12 2a10 10 0 00-6.88 17.25M12 2a10 10 0 016.88 17.25M12 2v8m0 12v-4"/></svg></div><p>No posts yet — be the first to share!</p></div>';
+      return;
+    }
+    document.getElementById('feedBox').innerHTML=d.posts.map(renderPost).join('');
+    document.getElementById('postsToday').textContent=d.posts.filter(p=>Date.now()-new Date(p.createdAt)<86400000).length;
+    loadAIPulse(d.posts);
+  }catch(e){
+    document.getElementById('feedBox').innerHTML='<div class="empty"><div class="empty-icon">⚠️</div><p>Could not load posts. Check connection.</p></div>';
+  }
+}
+
+function filterFeed(cat, el) {
+  if(el){document.querySelectorAll('.ln-item,.sort-btn').forEach(i=>i.classList.remove('active'));el.classList.add('active');}
+  loadFeed(cat);
+}
+function setSortMode(mode, el) {
+  sortMode=mode;
+  document.querySelectorAll('.sort-btn').forEach(b=>b.classList.remove('active'));
+  if(el) el.classList.add('active');
+  loadFeed(curCat);
+}
+function toggleCmt(id){var el=document.getElementById('cmt-'+id);if(el)el.style.display=el.style.display==='block'?'none':'block';}
+
+// ── LIKE / VOTE ────────────────────────────────────────────────────
+async function likePost(id) {
+  if(!user){window.location.href='login.html';return;}
+  try{
+    var res=await fetch(`/api/community/post/${id}/like`,{method:'POST',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'}});
+    var d=await res.json();
+    if(d.success){document.getElementById('vc-'+id).textContent=d.likes;loadFeed(curCat);}
+  }catch(e){}
+}
+function downvotePost(id){toast('Noted');}
+
+// ── ADD COMMENT ────────────────────────────────────────────────────
+async function addComment(id) {
+  var inp=document.getElementById('cinp-'+id);
+  var txt=inp&&inp.value.trim();
+  if(!txt||!user)return;
+  inp.value='';inp.style.height='auto';
+  try{
+    var res=await fetch(`/api/community/post/${id}/comment`,{method:'POST',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({text:txt,avatar:user.avatar||''})});
+    var d=await res.json();
+    if(d.success)loadFeed(curCat);
+  }catch(e){}
+}
+
+function replyToUser(postId, username){
+  var inp=document.getElementById('cinp-'+postId);
+  if(inp){inp.value='@'+username+' ';inp.focus();}
+}
+
+async function deleteComment(postId,cmtId){
+  if(!confirm('Delete this comment?'))return;
+  try{
+    await fetch(`/api/community/post/${postId}/comment/${cmtId}`,{method:'DELETE',headers:{'Authorization':'Bearer '+token}});
+    loadFeed(curCat);
+  }catch(e){}
+}
+
+async function deletePost(id) {
+  if(!confirm('Delete this post?'))return;
+  try{
+    await fetch(`/api/community/post/${id}`,{method:'DELETE',headers:{'Authorization':'Bearer '+token}});
+    var el=document.getElementById('pc-'+id);if(el)el.remove();
+    toast('Post deleted');
+  }catch(e){}
+}
+
+function sharePost(id, author){
+  var url=`${location.origin}/community.html#post-${id}`;
+  if(navigator.share){navigator.share({title:`Post by ${author} on SmartFarm AI`,url});return;}
+  navigator.clipboard&&navigator.clipboard.writeText(url).then(()=>toast('Link copied!'));
+}
+function bookmarkPost(id){toast('Post saved!');}
+function expandImg(src){document.getElementById('imgModalSrc').src=src;document.getElementById('imgModal').classList.add('open');}
+
+// ── MY PROFILE ─────────────────────────────────────────────────────
+function openProfile() {
+  if(!user){window.location.href='login.html';return;}
+  // Fetch fresh from server
+  fetch('/api/profile',token?{headers:{'Authorization':'Bearer '+token}}:{}).then(r=>r.json()).then(d=>{
+    if(d.success&&d.user){Object.assign(user,d.user);localStorage.setItem('sf_user',JSON.stringify(user));}
+  }).catch(()=>{});
+  renderProfileModal(user);
+  document.getElementById('profileModal').classList.add('open');
+}
+
+function renderProfileModal(u) {
+  document.getElementById('pName').textContent=u.name||'—';
+  document.getElementById('pLocText').textContent=[u.village,u.state].filter(Boolean).join(', ')||'Tamil Nadu';
+  document.getElementById('pBioView').textContent=u.bio||'No bio yet.';
+
+  // Banner background
+  var bannerImg = document.getElementById('profileBannerImg');
+  if(u.banner){bannerImg.src=u.banner;bannerImg.style.display='block';}
+  else{bannerImg.style.display='none';}
+
+  // Avatar
+  var av=document.getElementById('profileAv');
+  var init=u.name?u.name.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase():'?';
+  if(u.avatar){
+    av.innerHTML=`<img src="${u.avatar}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"><div class="pav-hint"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" width="18" height="18"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg></div>`;
+  } else {
+    av.innerHTML=`<span style="font-size:2rem;font-weight:700;line-height:1;">${init}</span><div class="pav-hint"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" width="18" height="18"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg></div>`;
+  }
+
+  // Stats — async
+  document.getElementById('pPostCount').textContent='…';
+  document.getElementById('pLikeCount').textContent='…';
+  document.getElementById('pCropCount').textContent=(u.crops||[]).length;
+  fetch('/api/community/feed?limit=100',token?{headers:{'Authorization':'Bearer '+token}}:{})
+    .then(r=>r.json()).then(d=>{
+      var myPosts=(d.posts||[]).filter(p=>p.authorId===u._id||p.authorId===u.id||(p.author&&u.name&&p.author===u.name));
+      var myLikes=myPosts.reduce((a,p)=>a+(p.likes?p.likes.length:0),0);
+      document.getElementById('pPostCount').textContent=myPosts.length;
+      document.getElementById('pLikeCount').textContent=myLikes;
+    }).catch(()=>{document.getElementById('pPostCount').textContent='—';document.getElementById('pLikeCount').textContent='—';});
+
+  // Crop chips
+  var chips=document.getElementById('pCropChips');
+  chips.innerHTML=(u.crops||[]).length
+    ?u.crops.map(c=>`<div class="crop-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="11" height="11"><path d="M12 2a10 10 0 00-6.88 17.25M12 2a10 10 0 016.88 17.25M12 2v8"/></svg>${c}</div>`).join('')
+    :'<span style="font-size:.81rem;color:var(--txm);">No crops set</span>';
+
+  // Social links
+  var slinks=document.getElementById('pSocialLinks');
+  slinks.innerHTML='';
+  if(u.instagram){slinks.innerHTML+=`<a href="https://instagram.com/${u.instagram.replace('@','')}" target="_blank" class="slink"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>${u.instagram}</a>`;}
+  if(u.whatsapp){slinks.innerHTML+=`<a href="tel:${u.whatsapp}" class="slink">📱 ${u.whatsapp}</a>`;}
+  if(u.website){slinks.innerHTML+=`<a href="${u.website}" target="_blank" class="slink"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 010 20"/></svg>Website</a>`;}
+}
+
+function closeProfile(){document.getElementById('profileModal').classList.remove('open');hideEditForm();}
+
+function toggleEditMode(){
+  var form=document.getElementById('editForm');
+  var vis=form.classList.contains('visible');
+  if(!vis){
+    document.getElementById('efName').value=user.name||'';
+    document.getElementById('efBio').value=user.bio||'';
+    document.getElementById('efVillage').value=user.village||'';
+    document.getElementById('efState').value=user.state||'';
+    document.getElementById('efInsta').value=user.instagram||'';
+    document.getElementById('efWa').value=user.whatsapp||'';
+    document.getElementById('efLink').value=user.website||'';
+    form.classList.add('visible');
+    document.getElementById('editToggleBtn').textContent='Cancel';
+  } else {hideEditForm();}
+}
+function hideEditForm(){
+  document.getElementById('editForm').classList.remove('visible');
+  document.getElementById('editToggleBtn').innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Edit Profile`;
+}
+
+async function saveProfile(){
+  var btn=document.querySelector('.save-btn');
+  if(btn){btn.disabled=true;btn.textContent='Saving…';}
+  var payload={
+    bio:document.getElementById('efBio').value.trim(),
+    name:document.getElementById('efName').value.trim(),
+    village:document.getElementById('efVillage').value.trim(),
+    state:document.getElementById('efState').value.trim(),
+    instagram:document.getElementById('efInsta').value.trim(),
+    whatsapp:document.getElementById('efWa').value.trim(),
+    website:document.getElementById('efLink').value.trim(),
+  };
+  try{
+    var res=await fetch('/api/profile',{method:'PATCH',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    var d=await res.json();
+    if(d.success){
+      var u=JSON.parse(localStorage.getItem('sf_user')||'{}');
+      Object.assign(u,payload);
+      localStorage.setItem('sf_user',JSON.stringify(u));
+      toast('Profile saved!');
+      setTimeout(()=>location.reload(),800);
+    } else toast(d.message||'Save failed','err');
+  }catch(e){toast('Save failed','err');}
+  if(btn){btn.disabled=false;btn.textContent='Save Changes';}
+}
+
+// ── AVATAR UPLOAD ──────────────────────────────────────────────────
+async function uploadAvatar(input){
+  var file=input.files[0];if(!file)return;
+  toast('Uploading photo…');
+  var fd=new FormData();fd.append('avatar',file);
+  try{
+    var res=await fetch('/api/profile/avatar',{method:'POST',headers:{'Authorization':'Bearer '+token},body:fd});
+    var d=await res.json();
+    if(d.success){
+      var u=JSON.parse(localStorage.getItem('sf_user')||'{}');u.avatar=d.avatar;
+      localStorage.setItem('sf_user',JSON.stringify(u));
+      toast('Profile photo updated!');
+      setTimeout(()=>location.reload(),800);
+    } else toast(d.message||'Upload failed','err');
+  }catch(e){toast('Upload failed','err');}
+}
+
+// ── BANNER UPLOAD ──────────────────────────────────────────────────
+async function uploadBanner(input){
+  var file=input.files[0];if(!file)return;
+  // Preview immediately
+  var reader=new FileReader();
+  reader.onload=e=>{
+    var img=document.getElementById('profileBannerImg');
+    img.src=e.target.result;img.style.display='block';
+  };
+  reader.readAsDataURL(file);
+  toast('Uploading banner…');
+  var fd=new FormData();fd.append('avatar',file);
+  // Re-use the avatar endpoint but store as banner in localStorage for now
+  // In production you'd add a /api/profile/banner endpoint
+  try{
+    var res=await fetch('/api/profile/avatar',{method:'POST',headers:{'Authorization':'Bearer '+token},body:fd});
+    var d=await res.json();
+    if(d.success){
+      var u=JSON.parse(localStorage.getItem('sf_user')||'{}');
+      u.banner=d.avatar; // store banner URL
+      localStorage.setItem('sf_user',JSON.stringify(u));
+      toast('Banner updated!');
+    } else {
+      // If server doesn't support it, save the data URL locally
+      var u2=JSON.parse(localStorage.getItem('sf_user')||'{}');
+      var reader2=new FileReader();
+      reader2.onload=e2=>{u2.banner=e2.target.result;localStorage.setItem('sf_user',JSON.stringify(u2));};
+      reader2.readAsDataURL(file);
+      toast('Banner saved locally!');
+    }
+  }catch(e){
+    toast('Upload failed — saved preview only','err');
+  }
+}
+
+// ── VIEW OTHER USER ────────────────────────────────────────────────
+async function viewUser(authorId, authorName){
+  if(!authorId&&!authorName)return;
+  document.getElementById('userProfileModal').classList.add('open');
+  _viewingUser={id:authorId,name:authorName};
+  var init=authorName?authorName.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase():'?';
+  document.getElementById('uvAv').innerHTML=`<span style="font-size:1.8rem;font-weight:700;">${init}</span>`;
+  document.getElementById('uvBannerImg').style.display='none';
+  document.getElementById('uvName').textContent=authorName||'Farmer';
+  document.getElementById('uvLoc').textContent='Tamil Nadu, India';
+  document.getElementById('uvBio').textContent='Farmer on SmartFarm AI community.';
+  document.getElementById('uvPosts').textContent='—';
+  document.getElementById('uvLikes').textContent='—';
+  document.getElementById('uvCrops').textContent='—';
+  document.getElementById('uvCrops2').innerHTML='';
+  document.getElementById('uvSocialLinks').innerHTML='';
+  document.getElementById('uvPosts2').innerHTML='<div class="spinner" style="width:18px;height:18px;"></div>';
+  document.getElementById('uvDmBtn').style.display=(user&&authorId!==user.id)?'flex':'none';
+
+  // Try to load real profile data
+  if(authorId){
+    fetch(`/api/profile/${authorId}`,token?{headers:{'Authorization':'Bearer '+token}}:{})
+      .then(r=>r.json()).then(d=>{
+        if(d.success&&d.user){
+          var u=d.user;
+          document.getElementById('uvLoc').textContent=[u.village,u.state].filter(Boolean).join(', ')||'Tamil Nadu';
+          document.getElementById('uvBio').textContent=u.bio||'No bio yet.';
+          if(u.avatar){document.getElementById('uvAv').innerHTML=`<img src="${u.avatar}" style="width:100%;height:100%;object-fit:cover;">`;}
+          if(u.banner){var bi=document.getElementById('uvBannerImg');bi.src=u.banner;bi.style.display='block';}
+          if(u.crops&&u.crops.length){document.getElementById('uvCrops').textContent=u.crops.length;document.getElementById('uvCrops2').innerHTML=u.crops.map(c=>`<div class="crop-chip">${c}</div>`).join('');}
+          if(u.instagram||u.website){
+            var sl=document.getElementById('uvSocialLinks');
+            if(u.instagram)sl.innerHTML+=`<a href="https://instagram.com/${u.instagram.replace('@','')}" target="_blank" class="slink"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/></svg>${u.instagram}</a>`;
+            if(u.website)sl.innerHTML+=`<a href="${u.website}" target="_blank" class="slink">Website</a>`;
+          }
+        }
+      }).catch(()=>{});
+  }
+
+  // Load posts
+  try{
+    var res=await fetch(`/api/community/feed?limit=20`,token?{headers:{'Authorization':'Bearer '+token}}:{});
+    var d=await res.json();
+    var userPosts=(d.posts||[]).filter(p=>p.authorId===authorId||p.author===authorName);
+    document.getElementById('uvPosts').textContent=userPosts.length;
+    var likes=userPosts.reduce((a,p)=>a+(p.likes?p.likes.length:0),0);
+    document.getElementById('uvLikes').textContent=likes;
+    document.getElementById('uvPosts2').innerHTML=userPosts.slice(0,3).map(p=>`
+      <div style="padding:10px;background:var(--dk3);border-radius:10px;margin-bottom:7px;border:1px solid var(--bd);">
+        <div style="font-size:.7rem;color:var(--txm);margin-bottom:4px;">${timeAgo(p.createdAt)} · <span class="pcat-tag ${catClass(p.category)}" style="font-size:.58rem;">${p.category}</span></div>
+        <div style="font-size:.82rem;color:var(--tx);line-height:1.55;">${p.text.slice(0,120)}${p.text.length>120?'…':''}</div>
+        <div style="font-size:.72rem;color:var(--txm);margin-top:5px;">${p.likes?p.likes.length:0} likes · ${(p.comments||[]).length} comments</div>
+      </div>`).join('')||'<p style="font-size:.81rem;color:var(--txm);">No posts yet.</p>';
+  }catch(e){document.getElementById('uvPosts2').innerHTML='';}
+}
+function viewUserByName(name){viewUser('',name);}
+function closeUserProfile(){document.getElementById('userProfileModal').classList.remove('open');_viewingUser=null;}
+function openDMFromProfile(){if(!_viewingUser)return;closeUserProfile();openDM(_viewingUser);}
+
+// ── DM ─────────────────────────────────────────────────────────────
+var _dmMessages={};
+function openDM(target){
+  if(!user){window.location.href='login.html';return;}
+  if(!target){toast('Select a farmer to message','err');return;}
+  dmTarget=target;
+  var init=target.name?target.name.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase():'?';
+  document.getElementById('dmName').textContent=target.name||'Farmer';
+  var dmAv=document.getElementById('dmAv');
+  dmAv.innerHTML=target.avatar?`<img src="${target.avatar}" style="width:100%;height:100%;object-fit:cover;">`:`<span>${init}</span>`;
+  var key=`dm_${user.id||user.name}_${target.id||target.name}`;
+  renderDMMessages(_dmMessages[key]||[],key);
+  document.getElementById('dmOverlay').classList.add('open');
+  document.getElementById('dmInp').focus();
+}
+function closeDM(){document.getElementById('dmOverlay').classList.remove('open');dmTarget=null;}
+function renderDMMessages(msgs,key){
+  var box=document.getElementById('dmMsgs');
+  if(!msgs.length){box.innerHTML=`<div style="text-align:center;padding:30px;color:var(--txm);font-size:.82rem;">Start a conversation with ${dmTarget?.name||'this farmer'} 👋</div>`;return;}
+  box.innerHTML=msgs.map(m=>{
+    var mine=m.sender===(user.id||user.name);
+    return `<div class="dm-msg ${mine?'mine':'other'}">
+      ${!mine?`<div class="dm-av" style="width:24px;height:24px;font-size:.6rem;">${dmTarget?.avatar?`<img src="${dmTarget.avatar}" style="width:100%;height:100%;object-fit:cover;">`:(dmTarget?.name||'?').charAt(0)}</div>`:''}
+      <div><div class="dm-bub">${m.text}</div><div class="dm-ts" style="${mine?'text-align:right':''}">${new Date(m.ts).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})}</div></div>
+    </div>`;
+  }).join('');
+  box.scrollTop=box.scrollHeight;
+}
+function sendDM(){
+  var inp=document.getElementById('dmInp');
+  var txt=inp.value.trim();if(!txt||!dmTarget)return;
+  inp.value='';
+  var key=`dm_${user.id||user.name}_${dmTarget.id||dmTarget.name}`;
+  if(!_dmMessages[key])_dmMessages[key]=[];
+  _dmMessages[key].push({sender:user.id||user.name,text:txt,ts:Date.now()});
+  fetch('/api/community/dm',{method:'POST',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({to:dmTarget.id||dmTarget.name,text:txt})}).catch(()=>{});
+  renderDMMessages(_dmMessages[key],key);
+}
+
+// ── AI PULSE ───────────────────────────────────────────────────────
+function pulseIcon(type){
+  var icons={market:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>',disease:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',weather:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M18 10h-1.26A8 8 0 109 20h9a5 5 0 000-10z"/></svg>',community:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>'};
+  return icons[type]||icons['community'];
+}
+async function loadAIPulse(posts){
+  if(!posts||!posts.length)return;
+  var topics={};
+  var keys={market:['price','mandi','sell','market','rate','quintal'],disease:['disease','pest','spray','fungicide','blast','blight','worm'],weather:['rain','flood','drought','heat','temperature','irrigation','water']};
+  posts.forEach(p=>{var txt=p.text.toLowerCase();Object.keys(keys).forEach(cat=>{if(keys[cat].some(k=>txt.includes(k)))topics[cat]=(topics[cat]||0)+1;});});
+  var topEntry=Object.entries(topics).sort((a,b)=>b[1]-a[1])[0];
+  document.getElementById('aiPulseSub').textContent=topEntry?'Farmers mostly talking about '+topEntry[0]+' today ('+topEntry[1]+' posts)':'Community is active! Ask AI anything.';
+  var items=[{type:'market',txt:topics['market']?topics['market']+' posts about crop prices today':'Market prices steady — check live rates',sub:'Tap to ask AI for price analysis'},{type:'disease',txt:topics['disease']?topics['disease']+' farmers reporting crop diseases':'No major disease alerts today',sub:topics['disease']>3?'High activity — check disease module':'Conditions normal'},{type:'weather',txt:topics['weather']?topics['weather']+' weather-related discussions':'Weather conditions discussed',sub:'Tap for AI irrigation advice'},{type:'community',txt:posts.length+' posts in community today',sub:_liveOnline+' farmers online now'}];
+  var container=document.getElementById('aiPulseItems');container.innerHTML='';
+  items.forEach(item=>{var row=document.createElement('div');row.className='acp-item';var iconDiv=document.createElement('div');iconDiv.className='acp-icon';iconDiv.style.background='rgba(61,186,114,.1)';iconDiv.innerHTML=pulseIcon(item.type);var textDiv=document.createElement('div');var txtEl=document.createElement('div');txtEl.className='acp-txt';txtEl.textContent=item.txt;var subEl=document.createElement('div');subEl.className='acp-sub';subEl.textContent=item.sub;textDiv.appendChild(txtEl);textDiv.appendChild(subEl);row.appendChild(iconDiv);row.appendChild(textDiv);container.appendChild(row);});
+}
+async function showAICommInsight(){
+  document.getElementById('aiInsightModal').classList.add('open');
+  var content=document.getElementById('aiInsightContent');
+  content.innerHTML='<div class="spinner"></div>';
+  try{
+    var res=await fetch('/api/community/feed?limit=20',token?{headers:{'Authorization':'Bearer '+token}}:{});
+    var d=await res.json();
+    var posts=d.posts||[];
+    var summary=posts.slice(0,10).map(p=>`- ${p.author}: ${p.text.slice(0,100)}`).join('\n');
+    var aiRes=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:`Analyse these recent community posts from Indian farmers and summarise: 1) Main topics 2) Price trends 3) Disease reports 4) Key advice.\n${summary}`,history:[],lang:'en'})});
+    var aiD=await aiRes.json();
+    content.innerHTML=`<div style="line-height:1.8;">${fmtAI(aiD.reply||'Unable to analyse right now.')}</div>`;
+  }catch(e){content.innerHTML='<p style="color:var(--txm);">Unable to generate insight right now. Please try again.</p>';}
+}
+
+// ── STATS ──────────────────────────────────────────────────────────
+async function loadStats(){
+  document.getElementById('memberCount').textContent='Loading…';
+  try{
+    var r=await fetch('/api/community/stats',token?{headers:{'Authorization':'Bearer '+token}}:{});
+    var d=await r.json();
+    if(d.success){
+      _liveMembers=d.memberCount||1;
+      _liveOnline=Math.max(1,Math.round(_liveMembers*(0.02+Math.random()*0.03)));
+      document.getElementById('memberCount').textContent=_liveMembers.toLocaleString('en-IN')+' members';
+      document.getElementById('onlineCount').textContent=_liveOnline;
+      document.getElementById('onlineNow').textContent=_liveOnline;
+      document.getElementById('postsToday').textContent=d.todayPosts||0;
+      var qEl=document.getElementById('questionsSolved');if(qEl)qEl.textContent=Math.max(0,Math.round((d.totalPosts||0)*0.6+_liveMembers*0.4))+'+';
+      var stEl=document.getElementById('statesCovered');if(stEl)stEl.textContent='20+';
+      renderTopFarmers(d.topAuthors||[]);
+      return;
+    }
+  }catch(e){}
+  // Fallback
+  try{
+    var r2=await fetch('/api/community/feed?limit=100',token?{headers:{'Authorization':'Bearer '+token}}:{});
+    var d2=await r2.json();var posts=d2.posts||[];
+    var today=posts.filter(p=>Date.now()-new Date(p.createdAt)<86400000).length;
+    document.getElementById('postsToday').textContent=today;
+    var authMap={};posts.forEach(p=>{if(!p.author)return;if(!authMap[p.author])authMap[p.author]={name:p.author,avatar:p.avatar||'',pts:0,id:p.authorId||''};authMap[p.author].pts+=(p.likes?p.likes.length:0)*2+(p.comments?p.comments.length:0);});
+    _liveMembers=Math.max(1,Object.keys(authMap).length);_liveOnline=Math.max(1,Math.round(_liveMembers*(0.02+Math.random()*0.03)));
+    document.getElementById('memberCount').textContent=_liveMembers+' active members';
+    document.getElementById('onlineCount').textContent=_liveOnline;
+    document.getElementById('onlineNow').textContent=_liveOnline;
+    var qEl2=document.getElementById('questionsSolved');if(qEl2)qEl2.textContent=Math.round(posts.length*0.6)+'+';
+    var stEl2=document.getElementById('statesCovered');if(stEl2)stEl2.textContent='20+';
+    var topArr=Object.values(authMap).sort((a,b)=>b.pts-a.pts).slice(0,5).map(f=>({name:f.name,avatar:f.avatar,id:f.id,score:f.pts}));
+    renderTopFarmers(topArr);
+  }catch(e2){document.getElementById('memberCount').textContent='—';}
+}
+
+function renderTopFarmers(top){
+  var el = document.getElementById('topFarmers');
+  if(!el) return;
+  if(!top.length){
+    el.innerHTML = '<div style="text-align:center;padding:14px 0;"><p style="font-size:.8rem;color:var(--txm);">Be the first helpful member!</p><p style="font-size:.72rem;color:var(--txd);margin-top:3px;">Ask, comment, help farmers</p></div>';
+    return;
+  }
+  var medals = [
+    '<span style="font-size:.82rem;">🥇</span>',
+    '<span style="font-size:.82rem;">🥈</span>',
+    '<span style="font-size:.82rem;">🥉</span>',
+    '<span style="color:var(--txm);font-weight:700;font-size:.82rem;">4</span>',
+    '<span style="color:var(--txm);font-weight:700;font-size:.82rem;">5</span>'
+  ];
+  var featured = top[0];
+  var finit = (featured.name||'F').split(' ').map(function(n){return n[0];}).join('').slice(0,2).toUpperCase();
+  var fav = featured.avatar
+    ? '<img src="'+featured.avatar+'" style="width:100%;height:100%;object-fit:cover;">'
+    : '<span style="font-size:.95rem;font-weight:800;">'+finit+'</span>';
+  var safeFN = (featured.name||'Farmer').replace(/['"]/g,'');
+  var safeFI = (featured.id||'').replace(/['"]/g,'');
+  var html = '<div style="display:flex;flex-direction:column;align-items:center;padding:14px 0 10px;border-bottom:1px solid var(--bd);cursor:pointer;" onclick="viewUser(\''+safeFI+'\',\''+safeFN+'\')">'
+    + '<div style="width:50px;height:50px;border-radius:50%;background:var(--g);color:#0a0e0a;display:flex;align-items:center;justify-content:center;font-weight:800;overflow:hidden;margin-bottom:7px;border:3px solid rgba(201,168,76,.6);">'+fav+'</div>'
+    + '<div style="font-size:.86rem;font-weight:700;color:var(--tx);">'+( featured.name||'Farmer').split(' ')[0]+'</div>'
+    + '<div style="display:flex;align-items:center;gap:6px;margin-top:5px;">'
+    + '<span style="font-size:.66rem;background:rgba(201,168,76,.12);border:1px solid rgba(201,168,76,.3);color:var(--gold);font-weight:700;padding:2px 8px;border-radius:20px;">🏆 Top Member</span>'
+    + '</div>'
+    + '<div style="font-size:.65rem;color:var(--txm);margin-top:3px;">'+( featured.score||0)+' community pts</div>'
+    + '</div>';
+  top.slice(1).forEach(function(f, i){
+    var init = (f.name||'F').split(' ').map(function(n){return n[0];}).join('').slice(0,2).toUpperCase();
+    var av = f.avatar
+      ? '<img src="'+f.avatar+'" style="width:100%;height:100%;object-fit:cover;">'
+      : '<span>'+init+'</span>';
+    var sn = (f.name||'Farmer').replace(/['"]/g,'');
+    var si = (f.id||'').replace(/['"]/g,'');
+    html += '<div class="tf-item">'
+      + '<span class="tf-rank">'+( medals[i+1]||i+2)+'</span>'
+      + '<div class="tf-av" onclick="viewUser(\''+si+'\',\''+sn+'\')">'+av+'</div>'
+      + '<span class="tf-name" onclick="viewUser(\''+si+'\',\''+sn+'\')">'+( f.name||'Farmer').split(' ')[0]+'</span>'
+      + '<span class="tf-pts">'+( f.score||0)+' pts</span>'
+      + '</div>';
+  });
+  el.innerHTML = html;
+}
+
+
+// ── INIT ───────────────────────────────────────────────────────────
+buildComposer();
+loadFeed('all');
+loadStats();
+setInterval(loadStats,90000);
+setTimeout(()=>{var b=document.getElementById('lnBadge');if(b)b.remove();},4000);
+</script>
+
+<style>
+.acq-fab{position:fixed;bottom:28px;right:28px;z-index:800;width:56px;height:56px;border-radius:50%;background:var(--g);display:flex;align-items:center;justify-content:center;cursor:pointer;border:none;box-shadow:0 6px 28px rgba(61,186,114,.5);transition:transform .25s;animation:acqP 3s infinite;}
+.acq-fab:hover{transform:scale(1.1);}
+@keyframes acqP{0%,100%{box-shadow:0 6px 28px rgba(61,186,114,.5);}50%{box-shadow:0 6px 40px rgba(61,186,114,.75),0 0 0 8px rgba(61,186,114,.08);}}
+.acq-fab .ci{display:block;}.acq-fab.open .ci{display:none;}.acq-fab .cx{display:none;}.acq-fab.open .cx{display:block;}
+.acq-win{position:fixed;bottom:96px;right:28px;z-index:800;width:380px;max-height:580px;background:var(--dk2);border:1px solid rgba(232,237,229,.14);border-radius:20px;overflow:hidden;box-shadow:0 24px 72px rgba(0,0,0,.5);display:flex;flex-direction:column;transform:scale(.9) translateY(20px);opacity:0;pointer-events:none;transition:transform .3s,opacity .3s;transform-origin:bottom right;}
+.acq-win.open{transform:none;opacity:1;pointer-events:all;}
+.acq-hdr{padding:13px 17px;display:flex;align-items:center;gap:11px;border-bottom:1px solid rgba(232,237,229,.08);background:var(--dk3);}
+.acq-av{width:33px;height:33px;border-radius:50%;background:linear-gradient(135deg,#3dba72,#2a8a52);display:flex;align-items:center;justify-content:center;font-size:.86rem;font-weight:700;color:#fff;}
+.acq-nm{font-family:'Cormorant Garamond',serif;font-size:.93rem;font-weight:700;color:var(--cream);}
+.acq-st{font-size:.63rem;color:#3dba72;display:flex;align-items:center;gap:4px;}
+.acq-st::before{content:'';width:5px;height:5px;border-radius:50%;background:#3dba72;animation:acqStP 1.6s infinite;}
+@keyframes acqStP{0%,100%{opacity:1;}60%{opacity:.3;}}
+.acq-lb{margin-left:auto;font-size:.62rem;font-weight:700;padding:3px 8px;border-radius:10px;background:rgba(61,186,114,.12);border:1px solid rgba(61,186,114,.2);color:#3dba72;cursor:pointer;}
+.acq-msgs{flex:1;overflow-y:auto;padding:13px;display:flex;flex-direction:column;gap:9px;scrollbar-width:thin;}
+.acq-msg{display:flex;gap:7px;align-items:flex-end;}.acq-msg.user{flex-direction:row-reverse;}
+.acq-avs{width:23px;height:23px;border-radius:50%;background:var(--dk3);border:1px solid rgba(232,237,229,.12);display:flex;align-items:center;justify-content:center;font-size:.7rem;flex-shrink:0;}
+.acq-bub{max-width:80%;padding:9px 12px;border-radius:14px;font-size:.82rem;line-height:1.6;color:var(--tx);}
+.acq-msg.bot .acq-bub{background:var(--dk3);border:1px solid rgba(232,237,229,.08);border-bottom-left-radius:4px;}
+.acq-msg.user .acq-bub{background:rgba(61,186,114,.15);border:1px solid rgba(61,186,114,.22);border-bottom-right-radius:4px;}
+.acq-typing{display:flex;gap:4px;padding:9px 12px;align-items:center;}
+.acq-typing span{width:6px;height:6px;border-radius:50%;background:var(--txm);animation:tDot 1.4s infinite ease-in-out;}
+.acq-typing span:nth-child(2){animation-delay:.2s;}.acq-typing span:nth-child(3){animation-delay:.4s;}
+@keyframes tDot{0%,80%,100%{transform:scale(.6);opacity:.4;}40%{transform:scale(1);opacity:1;}}
+.acq-suggs{display:flex;flex-wrap:wrap;gap:5px;padding:0 13px 9px;}
+.acq-sugg{padding:5px 9px;border-radius:20px;background:rgba(61,186,114,.08);border:1px solid rgba(61,186,114,.18);color:#3dba72;font-size:.71rem;font-weight:600;cursor:pointer;transition:all .2s;white-space:nowrap;}
+.acq-sugg:hover{background:rgba(61,186,114,.18);}
+.acq-ir{padding:11px 13px;border-top:1px solid rgba(232,237,229,.08);display:flex;gap:7px;align-items:center;background:var(--dk3);}
+.acq-inp{flex:1;padding:8px 11px;border-radius:20px;border:1px solid rgba(232,237,229,.12);background:var(--dk);color:var(--tx);font-family:'Outfit',sans-serif;font-size:.82rem;outline:none;transition:border-color .2s;}
+.acq-inp:focus{border-color:#3dba72;}.acq-inp::placeholder{color:var(--txm);}
+.acq-send{width:31px;height:31px;border-radius:50%;background:#3dba72;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.acq-send:hover{background:#2ea85e;}
+@media(max-width:500px){.acq-win{width:calc(100vw - 20px);right:10px;}}
+</style>
+<button class="acq-fab" id="acqFab">
+  <svg class="ci" viewBox="0 0 24 24" fill="none" stroke="#060a06" stroke-width="2" width="22" height="22"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+  <svg class="cx" viewBox="0 0 24 24" fill="none" stroke="#060a06" stroke-width="2" width="20" height="20"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+</button>
+<div class="acq-win" id="acqWin">
+  <div class="acq-hdr">
+    <div class="acq-av">A</div>
+    <div style="flex:1;"><div class="acq-nm">AcqireAI</div><div class="acq-st">Online · Agricultural Expert</div></div>
+    <span class="acq-lb" id="acqLb" onclick="acqSwLang()">EN</span>
+    <button onclick="document.getElementById('acqFab').click()" style="background:none;border:none;cursor:pointer;color:var(--txm);font-size:1rem;padding:4px;margin-left:4px;">✕</button>
+  </div>
+  <div class="acq-msgs" id="acqMsgs"></div>
+  <div class="acq-suggs" id="acqSuggs"></div>
+  <div class="acq-ir">
+    <input class="acq-inp" id="acqInp" placeholder="Ask about crops, diseases, market prices…" onkeydown="if(event.key==='Enter')acqSend()">
+    <button class="acq-send" onclick="acqSend()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#060a06" stroke-width="2.5" width="14" height="14"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+    </button>
+  </div>
+</div>
+
+<script>
+(function(){
+var SUGG={en:['Community crop price trends?','Rice disease treatment','PM-KISAN scheme','Best crops Tamil Nadu','Irrigation tips'],ta:['சமூகத்தில் விலைகள்?','நெல் நோய்','PM-KISAN','நீர்ப்பாசனம்'],hi:['समुदाय में फसल?','PM-KISAN','सिंचाई'],te:['పంట ధరలు?','PM-KISAN','నీటిపారుదల'],kn:['ಬೆಳೆ ಬೆಲೆ?','PM-KISAN','ನೀರಾವರಿ'],ml:['വിള വില?','PM-KISAN'],mr:['पीक भाव?','PM-KISAN'],gu:['પાક ભાવ?'],pa:['ਫ਼ਸਲ ਭਾਅ?'],bn:['ফসলের দাম?']};
+var GREET={en:n=>'👋 Hello'+(n?' '+n+' sir':'')+', I am AcqireAI — Ask me about crops, diseases, market prices, or what farmers in this community are saying!',ta:n=>'👋 வணக்கம்'+(n?' '+n+' ஐயா':'')+', நான் AcqireAI — பயிர்கள், நோய்கள், விலைகள் கேளுங்கள்!',hi:n=>'👋 नमस्ते'+(n?' '+n+' जी':'')+', मैं AcqireAI — पूछें!',te:n=>'👋 నమస్కారం'+(n?' '+n+' గారు':'')+', నేను AcqireAI!',kn:n=>'👋 ನಮಸ್ಕಾರ'+(n?' '+n+' ಅವರೇ':'')+', ನಾನು AcqireAI!',ml:n=>'👋 നമസ്കാരം'+(n?' '+n+' സാർ':'')+', ഞാൻ AcqireAI!',mr:n=>'👋 नमस्कार'+(n?' '+n+' जी':'')+', मी AcqireAI!',gu:n=>'👋 નમસ્તે'+' — AcqireAI!',pa:n=>'👋 ਸਤ ਸ੍ਰੀ ਅਕਾਲ — AcqireAI!',bn:n=>'👋 নমস্কার — AcqireAI!'};
+var fab=document.getElementById('acqFab'),win=document.getElementById('acqWin'),msgs=document.getElementById('acqMsgs'),inp=document.getElementById('acqInp');
+var hist=[],inited=false;
+function lang(){return localStorage.getItem('sf_lang')||'en';}
+document.getElementById('acqLb').textContent=({'en':'🇬🇧 EN','ta':'🇮🇳 தமிழ்','hi':'🇮🇳 हिं','te':'🇮🇳 తెల','kn':'🇮🇳 ಕನ್','ml':'🇮🇳 മലയ','mr':'🇮🇳 मरा','gu':'🇮🇳 ગુજ','pa':'🇮🇳 ਪੰਜ','bn':'🇮🇳 বাং'})[lang()]||'EN';
+window.acqSwLang=function(){var k=Object.keys(GREET),c=lang(),n=k[(k.indexOf(c)+1)%k.length];localStorage.setItem('sf_lang',n);location.reload();};
+function renderSugg(){var s=SUGG[lang()]||SUGG.en;document.getElementById('acqSuggs').innerHTML=s.map(x=>`<span class="acq-sugg" onclick="acqSend('${x.replace(/'/g,"\\'")}')">  ${x}</span>`).join('');}
+function addMsg(text, role, typing){
+  var el = document.createElement('div');
+  el.className = 'acq-msg ' + role;
+  if(typing){
+    el.id = 'acqTyping';
+    el.innerHTML = '<div class="acq-avs">A</div><div class="acq-bub"><div class="acq-typing"><span></span><span></span><span></span></div></div>';
+  } else {
+    var fmt = text
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\[weather\.html\]/g, '<a href="weather.html" style="color:#3dba72;font-weight:700;text-decoration:underline;text-underline-offset:2px;">→ Weather Module</a>')
+      .replace(/\[soil\.html\]/g, '<a href="soil.html" style="color:#3dba72;font-weight:700;text-decoration:underline;text-underline-offset:2px;">→ Soil Analysis</a>')
+      .replace(/\[disease\.html\]/g, '<a href="disease.html" style="color:#3dba72;font-weight:700;text-decoration:underline;text-underline-offset:2px;">→ Disease Detection</a>')
+      .replace(/\[market\.html\]/g, '<a href="market.html" style="color:#3dba72;font-weight:700;text-decoration:underline;text-underline-offset:2px;">→ Market Prices</a>')
+      .replace(/\[harvest\.html\]/g, '<a href="harvest.html" style="color:#3dba72;font-weight:700;text-decoration:underline;text-underline-offset:2px;">→ Harvest Predictor</a>')
+      .replace(/\[community\.html\]/g, '<a href="community.html" style="color:#3dba72;font-weight:700;text-decoration:underline;text-underline-offset:2px;">→ Community</a>')
+      .replace(/\n\n/g, '<br><br>')
+      .replace(/\n/g, '<br>');
+    el.innerHTML = '<div class="acq-avs">' + (role === 'bot' ? 'A' : '👤') + '</div><div class="acq-bub">' + fmt + '</div>';
+  }
+  msgs.appendChild(el);
+  msgs.scrollTop = msgs.scrollHeight;
+  return el;
+}
+fab.addEventListener('click',function(){this.classList.toggle('open');win.classList.toggle('open');if(win.classList.contains('open')){inp.focus();if(!inited){inited=true;renderSugg();setTimeout(()=>addMsg((GREET[lang()]||GREET.en)(window.SF_FARMER_NAME||null),'bot'),400);}}});
+window.acqSend=async function(preset){
+  var text=preset||inp.value.trim();if(!text)return;inp.value='';addMsg(text,'user');
+  document.getElementById('acqSuggs').innerHTML='';hist.push({role:'user',content:text});
+  var typ=addMsg('','bot',true);var l=lang();
+  var userCtx=window._SF_USER_CONTEXT||'';
+  try{
+    var r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,history:hist.slice(-6),lang:l,farmerName:window.SF_FARMER_NAME||null})});
+    var d=await r.json();var rep=d.reply||'Sorry, could not get a response.';
+    hist.push({role:'assistant',content:rep});typ.remove();addMsg(rep,'bot');
+  }catch(e){typ.remove();addMsg(l==='ta'?'⚠️ இணைப்பில் சிக்கல்.':'⚠️ Connection issue. Please try again.','bot');}
+  renderSugg();
+};
+})();
+</script>
+<script>
+(function(){
+  if(!localStorage.getItem('sf_token')){window.location.replace('intro.html');return;}
+  function sfLogout(){localStorage.removeItem('sf_token');localStorage.removeItem('sf_user');window.location.href='intro.html';}
+  function buildAuthNav(){
+    var u=null;try{u=JSON.parse(localStorage.getItem('sf_user')||'null');}catch(e){}
+    var t=localStorage.getItem('sf_token');
+    window.SF_FARMER_NAME=u?u.name.split(' ')[0]:null;
+    window._SF_USER_CONTEXT=u?'Farmer: '+u.name+'. Address as "'+u.name.split(' ')[0]+' sir". State: '+(u.state||'Tamil Nadu')+'. Crops: '+((u.crops||[]).join(', ')||'not specified')+'.':'';
+    var navR=document.querySelector('.nav-r');if(!navR)return;
+    navR.querySelectorAll('.npo,.nps').forEach(el=>el.remove());
+    var ex=document.getElementById('sfChip');if(ex)ex.remove();
+    if(u&&t){
+      var in2=u.name.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase();
+      var chip=document.createElement('div');chip.id='sfChip';chip.style.cssText='display:flex;align-items:center;gap:8px;position:relative;';
+      var ub=document.createElement('button');ub.id='sfUBtn';
+      ub.style.cssText='display:flex;align-items:center;gap:7px;padding:5px 12px 5px 6px;border-radius:20px;border:1px solid rgba(232,237,229,.14);background:rgba(255,255,255,.05);cursor:pointer;font-family:Outfit,sans-serif;font-size:.81rem;color:var(--tx);';
+      if(u.avatar){var img=document.createElement('img');img.src=u.avatar;img.style.cssText='width:26px;height:26px;border-radius:50%;object-fit:cover;border:2px solid rgba(61,186,114,.4);';ub.appendChild(img);}
+      else{var av=document.createElement('div');av.style.cssText='width:26px;height:26px;border-radius:50%;background:#3dba72;color:#060a06;display:flex;align-items:center;justify-content:center;font-size:.68rem;font-weight:800;line-height:1;flex-shrink:0;';av.textContent=in2;ub.appendChild(av);}
+      var ns=document.createElement('span');ns.textContent=u.name.split(' ')[0];ub.appendChild(ns);
+      var dr=document.createElement('div');dr.id='sfDrop';dr.style.cssText='display:none;position:absolute;top:calc(100% + 8px);right:0;background:#111612;border:1px solid rgba(232,237,229,.14);border-radius:14px;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,.5);min-width:180px;z-index:1000;';
+      var di=document.createElement('div');di.style.cssText='padding:12px 15px;border-bottom:1px solid rgba(232,237,229,.07);';
+      di.innerHTML='<div style="font-size:.84rem;font-weight:600;color:#e8ede5;">'+u.name+'</div><div style="font-size:.72rem;color:#7a8c7a;margin-top:2px;">'+(u.state||'Tamil Nadu')+'</div>';
+      var pa=document.createElement('button');pa.textContent='My Profile';pa.style.cssText='display:flex;padding:11px 15px;color:#e8ede5;background:none;border:none;cursor:pointer;font-family:Outfit,sans-serif;font-size:.82rem;width:100%;text-align:left;';
+      pa.onmouseover=function(){this.style.background='rgba(61,186,114,.08)';};pa.onmouseout=function(){this.style.background='none';};
+      pa.onclick=function(){dr.style.display='none';if(window.openProfile)openProfile();};
+      var lb=document.createElement('button');lb.textContent='Logout';lb.style.cssText='display:flex;padding:11px 15px;color:#f87171;background:none;border:none;cursor:pointer;font-family:Outfit,sans-serif;font-size:.82rem;width:100%;text-align:left;';
+      lb.onmouseover=function(){this.style.background='rgba(248,113,113,.07)';};lb.onmouseout=function(){this.style.background='none';};
+      lb.onclick=sfLogout;
+      dr.appendChild(di);dr.appendChild(pa);dr.appendChild(lb);
+      ub.onclick=function(){dr.style.display=dr.style.display==='none'?'block':'none';};
+      document.addEventListener('click',function(e){var c=document.getElementById('sfChip');if(c&&!c.contains(e.target))dr.style.display='none';});
+      chip.appendChild(ub);chip.appendChild(dr);
+      navR.insertBefore(chip,navR.firstChild);
+    } else {
+      var lb2=document.createElement('a');lb2.href='login.html';lb2.className='npill nps';lb2.style.cssText='font-size:.79rem;padding:7px 18px;';lb2.textContent='Login';
+      navR.insertBefore(lb2,navR.firstChild);
+    }
+  }
+  document.addEventListener('DOMContentLoaded',buildAuthNav);
+})();
+</script>
+</body>
+</html>
