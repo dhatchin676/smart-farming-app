@@ -2,7 +2,7 @@
 'use strict';
 const express=require('express'),path=require('path'),fs=require('fs'),cors=require('cors'),helmet=require('helmet'),morgan=require('morgan');
 require('dotenv').config();
-const app=express(), PORT=process.env.PORT||5000;
+const app=express(), PORT=process.env.PORT||8080;
 const TRIES=[path.resolve(__dirname,'..','frontend'),path.resolve(process.cwd(),'frontend'),'/app/frontend',path.resolve(__dirname,'frontend')];
 let F=null;
 for(const p of TRIES){try{if(fs.existsSync(path.join(p,'intro.html'))){F=p;break;}}catch(e){}}
