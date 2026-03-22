@@ -1,4 +1,3 @@
-# Deploy from REPO ROOT — so both frontend/ and backend/ are available
 [phases.setup]
 nixPkgs = ["nodejs_20"]
 
@@ -6,7 +5,7 @@ nixPkgs = ["nodejs_20"]
 cmds = ["cd backend && npm install"]
 
 [phases.build]
-cmds = ["echo 'No build step needed'"]
+cmds = ["echo build done"]
 
 [start]
 cmd = "cd backend && node server.js"
