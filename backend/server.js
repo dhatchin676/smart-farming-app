@@ -2,7 +2,7 @@
 'use strict';
 const express=require('express'),path=require('path'),fs=require('fs'),cors=require('cors'),helmet=require('helmet'),morgan=require('morgan');
 require('dotenv').config();
-const app=express(), PORT=process.env.PORT||5000;
+const app=express(), PORT=process.env.PORT||8080;
 const TRIES=[path.resolve(__dirname,'..','frontend'),path.resolve(process.cwd(),'frontend'),'/app/frontend',path.resolve(__dirname,'frontend')];
 let F=null;
 for(const p of TRIES){try{if(fs.existsSync(path.join(p,'intro.html'))){F=p;break;}}catch(e){}}
@@ -44,3 +44,4 @@ app.use((e,q,r,n)=>r.status(500).json({ok:false,msg:e.message}));
 process.on('uncaughtException',e=>console.error('CRASH:',e.message));
 process.on('unhandledRejection',e=>console.error('REJ:',String(e)));
 app.listen(PORT,'0.0.0.0',()=>console.log('SmartFarm AI port',PORT,'frontend',F||'MISSING'));
+
