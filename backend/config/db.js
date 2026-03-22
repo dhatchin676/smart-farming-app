@@ -1,33 +1,13 @@
 // backend/config/db.js
-const mysql = require('mysql2/promise');
-require('dotenv').config();
+// MySQL is NOT used in production — SmartFarm AI uses MongoDB + Gemini AI
+// This file is kept as a no-op stub so routes that import it don't crash
 
-const pool = mysql.createPool({
-  host:     process.env.DB_HOST     || 'localhost',
-  user:     process.env.DB_USER     || 'root',
-  password: process.env.DB_PASSWORD || '',
-  database: process.env.DB_NAME     || 'smartfarm_db',
-  port:     parseInt(process.env.DB_PORT) || 3306,
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0,
-  connectTimeout: 30000,
-  typeCast: function(field, next) {
-    if (field.type === 'JSON') return field.string();
-    return next();
-  }
-});
+const pool = {
+  query:         async () => [[], []],
+  execute:       async () => [[], []],
+  getConnection: async () => { throw new Error('MySQL not configured'); },
+};
 
-// Test connection on startup — warn but don't crash
-pool.getConnection()
-  .then(conn => {
-    console.log('✅ MySQL connected successfully');
-    conn.release();
-  })
-  .catch(err => {
-    console.warn('⚠️  MySQL connection failed:', err.message);
-    console.warn('⚠️  App will run with fallback data where possible');
-    // Don't process.exit — let the app run with AI fallbacks
-  });
+console.log('ℹ️  db.js: MySQL stub loaded — using MongoDB + AI fallbacks');
 
 module.exports = pool;

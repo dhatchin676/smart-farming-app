@@ -10,7 +10,7 @@ require('dotenv').config();
 const app      = express();
 const FRONTEND = path.join(__dirname, '..', 'frontend');
 
-// ── MongoDB (optional) ───────────────────────────────────────────
+// ── MongoDB ───────────────────────────────────────────────────────
 if (process.env.MONGO_URI) {
   try {
     const mongoose = require('mongoose');
@@ -20,7 +20,7 @@ if (process.env.MONGO_URI) {
   } catch(e) { console.warn('⚠ mongoose not installed'); }
 }
 
-// ── Middleware ───────────────────────────────────────────────────
+// ── Middleware ────────────────────────────────────────────────────
 app.use(helmet({ contentSecurityPolicy: false }));
 app.use(cors({ origin: '*' }));
 app.use(express.json({ limit: '20mb' }));
@@ -28,8 +28,7 @@ app.use(express.urlencoded({ extended: true, limit: '20mb' }));
 app.use(morgan('dev'));
 app.use(express.static(FRONTEND));
 
-// ── Explicit HTML routes (MUST be before wildcard) ───────────────
-// Without these, the wildcard catches every .html request
+// ── Explicit HTML routes ──────────────────────────────────────────
 ['intro','index','login','signup','weather','soil','disease',
  'market','harvest','community','profile'].forEach(page => {
   app.get('/' + page + '.html', (req, res) => {
@@ -38,19 +37,19 @@ app.use(express.static(FRONTEND));
   });
 });
 
-// ── Root → intro ─────────────────────────────────────────────────
+// ── Root → intro ──────────────────────────────────────────────────
 app.get('/', (req, res) => {
   const intro = path.join(FRONTEND, 'intro.html');
   res.sendFile(fs.existsSync(intro) ? intro : path.join(FRONTEND, 'index.html'));
 });
 
-// ── Safe route loader ─────────────────────────────────────────────
+// ── Safe route loader — handles both plain router AND {router,...} exports ──
 function safeRoute(mount, file) {
   const p = path.join(__dirname, 'routes', file + '.js');
   if (!fs.existsSync(p)) { console.warn('⚠ skip missing route:', file); return; }
   try {
     const r = require('./routes/' + file);
-    // Handle both plain router exports AND object exports like { router, authMiddleware, User }
+    // Handle: module.exports = router  OR  module.exports = { router, ... }
     const router = (typeof r === 'function' || (r && typeof r.handle === 'function'))
       ? r
       : (r && r.router && (typeof r.router === 'function' || typeof r.router.handle === 'function'))
@@ -65,7 +64,7 @@ function safeRoute(mount, file) {
   } catch(e) { console.warn('⚠ route error', file + ':', e.message); }
 }
 
-// ── API routes ───────────────────────────────────────────────────
+// ── API routes ────────────────────────────────────────────────────
 safeRoute('/api/weather',   'weather');
 safeRoute('/api/soil',      'soil');
 safeRoute('/api/disease',   'disease');
@@ -79,9 +78,9 @@ safeRoute('/api/community', 'community');
 safeRoute('/api/profile',   'profile');
 
 app.get('/api/health', (req, res) =>
-  res.json({ status: 'ok', time: new Date().toISOString() }));
+  res.json({ status: 'ok', time: new Date().toISOString(), env: process.env.NODE_ENV }));
 
-// ── SPA fallback (only for unknown non-API, non-file paths) ──────
+// ── SPA fallback ──────────────────────────────────────────────────
 app.get('*', (req, res) => {
   if (req.path.startsWith('/api/') || req.path.includes('.')) {
     return res.status(404).json({ success: false, message: 'Not found' });
@@ -97,5 +96,6 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`🌱 SmartFarm AI → http://localhost:${PORT}`);
+  console.log(`🌱 SmartFarm AI backend running on port ${PORT}`);
+  console.log(`🌐 Open your app at: http://localhost:${PORT}`);
 });
