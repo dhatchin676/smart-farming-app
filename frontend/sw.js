@@ -1,1 +1,1 @@
-// Service worker disabled
+self.addEventListener('install',()=>self.skipWaiting());self.addEventListener('activate',e=>{e.waitUntil(self.registration.unregister().then(()=>caches.keys()).then(keys=>Promise.all(keys.map(k=>caches.delete(k)))));self.clients.claim();self.clients.matchAll().then(cs=>cs.forEach(c=>c.navigate(c.url)));})
