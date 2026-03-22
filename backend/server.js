@@ -7,10 +7,21 @@ const path    = require('path');
 const fs      = require('fs');
 require('dotenv').config();
 
-const app      = express();
-const FRONTEND = path.join(__dirname, '..', 'frontend');
+const app = express();
 
-// ── MongoDB ───────────────────────────────────────────────────────
+// ── Find frontend folder — works locally AND on Railway ──────────
+// Local:   backend/../frontend  → works
+// Railway: backend/../frontend  → works (Railway deploys from repo root)
+const FRONTEND = path.join(__dirname, '..', 'frontend');
+const FRONTEND_EXISTS = fs.existsSync(FRONTEND);
+console.log(`📁 Frontend path: ${FRONTEND}`);
+console.log(`📁 Frontend exists: ${FRONTEND_EXISTS}`);
+if (FRONTEND_EXISTS) {
+  const files = fs.readdirSync(FRONTEND).slice(0, 5);
+  console.log(`📁 Frontend files: ${files.join(', ')}`);
+}
+
+// ── MongoDB ────────────────────────────────────────────────────────
 if (process.env.MONGO_URI) {
   try {
     const mongoose = require('mongoose');
@@ -20,36 +31,57 @@ if (process.env.MONGO_URI) {
   } catch(e) { console.warn('⚠ mongoose not installed'); }
 }
 
-// ── Middleware ────────────────────────────────────────────────────
+// ── Middleware ──────────────────────────────────────────────────────
 app.use(helmet({ contentSecurityPolicy: false }));
 app.use(cors({ origin: '*' }));
 app.use(express.json({ limit: '20mb' }));
 app.use(express.urlencoded({ extended: true, limit: '20mb' }));
 app.use(morgan('dev'));
-app.use(express.static(FRONTEND));
 
-// ── Explicit HTML routes ──────────────────────────────────────────
+// ── Serve static frontend files ────────────────────────────────────
+if (FRONTEND_EXISTS) {
+  app.use(express.static(FRONTEND));
+  console.log('✅ Serving static files from:', FRONTEND);
+} else {
+  console.warn('⚠ Frontend folder not found at:', FRONTEND);
+}
+
+// ── Helper: send HTML file safely ──────────────────────────────────
+function sendPage(res, page) {
+  if (!FRONTEND_EXISTS) {
+    return res.status(503).send(`
+      <h1>SmartFarm AI</h1>
+      <p>Frontend not found at: ${FRONTEND}</p>
+      <p>__dirname: ${__dirname}</p>
+    `);
+  }
+  const file = path.join(FRONTEND, page + '.html');
+  const fallback = path.join(FRONTEND, 'intro.html');
+  if (fs.existsSync(file)) {
+    res.sendFile(file);
+  } else if (fs.existsSync(fallback)) {
+    res.sendFile(fallback);
+  } else {
+    res.status(404).send(`Page not found: ${page}.html`);
+  }
+}
+
+// ── Explicit HTML page routes ──────────────────────────────────────
 ['intro','index','login','signup','weather','soil','disease',
  'market','harvest','community','profile'].forEach(page => {
-  app.get('/' + page + '.html', (req, res) => {
-    const file = path.join(FRONTEND, page + '.html');
-    res.sendFile(fs.existsSync(file) ? file : path.join(FRONTEND, 'intro.html'));
-  });
+  app.get('/' + page + '.html', (req, res) => sendPage(res, page));
 });
 
-// ── Root → intro ──────────────────────────────────────────────────
-app.get('/', (req, res) => {
-  const intro = path.join(FRONTEND, 'intro.html');
-  res.sendFile(fs.existsSync(intro) ? intro : path.join(FRONTEND, 'index.html'));
-});
+// ── Root → always serve intro.html ────────────────────────────────
+app.get('/', (req, res) => sendPage(res, 'intro'));
 
-// ── Safe route loader — handles both plain router AND {router,...} exports ──
+// ── Safe API route loader ──────────────────────────────────────────
 function safeRoute(mount, file) {
   const p = path.join(__dirname, 'routes', file + '.js');
   if (!fs.existsSync(p)) { console.warn('⚠ skip missing route:', file); return; }
   try {
     const r = require('./routes/' + file);
-    // Handle: module.exports = router  OR  module.exports = { router, ... }
+    // Handle both: module.exports = router  AND  module.exports = { router, ... }
     const router = (typeof r === 'function' || (r && typeof r.handle === 'function'))
       ? r
       : (r && r.router && (typeof r.router === 'function' || typeof r.router.handle === 'function'))
@@ -64,7 +96,7 @@ function safeRoute(mount, file) {
   } catch(e) { console.warn('⚠ route error', file + ':', e.message); }
 }
 
-// ── API routes ────────────────────────────────────────────────────
+// ── API Routes ─────────────────────────────────────────────────────
 safeRoute('/api/weather',   'weather');
 safeRoute('/api/soil',      'soil');
 safeRoute('/api/disease',   'disease');
@@ -77,18 +109,23 @@ safeRoute('/api/auth',      'auth');
 safeRoute('/api/community', 'community');
 safeRoute('/api/profile',   'profile');
 
-app.get('/api/health', (req, res) =>
-  res.json({ status: 'ok', time: new Date().toISOString(), env: process.env.NODE_ENV }));
+// ── Health check ────────────────────────────────────────────────────
+app.get('/api/health', (req, res) => res.json({
+  status:   'ok',
+  time:     new Date().toISOString(),
+  frontend: FRONTEND_EXISTS,
+  path:     FRONTEND,
+}));
 
-// ── SPA fallback ──────────────────────────────────────────────────
+// ── SPA Fallback ───────────────────────────────────────────────────
 app.get('*', (req, res) => {
   if (req.path.startsWith('/api/') || req.path.includes('.')) {
-    return res.status(404).json({ success: false, message: 'Not found' });
+    return res.status(404).json({ success: false, message: 'Not found: ' + req.path });
   }
-  res.sendFile(path.join(FRONTEND, 'intro.html'));
+  sendPage(res, 'intro');
 });
 
-// ── Error handler ─────────────────────────────────────────────────
+// ── Error handler ───────────────────────────────────────────────────
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(err.status || 500).json({ success: false, message: err.message });
@@ -96,6 +133,6 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`🌱 SmartFarm AI backend running on port ${PORT}`);
-  console.log(`🌐 Open your app at: http://localhost:${PORT}`);
+  console.log(`🌱 SmartFarm AI running on port ${PORT}`);
+  console.log(`🌐 http://localhost:${PORT}`);
 });
