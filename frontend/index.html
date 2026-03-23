@@ -368,7 +368,7 @@ body{top:0!important;}
   <div class="mod-hdr reveal">
     <div>
       <div class="se"><div class="sel"></div><span>Intelligence Modules</span></div>
-      <h2 class="st" style="margin-bottom:0;">Seven tools.<br><em>One platform.</em></h2>
+      <h2 class="st" style="margin-bottom:0;">Five tools.<br><em>One platform.</em></h2>
     </div>
     <div style="display:flex;flex-direction:column;align-items:flex-end;gap:14px;">
       <p class="ss" style="text-align:right;">Every module works together to give complete, real-time farm intelligence at your fingertips.</p>
@@ -448,17 +448,6 @@ body{top:0!important;}
           <div class="mcard-desc">Ask anything in Tamil or English — pest control, harvest dates, market prices, government schemes. Voice-powered.</div>
         </div>
         <div class="mcard-arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></div>
-
-      <a href="community.html" class="mcard">
-        <img class="mcard-img" src="https://plus.unsplash.com/premium_photo-1686285540826-e4ab8a9c095a?q=80&w=870&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="Farmer Community">
-        <div class="mcard-ov"></div><div class="mcard-ov2"></div>
-        <div class="mcard-body">
-          <div class="mcard-tag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>Community</div>
-          <div class="mcard-title">Farmer Community</div>
-          <div class="mcard-desc">Connect with farmers across India. Share problems, get AI-powered answers, discuss market prices and crop tips.</div>
-        </div>
-        <div class="mcard-arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></div>
-      </a>
       </a>
     </div>
   </div>
@@ -746,13 +735,13 @@ document.querySelectorAll('.si').forEach(el=>cObs.observe(el));
   let history=[],inited=false,isListening=false,recognition=null;
   fab.addEventListener('click',function(){this.classList.toggle('open');win.classList.toggle('open');if(win.classList.contains('open')){inp.focus();if(!inited){inited=true;renderSugg();setTimeout(()=>addMsg((function(){
   var GREET={
-    en:function(n){return '👋 Hello'+(n?' '+n+' sir':'')+', I am AcqireAI — your smart farming assistant. Ask me about crops, diseases, market prices, government schemes or any farming question!';},
+    en:function(n){return '👋 Hello'+(n?' '+n:'')+', I am AcqireAI — your smart farming assistant. Ask me about crops, diseases, market prices, government schemes or any farming question!';},
     ta:function(n){return '👋 வணக்கம்'+(n?' '+n+' ஐயா':'')+', நான் AcqireAI — உங்கள் விவசாய நிபுணர். பயிர்கள், நோய்கள், சந்தை விலைகள் பற்றி கேளுங்கள்!';},
-    hi:function(n){return '👋 नमस्ते'+(n?' '+n+' जी':'')+', मैं AcqireAI हूँ — आपका कृषि सहायक। फसलों, बीमारियों, बाज़ार के बारे में पूछें!';},
-    te:function(n){return '👋 నమస్కారం'+(n?' '+n+' గారు':'')+', నేను AcqireAI — మీ వ్యవసాయ సహాయకుడు. పంటలు, వ్యాధులు, ధరల గురించి అడగండి!';},
-    kn:function(n){return '👋 ನಮಸ್ಕಾರ'+(n?' '+n+' ಅವರೇ':'')+', ನಾನು AcqireAI — ನಿಮ್ಮ ಕೃಷಿ ಸಹಾಯಕ. ಬೆಳೆ, ರೋಗ, ಬೆಲೆ ಬಗ್ಗೆ ಕೇಳಿ!';},
-    ml:function(n){return '👋 നമസ്കാരം'+(n?' '+n+' സാർ':'')+', ഞാൻ AcqireAI — നിങ്ങളുടെ കൃഷി സഹായി. വിളകൾ, രോഗങ്ങൾ, വിലകൾ ചോദിക്കൂ!';},
-    mr:function(n){return '👋 नमस्कार'+(n?' '+n+' जी':'')+', मी AcqireAI — तुमचा शेती सहाय्यक. पिके, रोग, बाजारभाव याबद्दल विचारा!';},
+    hi:function(n){return '👋 नमस्ते'+(n?' '+n:'')+', मैं AcqireAI हूँ — आपका कृषि सहायक। फसलों, बीमारियों, बाज़ार के बारे में पूछें!';},
+    te:function(n){return '👋 నమస్కారం'+(n?' '+n:'')+', నేను AcqireAI — మీ వ్యవసాయ సహాయకుడు. పంటలు, వ్యాధులు, ధరల గురించి అడగండి!';},
+    kn:function(n){return '👋 ನಮಸ್ಕಾರ'+(n?' '+n:'')+', ನಾನು AcqireAI — ನಿಮ್ಮ ಕೃಷಿ ಸಹಾಯಕ. ಬೆಳೆ, ರೋಗ, ಬೆಲೆ ಬಗ್ಗೆ ಕೇಳಿ!';},
+    ml:function(n){return '👋 നമസ്കാരം'+(n?' '+n:'')+', ഞാൻ AcqireAI — നിങ്ങളുടെ കൃഷി സഹായി. വിളകൾ, രോഗങ്ങൾ, വിലകൾ ചോദിക്കൂ!';},
+    mr:function(n){return '👋 नमस्कार'+(n?' '+n:'')+', मी AcqireAI — तुमचा शेती सहाय्यक. पिके, रोग, बाजारभाव याबद्दल विचारा!';},
     gu:function(n){return '👋 નમસ્તે'+(n?' '+n+' ભાઈ':'')+', હું AcqireAI — તમારો ખેતી સહાયક. પાક, રોગ, ભાવ વિશે પૂછો!';},
     pa:function(n){return '👋 ਸਤ ਸ੍ਰੀ ਅਕਾਲ'+(n?' '+n+' ਜੀ':'')+', ਮੈਂ AcqireAI — ਤੁਹਾਡਾ ਖੇਤੀ ਸਹਾਇਕ। ਫ਼ਸਲਾਂ, ਬਿਮਾਰੀਆਂ, ਭਾਅ ਬਾਰੇ ਪੁੱਛੋ!';},
     bn:function(n){return '👋 নমস্কার'+(n?' '+n+' ভাই':'')+', আমি AcqireAI — আপনার কৃষি সহকারী। ফসল, রোগ, বাজার সম্পর্কে জিজ্ঞেস করুন!';}
@@ -989,7 +978,13 @@ document.addEventListener('DOMContentLoaded', function() {
     var hb2=navR.querySelector('.hburg');if(hb2)navR.insertBefore(lb2,hb2);else navR.appendChild(lb2);
   }
   window.SF_FARMER_NAME=u?u.name.split(' ')[0]:null;
-  window._SF_USER_CONTEXT=u?'Farmer: '+u.name+'. Address as "'+u.name.split(' ')[0]+' sir". State: '+(u.state||'Tamil Nadu')+(u.village?', '+u.village:'')+'. Crops: '+((u.crops||[]).join(', ')||'not specified')+'.':'';
+  window._SF_USER_CONTEXT=(function(){
+    if(!u) return '';
+    var fn=u.name.split(' ')[0];
+    var g=u.gender||null;
+    var address = g==='female' ? fn+' madam' : g==='male' ? fn+' sir' : fn;
+    return 'Farmer: '+u.name+'. Address as "'+address+'". Gender: '+(g||'not specified')+'. State: '+(u.state||'Tamil Nadu')+(u.village?', '+u.village:'')+'. Crops: '+((u.crops||[]).join(', ')||'not specified')+'.';
+  })();
 })();
 </script>
 </body>
