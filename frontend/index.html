@@ -298,6 +298,9 @@ body{top:0!important;}
 </style>
 </head>
 <body>
+<script>
+(function(){if(!localStorage.getItem("sf_token")){window.location.replace("intro.html");}})();
+</script>
 
 <div class="cursor" id="cur"></div>
 <div class="cursor-ring" id="curRing"></div>
@@ -368,7 +371,7 @@ body{top:0!important;}
   <div class="mod-hdr reveal">
     <div>
       <div class="se"><div class="sel"></div><span>Intelligence Modules</span></div>
-      <h2 class="st" style="margin-bottom:0;">Five tools.<br><em>One platform.</em></h2>
+      <h2 class="st" style="margin-bottom:0;">Seven tools.<br><em>One platform.</em></h2>
     </div>
     <div style="display:flex;flex-direction:column;align-items:flex-end;gap:14px;">
       <p class="ss" style="text-align:right;">Every module works together to give complete, real-time farm intelligence at your fingertips.</p>
@@ -446,6 +449,32 @@ body{top:0!important;}
           </div>
           <div class="mcard-title">AcqireAI Assistant</div>
           <div class="mcard-desc">Ask anything in Tamil or English — pest control, harvest dates, market prices, government schemes. Voice-powered.</div>
+        </div>
+        <div class="mcard-arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></div>
+      </a>
+
+      <!-- Community Card -->
+      <a href="community.html" class="mcard" style="border-color:rgba(61,186,114,.18);">
+        <img class="mcard-img" src="https://images.unsplash.com/photo-1593113598332-cd288d649433?w=600&q=85" alt="Farmer Community">
+        <div class="mcard-ov"></div>
+        <div class="mcard-ov2" style="background:linear-gradient(180deg,rgba(61,186,114,.0) 0%,rgba(61,186,114,.22) 100%);"></div>
+        <div class="mcard-body">
+          <div class="mcard-tag" style="background:rgba(61,186,114,.18);border-color:rgba(61,186,114,.35);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="9" height="9"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+            Community
+          </div>
+          <div class="mcard-title">Farmer Community</div>
+          <div class="mcard-desc">Connect with farmers across Tamil Nadu — share crop tips, sell produce directly, get AI-powered advice and help each other grow.</div>
+          <!-- Live member count bar -->
+          <div style="display:flex;align-items:center;gap:8px;margin-top:10px;">
+            <div style="display:flex;gap:-4px;">
+              <div style="width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#3dba72,#2a8a52);border:2px solid rgba(10,14,10,.8);display:flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:700;color:#fff;">R</div>
+              <div style="width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#5ba4e8,#2a6ab8);border:2px solid rgba(10,14,10,.8);display:flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:700;color:#fff;margin-left:-6px;">K</div>
+              <div style="width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#c9a84c,#a07830);border:2px solid rgba(10,14,10,.8);display:flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:700;color:#fff;margin-left:-6px;">A</div>
+            </div>
+            <span style="font-size:.68rem;color:rgba(232,237,229,.5);">Farmers online now</span>
+            <span class="ldot" style="width:6px;height:6px;margin-left:auto;flex-shrink:0;"></span>
+          </div>
         </div>
         <div class="mcard-arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></div>
       </a>
@@ -560,14 +589,14 @@ body{top:0!important;}
       <br>
       <h5>Contact</h5>
       <ul>
-        <li><a href="/cdn-cgi/l/email-protection#24574945565042455649454d404152644349454d480a474b49"><span class="__cf_email__" data-cfemail="7c0f111d0e081a1d0e111d1518190a3c1b111d1510521f1311">[email&#160;protected]</span></a></li>
-        <li><a href="/cdn-cgi/l/email-protection#6d1e000c1f190b0c1f000c0409081b2d0a000c0401430e0200">Guide: <span class="__cf_email__" data-cfemail="26554b4754524047544b474f42435066414b474f4a0845494b">[email&#160;protected]</span></a></li>
+        <li><a href="/cdn-cgi/l/email-protection#e5968884979183849788848c818093a58288848c89cb868a88"><span class="__cf_email__" data-cfemail="74071915060012150619151d101102341319151d185a171b19">[email&#160;protected]</span></a></li>
+        <li><a href="/cdn-cgi/l/email-protection#62110f0310160403100f030b06071422050f030b0e4c010d0f">Guide: <span class="__cf_email__" data-cfemail="f1829c9083859790839c9098959487b1969c90989ddf929e9c">[email&#160;protected]</span></a></li>
       </ul>
     </div>
   </div>
   <div class="fbot">
     <span>© 2025 SmartFarm AI · Niral Thiruvizha 3.0 · College Code: 8204</span>
-    <span>Built with precision for Indian farmers · <a href="/cdn-cgi/l/email-protection#ea99878b989e8c8b98878b838e8f9caa8d878b8386c4898587">Contact Team</a></span>
+    <span>Built with precision for Indian farmers · <a href="/cdn-cgi/l/email-protection#62110f0310160403100f030b06071422050f030b0e4c010d0f">Contact Team</a></span>
   </div>
 </footer>
 
@@ -663,329 +692,320 @@ const cObs=new IntersectionObserver(es=>{
 document.querySelectorAll('.si').forEach(el=>cObs.observe(el));
 </script>
 
-<!-- AcqireAI Chatbot -->
+<!-- ═══════════════════════════════════════════
+  AcqireAI Chatbot + Auth Nav
+  Single clean block — no duplicates
+═══════════════════════════════════════════ -->
 <style>
-.acquireai-fab{position:fixed;bottom:28px;right:28px;z-index:800;width:58px;height:58px;border-radius:50%;background:var(--g);display:flex;align-items:center;justify-content:center;cursor:pointer;border:none;box-shadow:0 6px 28px rgba(61,186,114,.5);transition:transform .25s,box-shadow .25s;animation:fabPulse 3s infinite;}
-.acquireai-fab:hover{transform:scale(1.1);box-shadow:0 10px 40px rgba(61,186,114,.65);}
-@keyframes fabPulse{0%,100%{box-shadow:0 6px 28px rgba(61,186,114,.5);}50%{box-shadow:0 6px 40px rgba(61,186,114,.75),0 0 0 8px rgba(61,186,114,.08);}}
-.acquireai-fab .chat-close{display:none;}.acquireai-fab.open .chat-icon{display:none;}.acquireai-fab.open .chat-close{display:block;}
-.acquireai-window{position:fixed;bottom:100px;right:28px;z-index:800;width:390px;max-height:600px;background:var(--dk2);border:1px solid var(--bd2);border-radius:20px;overflow:hidden;box-shadow:0 24px 72px rgba(0,0,0,.5);display:flex;flex-direction:column;transform:scale(0.9) translateY(20px);opacity:0;pointer-events:none;transition:transform .3s cubic-bezier(.4,0,.2,1),opacity .3s;transform-origin:bottom right;}
-.acquireai-window.open{transform:none;opacity:1;pointer-events:all;}
-.acq-header{padding:14px 18px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--bd);background:var(--dk3);}
-.acq-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--g),var(--g2));display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;font-weight:700;color:var(--tx);font-family:'Cormorant Garamond',serif;}
-.acq-name{font-family:'Cormorant Garamond',serif;font-size:1rem;font-weight:700;color:var(--cream);}
-.acq-status{font-size:.68rem;color:var(--g);display:flex;align-items:center;gap:4px;}
-.acq-status::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--g);animation:acqpulse 1.6s infinite;}
-@keyframes acqpulse{0%,100%{opacity:1;}60%{opacity:.3;}}
-.acq-lang-badge{margin-left:auto;font-size:.65rem;font-weight:700;padding:3px 8px;border-radius:10px;background:rgba(61,186,114,.12);border:1px solid rgba(61,186,114,.2);color:var(--g);cursor:pointer;transition:all .2s;}
-.acq-lang-badge:hover{background:rgba(61,186,114,.22);}
-.acq-messages{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;scrollbar-width:thin;scrollbar-color:var(--bd) transparent;}
-.acq-msg{display:flex;gap:8px;align-items:flex-end;}.acq-msg.user{flex-direction:row-reverse;}
-.acq-avatar-sm{width:26px;height:26px;border-radius:50%;background:var(--dk3);border:1px solid var(--bd2);display:flex;align-items:center;justify-content:center;font-size:.75rem;flex-shrink:0;}
-.acq-msg.user .acq-avatar-sm{background:rgba(61,186,114,.15);}
-.acq-bubble{max-width:80%;padding:10px 13px;border-radius:14px;font-size:.83rem;line-height:1.62;color:var(--tx);}
-.acq-msg.bot .acq-bubble{background:var(--dk3);border:1px solid var(--bd);border-bottom-left-radius:4px;}
-.acq-msg.user .acq-bubble{background:rgba(61,186,114,.15);border:1px solid rgba(61,186,114,.22);border-bottom-right-radius:4px;}
-.acq-typing{display:flex;gap:4px;align-items:center;padding:11px 13px;}
-.acq-typing span{width:6px;height:6px;border-radius:50%;background:var(--txm);animation:acqDot 1.4s infinite ease-in-out;}
-.acq-typing span:nth-child(2){animation-delay:.2s;}.acq-typing span:nth-child(3){animation-delay:.4s;}
+/* ── Chatbot styles ── */
+.acq-fab{position:fixed;bottom:28px;right:28px;z-index:800;width:56px;height:56px;border-radius:50%;background:var(--g,#3dba72);display:flex;align-items:center;justify-content:center;cursor:pointer;border:none;box-shadow:0 6px 28px rgba(61,186,114,.5);animation:acqPulse 3s infinite;transition:transform .2s;}
+.acq-fab:hover{transform:scale(1.1);}
+@keyframes acqPulse{0%,100%{box-shadow:0 6px 28px rgba(61,186,114,.5);}50%{box-shadow:0 6px 40px rgba(61,186,114,.75),0 0 0 8px rgba(61,186,114,.08);}}
+.acq-fab .ci{display:block;}.acq-fab.open .ci{display:none;}.acq-fab .cx{display:none;}.acq-fab.open .cx{display:block;}
+.acq-win{position:fixed;bottom:96px;right:28px;z-index:800;width:380px;max-height:580px;background:var(--dk2,#111612);border:1px solid rgba(232,237,229,.14);border-radius:20px;overflow:hidden;box-shadow:0 24px 72px rgba(0,0,0,.5);display:flex;flex-direction:column;transform:scale(.9) translateY(20px);opacity:0;pointer-events:none;transition:transform .3s cubic-bezier(.4,0,.2,1),opacity .3s;transform-origin:bottom right;}
+.acq-win.open{transform:none;opacity:1;pointer-events:all;}
+.acq-hdr{padding:14px 18px;display:flex;align-items:center;gap:12px;border-bottom:1px solid rgba(232,237,229,.08);background:var(--dk3,#161d16);}
+.acq-av{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#3dba72,#2a8a52);display:flex;align-items:center;justify-content:center;font-size:.88rem;font-weight:700;color:#fff;flex-shrink:0;}
+.acq-nm{font-family:'Cormorant Garamond',serif;font-size:.95rem;font-weight:700;color:var(--cream,#f0ead8);}
+.acq-st{font-size:.65rem;color:#3dba72;display:flex;align-items:center;gap:4px;}
+.acq-st::before{content:'';width:5px;height:5px;border-radius:50%;background:#3dba72;animation:acqDotPulse 1.6s infinite;}
+@keyframes acqDotPulse{0%,100%{opacity:1;}60%{opacity:.3;}}
+.acq-lb{margin-left:auto;font-size:.63rem;font-weight:700;padding:3px 8px;border-radius:10px;background:rgba(61,186,114,.12);border:1px solid rgba(61,186,114,.2);color:#3dba72;cursor:pointer;user-select:none;}
+.acq-msgs{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;scrollbar-width:thin;}
+.acq-msg{display:flex;gap:8px;align-items:flex-end;}
+.acq-msg.user{flex-direction:row-reverse;}
+.acq-avs{width:24px;height:24px;border-radius:50%;background:var(--dk3,#161d16);border:1px solid rgba(232,237,229,.12);display:flex;align-items:center;justify-content:center;font-size:.72rem;flex-shrink:0;}
+.acq-msg.user .acq-avs{background:rgba(61,186,114,.15);}
+.acq-bub{max-width:80%;padding:9px 13px;border-radius:14px;font-size:.83rem;line-height:1.6;color:var(--tx,#e8ede5);}
+.acq-msg.bot .acq-bub{background:var(--dk3,#161d16);border:1px solid rgba(232,237,229,.08);border-bottom-left-radius:4px;}
+.acq-msg.user .acq-bub{background:rgba(61,186,114,.15);border:1px solid rgba(61,186,114,.22);border-bottom-right-radius:4px;}
+.acq-typing{display:flex;gap:4px;padding:11px 13px;align-items:center;}
+.acq-typing span{width:6px;height:6px;border-radius:50%;background:var(--txm,#7a8c7a);animation:acqDot 1.4s infinite ease-in-out;}
+.acq-typing span:nth-child(2){animation-delay:.2s;}
+.acq-typing span:nth-child(3){animation-delay:.4s;}
 @keyframes acqDot{0%,80%,100%{transform:scale(.6);opacity:.4;}40%{transform:scale(1);opacity:1;}}
-.acq-suggestions{display:flex;flex-wrap:wrap;gap:5px;padding:0 14px 10px;}
-.acq-sugg{padding:5px 11px;border-radius:20px;background:rgba(61,186,114,.08);border:1px solid rgba(61,186,114,.18);color:var(--g);font-size:.72rem;font-weight:600;cursor:pointer;transition:all .2s;white-space:nowrap;}
+.acq-suggs{display:flex;flex-wrap:wrap;gap:5px;padding:0 14px 10px;}
+.acq-sugg{padding:5px 10px;border-radius:20px;background:rgba(61,186,114,.08);border:1px solid rgba(61,186,114,.18);color:#3dba72;font-size:.72rem;font-weight:600;cursor:pointer;transition:all .2s;white-space:nowrap;}
 .acq-sugg:hover{background:rgba(61,186,114,.18);}
-.acq-input-row{padding:12px 14px;border-top:1px solid var(--bd);display:flex;gap:8px;align-items:center;background:var(--dk3);}
-.acq-input{flex:1;padding:9px 13px;border-radius:22px;border:1px solid var(--bd2);background:var(--dk);color:var(--tx);font-family:'Outfit',sans-serif;font-size:.83rem;outline:none;transition:border-color .25s;}
-.acq-input::placeholder{color:var(--txm);}.acq-input:focus{border-color:var(--g);}
-.acq-mic-btn{width:34px;height:34px;border-radius:50%;border:1px solid var(--bd2);background:var(--dk);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--txm);transition:all .25s;flex-shrink:0;}
-.acq-mic-btn.listening{background:rgba(239,68,68,.15);border-color:#ef4444;color:#ef4444;animation:micPulse 1s infinite;}
-@keyframes micPulse{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,.4);}50%{box-shadow:0 0 0 6px rgba(239,68,68,0);}}
-.acq-send{width:34px;height:34px;border-radius:50%;background:var(--g);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:transform .2s,box-shadow .2s;}
-.acq-send:hover{transform:scale(1.08);box-shadow:0 4px 14px rgba(61,186,114,.4);}
-.acq-send svg{width:15px;height:15px;color:#0a0e0a;}
-@media(max-width:768px){.acquireai-window{width:calc(100vw - 24px);right:12px;bottom:90px;}}
+.acq-inp-row{padding:12px 14px;border-top:1px solid rgba(232,237,229,.08);display:flex;gap:8px;align-items:center;background:var(--dk3,#161d16);}
+.acq-inp{flex:1;padding:9px 12px;border-radius:20px;border:1px solid rgba(232,237,229,.12);background:var(--dk,#0a0e0a);color:var(--tx,#e8ede5);font-family:'Outfit',sans-serif;font-size:.83rem;outline:none;transition:border-color .2s;}
+.acq-inp:focus{border-color:#3dba72;}
+.acq-inp::placeholder{color:var(--txm,#7a8c7a);}
+.acq-mic{width:32px;height:32px;border-radius:50%;border:1px solid rgba(232,237,229,.12);background:var(--dk,#0a0e0a);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--txm,#7a8c7a);flex-shrink:0;transition:all .2s;}
+.acq-mic.listening{border-color:#ef4444;color:#ef4444;background:rgba(239,68,68,.1);}
+.acq-send{width:32px;height:32px;border-radius:50%;background:#3dba72;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .2s;}
+.acq-send:hover{background:#2ea85e;}
+@media(max-width:500px){.acq-win{width:calc(100vw - 24px);right:12px;}}
 </style>
-<button class="acquireai-fab" id="acqFab" aria-label="Open AcqireAI">
-  <svg class="chat-icon" viewBox="0 0 24 24" fill="none" stroke="#0a0e0a" stroke-width="2" width="24" height="24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
-  <svg class="chat-close" viewBox="0 0 24 24" fill="none" stroke="#0a0e0a" stroke-width="2" width="22" height="22"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+
+<!-- FAB Button -->
+<button class="acq-fab" id="acqFab" title="Ask FarmAI">
+  <svg class="ci" viewBox="0 0 24 24" fill="none" stroke="#060a06" stroke-width="2" width="22" height="22"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+  <svg class="cx" viewBox="0 0 24 24" fill="none" stroke="#060a06" stroke-width="2" width="20" height="20"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
 </button>
-<div class="acquireai-window" id="acqWindow">
-  <div class="acq-header">
-    <div class="acq-avatar">A</div>
-    <div style="flex:1;"><div class="acq-name">AcqireAI</div><div class="acq-status">Online · Agricultural Expert</div></div>
-    <span class="acq-lang-badge" id="acqLangBadge" onclick="acqToggleLang()" title="Switch language">EN</span>
-    <button onclick="document.getElementById('acqFab').click()" style="background:none;border:none;cursor:pointer;color:var(--txm);font-size:1rem;padding:4px;margin-left:4px;">✕</button>
+
+<!-- Chat Window -->
+<div class="acq-win" id="acqWin">
+  <div class="acq-hdr">
+    <div class="acq-av">A</div>
+    <div style="flex:1;">
+      <div class="acq-nm">AcqireAI</div>
+      <div class="acq-st">Online · Agricultural Expert</div>
+    </div>
+    <span class="acq-lb" id="acqLb" onclick="acqSwLang()">EN</span>
+    <button onclick="document.getElementById('acqFab').click()" style="background:none;border:none;cursor:pointer;color:var(--txm,#7a8c7a);font-size:1rem;padding:4px;margin-left:4px;">&#x2715;</button>
   </div>
-  <div class="acq-messages" id="acqMessages"></div>
-  <div class="acq-suggestions" id="acqSuggestions"></div>
-  <div class="acq-input-row">
-    <input class="acq-input" id="acqInput" placeholder="Ask about crops, diseases, schemes..." onkeydown="if(event.key==='Enter')acqSend()">
-    <button class="acq-mic-btn" id="acqMicBtn" onclick="acqToggleVoice()" title="Voice input">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+  <div class="acq-msgs" id="acqMsgs"></div>
+  <div class="acq-suggs" id="acqSuggs"></div>
+  <div class="acq-inp-row">
+    <input class="acq-inp" id="acqInp" placeholder="Ask about crops, diseases, schemes..." onkeydown="if(event.key==='Enter')acqSend()">
+    <button class="acq-mic" id="acqMic" onclick="acqVoice()" title="Voice input">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
     </button>
     <button class="acq-send" onclick="acqSend()">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="#060a06" stroke-width="2.5" width="15" height="15"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
     </button>
   </div>
 </div>
+
 <script>
-(function(){
-  const SUGG_EN=['Best crops for my soil?','Rice disease treatment','When to sell wheat?','PM-KISAN scheme','Irrigation tips'];
-  const SUGG_TA=['என் மண்ணுக்கு சிறந்த பயிர்கள்?','நெல் நோய் சிகிச்சை','கோதுமை எப்போது விற்கலாம்?','PM-KISAN திட்டம்','நீர்ப்பாசன குறிப்புகள்'];
-  const fab=document.getElementById('acqFab'),win=document.getElementById('acqWindow'),msgs=document.getElementById('acqMessages'),inp=document.getElementById('acqInput');
-  let history=[],inited=false,isListening=false,recognition=null;
-  fab.addEventListener('click',function(){this.classList.toggle('open');win.classList.toggle('open');if(win.classList.contains('open')){inp.focus();if(!inited){inited=true;renderSugg();setTimeout(()=>addMsg((function(){
-  var GREET={
-    en:function(n){return '👋 Hello'+(n?' '+n:'')+', I am AcqireAI — your smart farming assistant. Ask me about crops, diseases, market prices, government schemes or any farming question!';},
-    ta:function(n){return '👋 வணக்கம்'+(n?' '+n+' ஐயா':'')+', நான் AcqireAI — உங்கள் விவசாய நிபுணர். பயிர்கள், நோய்கள், சந்தை விலைகள் பற்றி கேளுங்கள்!';},
-    hi:function(n){return '👋 नमस्ते'+(n?' '+n:'')+', मैं AcqireAI हूँ — आपका कृषि सहायक। फसलों, बीमारियों, बाज़ार के बारे में पूछें!';},
-    te:function(n){return '👋 నమస్కారం'+(n?' '+n:'')+', నేను AcqireAI — మీ వ్యవసాయ సహాయకుడు. పంటలు, వ్యాధులు, ధరల గురించి అడగండి!';},
-    kn:function(n){return '👋 ನಮಸ್ಕಾರ'+(n?' '+n:'')+', ನಾನು AcqireAI — ನಿಮ್ಮ ಕೃಷಿ ಸಹಾಯಕ. ಬೆಳೆ, ರೋಗ, ಬೆಲೆ ಬಗ್ಗೆ ಕೇಳಿ!';},
-    ml:function(n){return '👋 നമസ്കാരം'+(n?' '+n:'')+', ഞാൻ AcqireAI — നിങ്ങളുടെ കൃഷി സഹായി. വിളകൾ, രോഗങ്ങൾ, വിലകൾ ചോദിക്കൂ!';},
-    mr:function(n){return '👋 नमस्कार'+(n?' '+n:'')+', मी AcqireAI — तुमचा शेती सहाय्यक. पिके, रोग, बाजारभाव याबद्दल विचारा!';},
-    gu:function(n){return '👋 નમસ્તે'+(n?' '+n+' ભાઈ':'')+', હું AcqireAI — તમારો ખેતી સહાયક. પાક, રોગ, ભાવ વિશે પૂછો!';},
-    pa:function(n){return '👋 ਸਤ ਸ੍ਰੀ ਅਕਾਲ'+(n?' '+n+' ਜੀ':'')+', ਮੈਂ AcqireAI — ਤੁਹਾਡਾ ਖੇਤੀ ਸਹਾਇਕ। ਫ਼ਸਲਾਂ, ਬਿਮਾਰੀਆਂ, ਭਾਅ ਬਾਰੇ ਪੁੱਛੋ!';},
-    bn:function(n){return '👋 নমস্কার'+(n?' '+n+' ভাই':'')+', আমি AcqireAI — আপনার কৃষি সহকারী। ফসল, রোগ, বাজার সম্পর্কে জিজ্ঞেস করুন!';}
+(function () {
+  var SUGG_EN = ['Best crops for my soil?','Rice disease treatment','When to sell wheat?','PM-KISAN scheme','Irrigation tips'];
+  var SUGG_TA = ['என் மண்ணுக்கு பயிர்கள்?','நெல் நோய் சிகிச்சை','கோதுமை விற்கும் நேரம்?','PM-KISAN திட்டம்','நீர்ப்பாசன குறிப்புகள்'];
+
+  var fab    = document.getElementById('acqFab');
+  var win    = document.getElementById('acqWin');
+  var msgs   = document.getElementById('acqMsgs');
+  var inp    = document.getElementById('acqInp');
+  var suggEl = document.getElementById('acqSuggs');
+  var lbEl   = document.getElementById('acqLb');
+
+  var hist        = [];
+  var inited      = false;
+  var isListening = false;
+  var recog       = null;
+
+  function getLang() { return localStorage.getItem('sf_lang') || 'en'; }
+  lbEl.textContent = getLang() === 'ta' ? 'தமிழ்' : 'EN';
+
+  window.acqSwLang = function () {
+    var next = getLang() === 'ta' ? 'en' : 'ta';
+    localStorage.setItem('sf_lang', next);
+    lbEl.textContent = next === 'ta' ? 'தமிழ்' : 'EN';
+    inp.placeholder  = next === 'ta' ? 'பயிர்கள், நோய்கள் பற்றி கேளுங்கள்...' : 'Ask about crops, diseases, schemes...';
+    renderSugg();
   };
-  var l=localStorage.getItem('sf_lang')||'en';
-  var fn=GREET[l]||GREET['en'];
-  return fn(window.SF_FARMER_NAME||null);
-})(),'bot'),500);};}});
-  function lang(){return localStorage.getItem('sf_lang')||'en';}
-  window.acqToggleLang=function(){const n=lang()==='en'?'ta':'en';localStorage.setItem('sf_lang',n);window.SF_LANG=n;document.getElementById('acqLangBadge').textContent=n==='ta'?'தமிழ்':'EN';document.querySelectorAll('.lang-toggle-btn').forEach(b=>b.textContent=n==='ta'?'EN':'தமிழ்');inp.placeholder=n==='ta'?'பயிர், நோய், திட்டங்கள் பற்றி கேளுங்கள்...':'Ask about crops, diseases, schemes...';renderSugg();};
-  document.addEventListener('sf:langchange',e=>{document.getElementById('acqLangBadge').textContent=e.detail.lang==='ta'?'தமிழ்':'EN';renderSugg();});
-  function renderSugg(){const s=lang()==='ta'?SUGG_TA:SUGG_EN;document.getElementById('acqSuggestions').innerHTML=s.map(x=>`<span class="acq-sugg" onclick="acqSend('${x.replace(/'/g,"\\'")}')">${x}</span>`).join('');}
-  function addMsg(text,role,typing=false){const el=document.createElement('div');el.className='acq-msg '+role;if(typing){el.id='acqTyping';el.innerHTML=`<div class="acq-avatar-sm">A</div><div class="acq-bubble"><div class="acq-typing"><span></span><span></span><span></span></div></div>`;}else{el.innerHTML=`<div class="acq-avatar-sm">${role==='bot'?'A':'👤'}</div><div class="acq-bubble">${text.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
-            .replace(/\[(\w+\.html)\]/g,'<a href="/$1" style="color:var(--g);font-weight:700;text-decoration:underline;text-underline-offset:2px;" onclick="window.location.href=this.href">→ Open $1</a>')
-            .replace(/\n\n/g,'<br><br>').replace(/\n/g,'<br>')}</div>`;}msgs.appendChild(el);msgs.scrollTop=msgs.scrollHeight;return el;}
-  window.acqSend=async function(preset){const text=preset||inp.value.trim();if(!text)return;inp.value='';addMsg(text,'user');document.getElementById('acqSuggestions').innerHTML='';history.push({role:'user',content:text});const typEl=addMsg('','bot',true);const l=lang();const userCtx=window._SF_USER_CONTEXT||'';const sys=`${userCtx?userCtx+'\n\n':''}You are AcqireAI, an expert agricultural AI for SmartFarm AI — India's AI farming platform. ${l==='ta'?'Respond ENTIRELY in Tamil (தமிழ்). Simple Tamil a farmer understands.':'Respond in English.'} Specialize in: crop diseases (Tamil Nadu pesticide brands+doses), soil analysis, market prices, Indian govt schemes (PM-KISAN,PMFBY,KCC), irrigation. Be practical, warm, concise.`;try{const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,history:history.slice(-6),lang:l,farmerName:window.SF_FARMER_NAME||null})});const d=await r.json();const reply=d.reply||'Sorry, could not get a response.';history.push({role:'assistant',content:reply});typEl.remove();addMsg(reply,'bot');}catch(e){typEl.remove();addMsg(l==='ta'?'⚠️ இணைப்பில் சிக்கல். மீண்டும் முயற்சிக்கவும்.':'⚠️ Connection issue. Please try again.','bot');}renderSugg();};
-  window.acqToggleVoice=function(){if(!('webkitSpeechRecognition' in window)&&!('SpeechRecognition' in window)){alert('Voice input needs Chrome browser.');return;}if(isListening){recognition?.stop();return;}const SR=window.SpeechRecognition||window.webkitSpeechRecognition;recognition=new SR();recognition.lang=lang()==='ta'?'ta-IN':'en-IN';recognition.continuous=false;recognition.interimResults=true;recognition.onstart=()=>{isListening=true;document.getElementById('acqMicBtn').classList.add('listening');inp.placeholder=lang()==='ta'?'🎙️ கேட்கிறேன்...':'🎙️ Listening...';};recognition.onresult=e=>{inp.value=Array.from(e.results).map(r=>r[0].transcript).join('');};recognition.onerror=()=>{isListening=false;document.getElementById('acqMicBtn').classList.remove('listening');inp.placeholder=lang()==='ta'?'பயிர், நோய், திட்டங்கள் பற்றி கேளுங்கள்...':'Ask about crops, diseases, schemes...';};recognition.onend=()=>{isListening=false;document.getElementById('acqMicBtn').classList.remove('listening');inp.placeholder=lang()==='ta'?'பயிர், நோய், திட்டங்கள் பற்றி கேளுங்கள்...':'Ask about crops, diseases, schemes...';if(inp.value.trim())acqSend();};recognition.start();};
-  // Sync lang badge on load
-  document.getElementById('acqLangBadge').textContent=lang()==='ta'?'தமிழ்':'EN';
-})();
-</script>
 
-<!-- Google Translate -->
-<div id="google_translate_element"></div>
-<script type="text/javascript">
-function googleTranslateElementInit() {
-  new google.translate.TranslateElement({
-    pageLanguage: 'en',
-    includedLanguages: 'ta,hi,te,kn,ml,mr,gu,pa,bn,or,as,ur,en',
-    layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
-    autoDisplay: false
-  }, 'google_translate_element');
-}
-</script>
-<script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
-
-<script>
-// Custom language switcher UI
-var LANG_OPTIONS = [
-  {code:'en',    name:'English',    native:'English',   flag:'🇬🇧'},
-  {code:'ta',    name:'Tamil',      native:'தமிழ்',      flag:'🇮🇳'},
-  {code:'hi',    name:'Hindi',      native:'हिंदी',       flag:'🇮🇳'},
-  {code:'te',    name:'Telugu',     native:'తెలుగు',     flag:'🇮🇳'},
-  {code:'kn',    name:'Kannada',    native:'ಕನ್ನಡ',      flag:'🇮🇳'},
-  {code:'ml',    name:'Malayalam',  native:'മലയാളം',    flag:'🇮🇳'},
-  {code:'mr',    name:'Marathi',    native:'मराठी',      flag:'🇮🇳'},
-  {code:'gu',    name:'Gujarati',   native:'ગુજરાતી',    flag:'🇮🇳'},
-  {code:'pa',    name:'Punjabi',    native:'ਪੰਜਾਬੀ',     flag:'🇮🇳'},
-  {code:'bn',    name:'Bengali',    native:'বাংলা',      flag:'🇮🇳'},
-];
-
-var currentLang = localStorage.getItem('sf_ui_lang') || 'en';
-
-function buildLangSwitcher(navR) {
-  if (!navR || document.getElementById('sfLangSwitcher')) return;
-
-  var switcher = document.createElement('div');
-  switcher.className = 'lang-switcher';
-  switcher.id = 'sfLangSwitcher';
-
-  var btn = document.createElement('button');
-  btn.className = 'lang-btn nav-ctrl-btn';
-  btn.id = 'langBtnMain';
-  btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 010 20M12 2a15.3 15.3 0 000 20"/></svg>' +
-    '<span id="langBtnLabel">' + getLangLabel(currentLang) + '</span>' +
-    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="10" height="10"><polyline points="6 9 12 15 18 9"/></svg>';
-
-  var dropdown = document.createElement('div');
-  dropdown.className = 'lang-dropdown';
-  dropdown.id = 'langDropdown';
-
-  LANG_OPTIONS.forEach(function(lang) {
-    var opt = document.createElement('button');
-    opt.className = 'lang-option' + (lang.code === currentLang ? ' active' : '');
-    opt.setAttribute('data-lang', lang.code);
-    opt.innerHTML = '<span class="lang-flag">' + lang.flag + '</span>' +
-      '<span class="lang-name">' + lang.name + '</span>' +
-      '<span class="lang-native">' + lang.native + '</span>';
-    opt.addEventListener('click', function() {
-      selectLanguage(lang.code);
-      dropdown.classList.remove('open');
+  function renderSugg() {
+    var list = getLang() === 'ta' ? SUGG_TA : SUGG_EN;
+    suggEl.innerHTML = list.map(function (x) {
+      return '<span class="acq-sugg" data-msg="' + x.replace(/"/g, '&quot;') + '">' + x + '</span>';
+    }).join('');
+    suggEl.querySelectorAll('.acq-sugg').forEach(function (el) {
+      el.addEventListener('click', function () { acqSend(this.getAttribute('data-msg')); });
     });
-    dropdown.appendChild(opt);
-  });
-
-  switcher.appendChild(btn);
-  switcher.appendChild(dropdown);
-
-  btn.addEventListener('click', function(e) {
-    e.stopPropagation();
-    dropdown.classList.toggle('open');
-  });
-  document.addEventListener('click', function() {
-    dropdown.classList.remove('open');
-  });
-
-  // Insert before hamburger
-  var hburg = navR.querySelector('.hburg');
-  if (hburg) navR.insertBefore(switcher, hburg);
-  else navR.appendChild(switcher);
-}
-
-function getLangLabel(code) {
-  var lang = LANG_OPTIONS.find(function(l) { return l.code === code; });
-  return lang ? lang.flag + ' ' + lang.native : '🌐 EN';
-}
-
-function selectLanguage(langCode) {
-  currentLang = langCode;
-  localStorage.setItem('sf_ui_lang', langCode);
-
-  // Update button label
-  var lbl = document.getElementById('langBtnLabel');
-  if (lbl) lbl.textContent = getLangLabel(langCode);
-
-  // Update active state
-  document.querySelectorAll('.lang-option').forEach(function(opt) {
-    opt.classList.toggle('active', opt.getAttribute('data-lang') === langCode);
-  });
-
-  // Also update AcqireAI chatbot language
-  if (typeof window.SF_LANG !== 'undefined') {
-    window.SF_LANG = langCode === 'ta' ? 'ta' : 'en';
-    localStorage.setItem('sf_lang', window.SF_LANG);
-    var badge = document.getElementById('acqLangBadge');
-    if (badge) badge.textContent = window.SF_LANG === 'ta' ? 'தமிழ்' : 'EN';
   }
 
-  if (langCode === 'en') {
-    // Restore original English
-    restoreEnglish();
-  } else {
-    // Trigger Google Translate
-    triggerGoogleTranslate(langCode);
-  }
-}
-
-function triggerGoogleTranslate(langCode) {
-  // Wait for Google Translate to be ready
-  var attempts = 0;
-  var interval = setInterval(function() {
-    attempts++;
-    var select = document.querySelector('.goog-te-combo');
-    if (select) {
-      clearInterval(interval);
-      select.value = langCode;
-      select.dispatchEvent(new Event('change'));
-    } else if (attempts > 30) {
-      clearInterval(interval);
-      // Fallback: direct cookie method
-      document.cookie = 'googtrans=/en/' + langCode + '; path=/; domain=' + window.location.hostname;
-      document.cookie = 'googtrans=/en/' + langCode + '; path=/';
-      location.reload();
+  function addMsg(text, role, typing) {
+    var el = document.createElement('div');
+    el.className = 'acq-msg ' + role;
+    if (typing) {
+      el.id = 'acqTyping';
+      el.innerHTML = '<div class="acq-avs">A</div><div class="acq-bub"><div class="acq-typing"><span></span><span></span><span></span></div></div>';
+    } else {
+      var fmt = text
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\[weather\.html\]/g, '<a href="weather.html" style="color:#3dba72;font-weight:700;text-decoration:underline;text-underline-offset:2px;">→ Weather Module</a>')
+        .replace(/\[soil\.html\]/g, '<a href="soil.html" style="color:#3dba72;font-weight:700;text-decoration:underline;text-underline-offset:2px;">→ Soil Analysis</a>')
+        .replace(/\[disease\.html\]/g, '<a href="disease.html" style="color:#3dba72;font-weight:700;text-decoration:underline;text-underline-offset:2px;">→ Disease Detection</a>')
+        .replace(/\[market\.html\]/g, '<a href="market.html" style="color:#3dba72;font-weight:700;text-decoration:underline;text-underline-offset:2px;">→ Market Prices</a>')
+        .replace(/\[harvest\.html\]/g, '<a href="harvest.html" style="color:#3dba72;font-weight:700;text-decoration:underline;text-underline-offset:2px;">→ Harvest Predictor</a>')
+        .replace(/\[community\.html\]/g, '<a href="community.html" style="color:#3dba72;font-weight:700;text-decoration:underline;text-underline-offset:2px;">→ Community</a>')
+        .replace(/\n\n/g, '<br><br>')
+        .replace(/\n/g, '<br>');
+      el.innerHTML = '<div class="acq-avs">' + (role === 'bot' ? 'A' : '&#x1F464;') + '</div><div class="acq-bub">' + fmt + '</div>';
     }
-  }, 200);
-}
-
-function restoreEnglish() {
-  // Clear Google Translate
-  document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=' + window.location.hostname;
-  document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/';
-  document.cookie = 'googtrans=/en/en; path=/; domain=' + window.location.hostname;
-  document.cookie = 'googtrans=/en/en; path=/';
-
-  var select = document.querySelector('.goog-te-combo');
-  if (select) {
-    select.value = 'en';
-    select.dispatchEvent(new Event('change'));
-  } else {
-    location.reload();
-  }
-}
-
-// Auto-apply saved language on page load
-document.addEventListener('DOMContentLoaded', function() {
-  // Build the switcher
-  var navR = document.querySelector('.nav-r');
-  if (navR) buildLangSwitcher(navR);
-
-  // Apply saved language after Google Translate loads
-  if (currentLang && currentLang !== 'en') {
-    setTimeout(function() {
-      triggerGoogleTranslate(currentLang);
-    }, 1500);
+    msgs.appendChild(el);
+    msgs.scrollTop = msgs.scrollHeight;
+    return el;
   }
 
-  // Apply saved Google Translate cookie
-  var savedLang = localStorage.getItem('sf_ui_lang');
-  if (savedLang && savedLang !== 'en') {
-    var existingCookie = document.cookie.indexOf('googtrans');
-    if (existingCookie === -1) {
-      document.cookie = 'googtrans=/en/' + savedLang + '; path=/';
+  fab.addEventListener('click', function () {
+    this.classList.toggle('open');
+    win.classList.toggle('open');
+    if (win.classList.contains('open')) {
+      inp.focus();
+      if (!inited) {
+        inited = true;
+        renderSugg();
+        var name = window.SF_FARMER_NAME || '';
+        var l    = getLang();
+        var greeting = l === 'ta'
+          ? '&#x1F44B; வணக்கம்' + (name ? ' ' + name + ' ஐயா!' : '!') + ' நான் AcqireAI &#x2014; உங்கள் விவசாய நிபுணர். பயிர்கள், நோய்கள், திட்டங்கள் பற்றி கேளுங்கள்!'
+          : '&#x1F44B; Hello' + (name ? ' ' + name + ' sir!' : '!') + ' I am AcqireAI &#x2014; your smart farming assistant. Ask about crops, diseases, market prices or schemes!';
+        setTimeout(function () { addMsg(greeting, 'bot'); }, 400);
+      }
     }
-  }
-});
-</script>
-<script>
-(function(){
-  var u=null;try{u=JSON.parse(localStorage.getItem('sf_user')||'null');}catch(e){}
-  var t=localStorage.getItem('sf_token');
-  var navR=document.querySelector('.nav-r');
-  if(!navR)return;
-  navR.querySelectorAll('.npo,.nps').forEach(function(el){el.remove();});
-  if(u&&t){
-    var in2=u.name.split(' ').map(function(n){return n[0];}).join('').slice(0,2).toUpperCase();
-    var chip=document.createElement('div');
-    chip.id='sfChip';chip.style.cssText='display:flex;align-items:center;gap:8px;position:relative;';
-    var cl=document.createElement('a');cl.href='community.html';
-    cl.style.cssText='display:inline-flex;align-items:center;gap:6px;padding:6px 13px;border-radius:20px;border:1px solid rgba(61,186,114,.22);background:rgba(61,186,114,.07);color:#3dba72;font-size:.77rem;font-weight:600;text-decoration:none;';
-    cl.textContent='Community';
-    var ub=document.createElement('button');ub.id='sfUBtn';
-    ub.style.cssText='display:flex;align-items:center;gap:7px;padding:5px 12px 5px 6px;border-radius:20px;border:1px solid rgba(232,237,229,.14);background:rgba(255,255,255,.05);cursor:pointer;font-family:Outfit,sans-serif;font-size:.81rem;color:var(--tx);';
-    if(u.avatar){var img=document.createElement('img');img.src=u.avatar;img.style.cssText='width:26px;height:26px;border-radius:50%;object-fit:cover;';ub.appendChild(img);}
-    else{var av=document.createElement('div');av.style.cssText='width:26px;height:26px;border-radius:50%;background:#3dba72;color:#060a06;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;';av.textContent=in2;ub.appendChild(av);}
-    var ns=document.createElement('span');ns.textContent=u.name.split(' ')[0];ub.appendChild(ns);
-    var dr=document.createElement('div');dr.id='sfDrop';
-    dr.style.cssText='display:none;position:absolute;top:calc(100% + 8px);right:0;background:#111612;border:1px solid rgba(232,237,229,.14);border-radius:14px;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,.5);min-width:180px;z-index:1000;';
-    var di=document.createElement('div');di.style.cssText='padding:12px 15px;border-bottom:1px solid rgba(232,237,229,.07);';
-    di.innerHTML='<div style="font-size:.84rem;font-weight:600;color:#e8ede5;">'+u.name+'</div><div style="font-size:.72rem;color:#7a8c7a;margin-top:2px;">'+(u.state||'Tamil Nadu')+'</div>';
-    var ca=document.createElement('a');ca.href='community.html';ca.textContent='Community';
-    ca.style.cssText='display:flex;padding:11px 15px;color:#e8ede5;text-decoration:none;font-size:.82rem;';
-    ca.onmouseover=function(){this.style.background='rgba(61,186,114,.08)';};ca.onmouseout=function(){this.style.background='none';};
-    var lb=document.createElement('button');lb.textContent='Logout';
-    lb.style.cssText='display:flex;padding:11px 15px;color:#f87171;background:none;border:none;cursor:pointer;font-family:Outfit,sans-serif;font-size:.82rem;width:100%;text-align:left;';
-    lb.onmouseover=function(){this.style.background='rgba(248,113,113,.07)';};lb.onmouseout=function(){this.style.background='none';};
-    lb.onclick=function(){localStorage.removeItem('sf_token');localStorage.removeItem('sf_user');window.location.href='login.html';};
-    dr.appendChild(di);dr.appendChild(ca);dr.appendChild(lb);
-    ub.onclick=function(){var d=document.getElementById('sfDrop');if(d)d.style.display=d.style.display==='none'?'block':'none';};
-    document.addEventListener('click',function(e){var c=document.getElementById('sfChip');var d=document.getElementById('sfDrop');if(c&&d&&!c.contains(e.target))d.style.display='none';});
-    chip.appendChild(cl);chip.appendChild(ub);chip.appendChild(dr);
-    var hb=navR.querySelector('.hburg');if(hb)navR.insertBefore(chip,hb);else navR.appendChild(chip);
-  } else {
-    var lb2=document.createElement('a');lb2.href='login.html';lb2.className='npill nps';lb2.style.cssText='font-size:.79rem;padding:7px 18px;';lb2.textContent='Login';
-    var hb2=navR.querySelector('.hburg');if(hb2)navR.insertBefore(lb2,hb2);else navR.appendChild(lb2);
-  }
-  window.SF_FARMER_NAME=u?u.name.split(' ')[0]:null;
-  window._SF_USER_CONTEXT=(function(){
-    if(!u) return '';
-    var fn=u.name.split(' ')[0];
-    var g=u.gender||null;
-    var address = g==='female' ? fn+' madam' : g==='male' ? fn+' sir' : fn;
-    return 'Farmer: '+u.name+'. Address as "'+address+'". Gender: '+(g||'not specified')+'. State: '+(u.state||'Tamil Nadu')+(u.village?', '+u.village:'')+'. Crops: '+((u.crops||[]).join(', ')||'not specified')+'.';
-  })();
+  });
+
+  window.acqSend = async function (preset) {
+    var text = preset || inp.value.trim();
+    if (!text) return;
+    inp.value = '';
+    addMsg(text, 'user');
+    suggEl.innerHTML = '';
+    hist.push({ role: 'user', content: text });
+    var typEl = addMsg('', 'bot', true);
+    var l   = getLang();
+    var ctx = window._SF_USER_CONTEXT || '';
+    var sys = (ctx ? ctx + '\n\n' : '') +
+      'You are AcqireAI, an expert agricultural AI for SmartFarm AI — India\'s AI farming platform. ' +
+      (l === 'ta' ? 'Respond ENTIRELY in Tamil. Simple Tamil a farmer understands.' : 'Respond in English.') +
+      ' Specialise in: crop diseases (Tamil Nadu pesticide brands+doses), soil analysis, market prices, Indian govt schemes (PM-KISAN,PMFBY,KCC), irrigation. Be practical, warm, concise (2-3 paragraphs).' +
+      ' End soil answers with: Visit [soil.html].' +
+      ' End disease answers with: Visit [disease.html].' +
+      ' End market answers with: Visit [market.html].' +
+      ' End harvest answers with: Visit [harvest.html].';
+    try {
+      var r = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: text, history: hist.slice(-6), lang: l, system: sys })
+      });
+      var d    = await r.json();
+      var rep  = d.reply || 'Sorry, could not get a response.';
+      hist.push({ role: 'assistant', content: rep });
+      var te = document.getElementById('acqTyping');
+      if (te) te.remove();
+      var linked = rep.replace(/\[([\w.-]+\.html)\]/g, '<a href="/$1" style="color:#3dba72;font-weight:700;">&rarr; Open here</a>');
+      addMsg(linked, 'bot');
+    } catch (e) {
+      var te2 = document.getElementById('acqTyping');
+      if (te2) te2.remove();
+      addMsg(l === 'ta' ? '&#x26A0;&#xFE0F; இணைப்பில் சிக்கல். மீண்டும் முயற்சிக்கவும்.' : '&#x26A0;&#xFE0F; Connection issue. Please try again.', 'bot');
+    }
+    renderSugg();
+  };
+
+  window.acqVoice = function () {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+      alert('Voice input requires Chrome browser.'); return;
+    }
+    if (isListening) { if (recog) recog.stop(); return; }
+    var SR  = window.SpeechRecognition || window.webkitSpeechRecognition;
+    recog   = new SR();
+    recog.lang           = getLang() === 'ta' ? 'ta-IN' : 'en-IN';
+    recog.continuous     = false;
+    recog.interimResults = true;
+    recog.onstart  = function () { isListening = true; document.getElementById('acqMic').classList.add('listening'); inp.placeholder = '&#x1F3A4; Listening...'; };
+    recog.onresult = function (e) { inp.value = Array.from(e.results).map(function (r) { return r[0].transcript; }).join(''); };
+    recog.onend    = function () {
+      isListening = false;
+      document.getElementById('acqMic').classList.remove('listening');
+      inp.placeholder = getLang() === 'ta' ? 'பயிர்கள், நோய்கள் பற்றி கேளுங்கள்...' : 'Ask about crops, diseases, schemes...';
+      if (inp.value.trim()) acqSend();
+    };
+    recog.start();
+  };
 })();
 </script>
+
+<!-- Auth Nav -->
+<script>
+(function () {
+  var u = null;
+  try { u = JSON.parse(localStorage.getItem('sf_user') || 'null'); } catch (e) {}
+  var t    = localStorage.getItem('sf_token');
+  var navR = document.querySelector('.nav-r');
+  if (!navR) return;
+
+  navR.querySelectorAll('.npo, .nps').forEach(function (el) { el.remove(); });
+
+  if (u && t) {
+    var initials = u.name.split(' ').map(function (n) { return n[0]; }).join('').slice(0, 2).toUpperCase();
+    var chip = document.createElement('div');
+    chip.id = 'sfChip';
+    chip.style.cssText = 'display:flex;align-items:center;gap:8px;position:relative;';
+
+    var cl = document.createElement('a');
+    cl.href = 'community.html';
+    cl.style.cssText = 'display:inline-flex;align-items:center;gap:6px;padding:6px 13px;border-radius:20px;border:1px solid rgba(61,186,114,.22);background:rgba(61,186,114,.07);color:#3dba72;font-size:.77rem;font-weight:600;text-decoration:none;transition:all .2s;';
+    cl.textContent = 'Community';
+
+    var ub = document.createElement('button');
+    ub.id = 'sfUBtn';
+    ub.style.cssText = 'display:flex;align-items:center;gap:7px;padding:5px 12px 5px 6px;border-radius:20px;border:1px solid rgba(232,237,229,.14);background:rgba(255,255,255,.05);cursor:pointer;font-family:Outfit,sans-serif;font-size:.81rem;font-weight:500;color:var(--tx);';
+
+    if (u.avatar) {
+      var img = document.createElement('img');
+      img.src = u.avatar;
+      img.style.cssText = 'width:26px;height:26px;border-radius:50%;object-fit:cover;border:2px solid rgba(61,186,114,.4);';
+      ub.appendChild(img);
+    } else {
+      var av = document.createElement('div');
+      av.style.cssText = 'width:26px;height:26px;border-radius:50%;background:#3dba72;color:#060a06;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;';
+      av.textContent = initials;
+      ub.appendChild(av);
+    }
+    var ns = document.createElement('span');
+    ns.textContent = u.name.split(' ')[0];
+    ub.appendChild(ns);
+
+    var dr = document.createElement('div');
+    dr.id = 'sfDrop';
+    dr.style.cssText = 'display:none;position:absolute;top:calc(100% + 8px);right:0;background:#111612;border:1px solid rgba(232,237,229,.14);border-radius:14px;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,.5);min-width:180px;z-index:1000;';
+
+    var di = document.createElement('div');
+    di.style.cssText = 'padding:12px 15px;border-bottom:1px solid rgba(232,237,229,.07);';
+    di.innerHTML = '<div style="font-size:.84rem;font-weight:600;color:#e8ede5;">' + u.name + '</div><div style="font-size:.72rem;color:#7a8c7a;margin-top:2px;">' + (u.state || 'Tamil Nadu') + '</div>';
+
+    var ca = document.createElement('a');
+    ca.href = 'community.html';
+    ca.textContent = 'Community';
+    ca.style.cssText = 'display:flex;padding:11px 15px;color:#e8ede5;text-decoration:none;font-size:.82rem;transition:background .2s;';
+    ca.onmouseover = function () { this.style.background = 'rgba(61,186,114,.08)'; };
+    ca.onmouseout  = function () { this.style.background = 'none'; };
+
+    var lb = document.createElement('button');
+    lb.textContent = 'Logout';
+    lb.style.cssText = 'display:flex;padding:11px 15px;color:#f87171;background:none;border:none;cursor:pointer;font-family:Outfit,sans-serif;font-size:.82rem;width:100%;text-align:left;transition:background .2s;';
+    lb.onmouseover = function () { this.style.background = 'rgba(248,113,113,.07)'; };
+    lb.onmouseout  = function () { this.style.background = 'none'; };
+    lb.onclick     = function () { localStorage.removeItem('sf_token'); localStorage.removeItem('sf_user'); window.location.href = 'login.html'; };
+
+    dr.appendChild(di); dr.appendChild(ca); dr.appendChild(lb);
+
+    ub.onclick = function () {
+      var d = document.getElementById('sfDrop');
+      if (d) d.style.display = d.style.display === 'none' ? 'block' : 'none';
+    };
+
+    document.addEventListener('click', function (e) {
+      var c = document.getElementById('sfChip');
+      var d = document.getElementById('sfDrop');
+      if (c && d && !c.contains(e.target)) d.style.display = 'none';
+    });
+
+    chip.appendChild(cl); chip.appendChild(ub); chip.appendChild(dr);
+    var hb = navR.querySelector('.hburg');
+    if (hb) navR.insertBefore(chip, hb); else navR.appendChild(chip);
+
+  } else {
+    var lb2 = document.createElement('a');
+    lb2.href = 'login.html';
+    lb2.className = 'npill nps';
+    lb2.style.cssText = 'font-size:.79rem;padding:7px 18px;';
+    lb2.textContent = 'Login';
+    var hb2 = navR.querySelector('.hburg');
+    if (hb2) navR.insertBefore(lb2, hb2); else navR.appendChild(lb2);
+  }
+
+  window.SF_FARMER_NAME    = u ? u.name.split(' ')[0] : null;
+  window._SF_USER_CONTEXT  = u
+    ? 'The farmer name is ' + u.name + '. Always address them as "' + u.name.split(' ')[0] + ' sir". Farm in ' + (u.state || 'Tamil Nadu') + (u.village ? ', ' + u.village : '') + '. Crops: ' + ((u.crops || []).join(', ') || 'not specified') + '.'
+    : '';
+})();
+</script>
+
 </body>
 </html>
