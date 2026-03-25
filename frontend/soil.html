@@ -1007,10 +1007,7 @@ document.addEventListener('DOMContentLoaded', function() {
     var in2=u.name.split(' ').map(function(n){return n[0];}).join('').slice(0,2).toUpperCase();
     var chip=document.createElement('div');
     chip.id='sfChip';chip.style.cssText='display:flex;align-items:center;gap:8px;position:relative;';
-    var cl=document.createElement('a');cl.href='community.html';
-    cl.style.cssText='display:inline-flex;align-items:center;gap:6px;padding:6px 13px;border-radius:20px;border:1px solid rgba(61,186,114,.22);background:rgba(61,186,114,.07);color:#3dba72;font-size:.77rem;font-weight:600;text-decoration:none;';
-    cl.textContent='Community';
-    var ub=document.createElement('button');ub.id='sfUBtn';
+        var ub=document.createElement('button');ub.id='sfUBtn';
     ub.style.cssText='display:flex;align-items:center;gap:7px;padding:5px 12px 5px 6px;border-radius:20px;border:1px solid rgba(232,237,229,.14);background:rgba(255,255,255,.05);cursor:pointer;font-family:Outfit,sans-serif;font-size:.81rem;color:var(--tx);';
     if(u.avatar){var img=document.createElement('img');img.src=u.avatar;img.style.cssText='width:26px;height:26px;border-radius:50%;object-fit:cover;';ub.appendChild(img);}
     else{var av=document.createElement('div');av.style.cssText='width:26px;height:26px;border-radius:50%;background:#3dba72;color:#060a06;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;';av.textContent=in2;ub.appendChild(av);}
@@ -1029,7 +1026,7 @@ document.addEventListener('DOMContentLoaded', function() {
     dr.appendChild(di);dr.appendChild(ca);dr.appendChild(lb);
     ub.onclick=function(){var d=document.getElementById('sfDrop');if(d)d.style.display=d.style.display==='none'?'block':'none';};
     document.addEventListener('click',function(e){var c=document.getElementById('sfChip');var d=document.getElementById('sfDrop');if(c&&d&&!c.contains(e.target))d.style.display='none';});
-    chip.appendChild(cl);chip.appendChild(ub);chip.appendChild(dr);
+    chip.appendChild(ub);chip.appendChild(dr);
     var hb=navR.querySelector('.hburg');if(hb)navR.insertBefore(chip,hb);else navR.appendChild(chip);
   } else {
     var lb2=document.createElement('a');lb2.href='login.html';lb2.className='npill nps';lb2.style.cssText='font-size:.79rem;padding:7px 18px;';lb2.textContent='Login';
